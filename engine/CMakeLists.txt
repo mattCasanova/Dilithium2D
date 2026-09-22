@@ -1,4 +1,7 @@
 add_library(dilithium STATIC
+    src/core/Assert.cpp
+    src/core/Color.cpp
+    src/core/Log.cpp
     src/core/Version.cpp)
 add_library(dilithium::dilithium ALIAS dilithium)
 
