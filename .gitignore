@@ -57,7 +57,7 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
 
 # Thumbnails
 ._*
@@ -557,3 +557,18 @@ FodyWeavers.xsd
 build/
 # clangd index
 .cache/
+# Per-user CMake presets (CMake says never commit this file)
+CMakeUserPresets.json
+# Default build folders of other IDEs: Visual Studio, CLion
+out/
+cmake-build-*/
+.idea/
+# clangd users often link this into the root
+/compile_commands.json
+# What CMake leaves behind before our in-source guard stops it
+/CMakeCache.txt
+/CMakeFiles/
+# Android shell (Gradle + NDK)
+.gradle/
+.cxx/
+local.properties
