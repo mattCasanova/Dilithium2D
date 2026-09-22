@@ -1,0 +1,5 @@
+add_executable(d01_clear_screen main.cpp)
+target_link_libraries(d01_clear_screen PRIVATE dilithium::dilithium)
+
+dilithium_set_warnings(d01_clear_screen)
+dilithium_enable_sanitizers(d01_clear_screen)

@@ -1,0 +1,26 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++20
+IndentWidth: 4
+ColumnLimit: 120
+AccessModifierOffset: -4
+NamespaceIndentation: None
+FixNamespaceComments: true
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakTemplateDeclarations: Yes
+InsertNewlineAtEOF: true
+# Our own headers first, then third-party, then the standard library.
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"'
+    Priority: 1
+  - Regex: '^<dilithium/'
+    Priority: 2
+  - Regex: '^<(SDL3|vulkan|vk_mem_alloc|glm|nlohmann|catch2)/'
+    Priority: 3
+  - Regex: '^<'
+    Priority: 4
