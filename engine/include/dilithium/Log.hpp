@@ -12,14 +12,15 @@ enum class LogLevel { Debug, Info, Warning, Error };
 /// state, and each line goes out in one write, so lines from different threads never interleave.
 void writeLog(LogLevel level, std::string_view message);
 
-/// Debug builds only (Mach 5's `M5DEBUG_PRINT`): release builds skip the formatting and the write. The arguments
-/// are still evaluated, so keep them cheap.
+namespace detail {
+
+/// Behind `CAPTAINS_LOG`. Call the macro, not this.
 template <typename... Args>
-void logDebug([[maybe_unused]] std::format_string<Args...> format, [[maybe_unused]] Args&&... args) {
-#if defined(DILITHIUM_DEBUG)
+void logDebug(std::format_string<Args...> format, Args&&... args) {
     writeLog(LogLevel::Debug, std::format(format, std::forward<Args>(args)...));
-#endif
 }
+
+} // namespace detail
 
 template <typename... Args>
 void logInfo(std::format_string<Args...> format, Args&&... args) {
@@ -37,3 +38,12 @@ void logError(std::format_string<Args...> format, Args&&... args) {
 }
 
 } // namespace dilithium
+
+/// A log line for debug builds only (Mach 5's `M5DEBUG_PRINT`), printed as `Captain's log: …`. Release still
+/// compiles the call, so the format string is checked and anything the arguments name counts as used, but never
+/// runs it: an expensive argument costs nothing outside debug.
+#if defined(DILITHIUM_DEBUG)
+#define CAPTAINS_LOG(...) ::dilithium::detail::logDebug(__VA_ARGS__)
+#else
+#define CAPTAINS_LOG(...) static_cast<void>(false && (::dilithium::detail::logDebug(__VA_ARGS__), true))
+#endif
