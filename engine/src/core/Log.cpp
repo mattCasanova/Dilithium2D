@@ -1,6 +1,6 @@
 #include "core/LogFormat.hpp"
 
-#include <dilithium/Assert.hpp>
+#include <dilithium/core/Assert.hpp>
 
 #include <cstdio>
 

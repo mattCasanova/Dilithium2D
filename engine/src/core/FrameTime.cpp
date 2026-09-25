@@ -1,6 +1,6 @@
 #include "core/FrameTime.hpp"
 
-#include <dilithium/Assert.hpp>
+#include <dilithium/core/Assert.hpp>
 
 #include <algorithm>
 

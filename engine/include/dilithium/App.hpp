@@ -1,7 +1,7 @@
 #pragma once
 
-#include <dilithium/Color.hpp>
-#include <dilithium/NonCopyable.hpp>
+#include <dilithium/core/NonCopyable.hpp>
+#include <dilithium/gfx/Color.hpp>
 
 #include <memory>
 #include <string>

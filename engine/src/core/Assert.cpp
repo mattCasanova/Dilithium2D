@@ -1,5 +1,5 @@
-#include <dilithium/Assert.hpp>
-#include <dilithium/Log.hpp>
+#include <dilithium/core/Assert.hpp>
+#include <dilithium/core/Log.hpp>
 
 #include <cstdlib>
 #include <format>

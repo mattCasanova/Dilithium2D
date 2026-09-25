@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dilithium/Log.hpp>
+#include <dilithium/core/Log.hpp>
 
 #include <string>
 #include <string_view>

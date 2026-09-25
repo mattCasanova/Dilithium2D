@@ -1,12 +1,6 @@
-add_executable(dilithium_tests
-    AssertTests.cpp
-    ColorTests.cpp
-    DeviceChoicesTests.cpp
-    FrameTimeTests.cpp
-    LogTests.cpp
-    NonCopyableTests.cpp
-    SwapchainChoicesTests.cpp
-    VersionTests.cpp)
+# Every .cpp under tests/ is a test file, so adding one needs no edit here.
+file(GLOB_RECURSE DILITHIUM_TEST_SOURCES CONFIGURE_DEPENDS *.cpp)
+add_executable(dilithium_tests ${DILITHIUM_TEST_SOURCES})
 # Vulkan::Headers, not Vulkan::Vulkan: the choice tests use Vulkan's structs but never call Vulkan or need a GPU.
 target_link_libraries(dilithium_tests PRIVATE
     dilithium::dilithium

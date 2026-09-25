@@ -1,4 +1,4 @@
-#include <dilithium/Version.hpp>
+#include <dilithium/core/Version.hpp>
 
 namespace dilithium {
 

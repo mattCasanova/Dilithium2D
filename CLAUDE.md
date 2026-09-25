@@ -11,9 +11,12 @@ CMakeLists.txt  CMakePresets.json  .clang-format
 cmake/          Dependencies.cmake  Warnings.cmake  Sanitizers.cmake
 engine/
   include/dilithium/   public headers: everything a game may include. No SDL, Vulkan, VMA, glm or JSON types
-  src/                 private: core/, gfx/ (Vulkan), platform/ (SDL: Window, and SdlMain.cpp, the dilithium::main target)
+    App.hpp            the one header every program starts from
+    core/  gfx/        one folder per area, the same names in src/ and tests/
+  src/                 private: core/, gfx/ (Vulkan), platform/ (SDL). Every .cpp here is the library (globbed)
+  main/                SdlMain.cpp: the dilithium::main target, kept outside src/ so the library glob skips it
 demos/d01_clear_screen/
-tests/                 Catch2 unit tests, one file per unit
+tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)
 shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 ```
 
@@ -27,12 +30,13 @@ shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 - **Every dependency is `PRIVATE` and wrapped.** No public header includes a third-party header.
 - Vulkan through the C API (`vulkan/vulkan.h`), wrapped in small move-only RAII classes. Members are declared in creation order, so they destruct in the right order.
 - `KHAAAN(expr)` checks a `VkResult`; `ILLOGICAL("…")` marks branches that cannot happen (debug: log + abort; release: throws `std::logic_error`). `LOGICAL(condition, "…")` checks an invariant in debug only; release never runs the condition, so never put a side effect in it. No silent `default:` or fallback on unexpected state.
-- Log with `logInfo` / `logWarning` / `logError` (`std::format` strings) from `<dilithium/Log.hpp>`, and `CAPTAINS_LOG(…)` for a line that exists in debug builds only. No `std::cout` in engine code.
+- Log with `logInfo` / `logWarning` / `logError` (`std::format` strings) from `<dilithium/core/Log.hpp>`, and `CAPTAINS_LOG(…)` for a line that exists in debug builds only. No `std::cout` in engine code.
 - Tests may include private headers (`engine/src` is on their include path); keep pure helpers there, out of the public API.
 - Return values or `std::optional`, no out-parameters in our own APIs.
 - Namespace `dilithium`. `#pragma once`. `PascalCase` types, `camelCase` functions and variables, `m_` prefix on private members. 4-space indent, 120 columns; run `clang-format`.
 - Strict warnings as errors and ASan + UBSan apply to our targets only, never to a game that links the engine.
 - `.gitignore` drops any folder named `debug/`, `release/`, `bin/`, `obj/` or `log/`. Never name a source folder that.
+- Sources and tests are globbed: adding a `.cpp` needs no CMake edit, but any `.cpp` under `engine/src/` or `tests/` gets built. Keep experiments elsewhere.
 
 ## Build & test
 

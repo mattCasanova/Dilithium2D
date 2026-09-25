@@ -1,5 +1,5 @@
 #include <dilithium/App.hpp>
-#include <dilithium/Color.hpp>
+#include <dilithium/gfx/Color.hpp>
 
 #include <cmath>
 #include <memory>

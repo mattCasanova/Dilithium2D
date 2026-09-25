@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dilithium/NonCopyable.hpp>
+#include <dilithium/core/NonCopyable.hpp>
 
 #include <cstdint>
 #include <memory>

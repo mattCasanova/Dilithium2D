@@ -1,6 +1,6 @@
 #include "gfx/DeviceChoices.hpp"
 
-#include <dilithium/Log.hpp>
+#include <dilithium/core/Log.hpp>
 
 #include <format>
 #include <utility>

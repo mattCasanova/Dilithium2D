@@ -1,5 +1,5 @@
-#include <dilithium/Assert.hpp>
-#include <dilithium/Color.hpp>
+#include <dilithium/core/Assert.hpp>
+#include <dilithium/gfx/Color.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 

@@ -1,6 +1,6 @@
 #include "platform/Window.hpp"
 
-#include <dilithium/Assert.hpp>
+#include <dilithium/core/Assert.hpp>
 
 #include <SDL3/SDL.h>
 

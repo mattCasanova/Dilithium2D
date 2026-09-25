@@ -1,6 +1,6 @@
 #include "gfx/SwapchainChoices.hpp"
 
-#include <dilithium/Assert.hpp>
+#include <dilithium/core/Assert.hpp>
 
 #include <algorithm>
 #include <bit>

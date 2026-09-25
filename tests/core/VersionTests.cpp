@@ -1,4 +1,4 @@
-#include <dilithium/Version.hpp>
+#include <dilithium/core/Version.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 

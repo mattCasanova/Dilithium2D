@@ -6,9 +6,9 @@
 #include "platform/Window.hpp"
 
 #include <dilithium/App.hpp>
-#include <dilithium/Assert.hpp>
-#include <dilithium/Log.hpp>
-#include <dilithium/Version.hpp>
+#include <dilithium/core/Assert.hpp>
+#include <dilithium/core/Log.hpp>
+#include <dilithium/core/Version.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
