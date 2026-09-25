@@ -32,6 +32,7 @@ shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 - `KHAAAN(expr)` checks a `VkResult`; `ILLOGICAL("…")` marks branches that cannot happen (debug: log + abort; release: throws `std::logic_error`). `LOGICAL(condition, "…")` checks an invariant in debug only; release never runs the condition, so never put a side effect in it. No silent `default:` or fallback on unexpected state.
 - Log with `logInfo` / `logWarning` / `logError` (`std::format` strings) from `<dilithium/core/Log.hpp>`, and `CAPTAINS_LOG(…)` for a line that exists in debug builds only. No `std::cout` in engine code.
 - Tests may include private headers (`engine/src` is on their include path); keep pure helpers there, out of the public API.
+- **Exceptions are on, in every build, for errors that end the program only:** `ILLOGICAL` and `KHAAAN` in release, and start-up failures. Nothing in the frame loop throws on purpose. Each SDL callback catches at the boundary and logs, so a release build still says what went wrong. Table-based exceptions cost nothing on the normal path; the price is binary size (about 9% of code) and a slow throw.
 - Return values or `std::optional`, no out-parameters in our own APIs.
 - Namespace `dilithium`. `#pragma once`. `PascalCase` types, `camelCase` functions and variables, `m_` prefix on private members. 4-space indent, 120 columns; run `clang-format`.
 - Strict warnings as errors and ASan + UBSan apply to our targets only, never to a game that links the engine.
