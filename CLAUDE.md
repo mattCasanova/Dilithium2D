@@ -11,11 +11,15 @@ CMakeLists.txt  CMakePresets.json  .clang-format
 cmake/          Dependencies.cmake  Warnings.cmake  Sanitizers.cmake
 engine/
   include/dilithium/   public headers: everything a game may include. No SDL, Vulkan, VMA, glm or JSON types
-  src/                 private: core/, and later platform/ (SDL) and gfx/ (Vulkan)
+  src/                 private: core/, gfx/ (Vulkan), platform/ (SDL: Window, and SdlMain.cpp, the dilithium::main target)
 demos/d01_clear_screen/
 tests/                 Catch2 unit tests, one file per unit
 shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 ```
+
+## Writing a program (demo or game)
+
+`main.cpp` includes `<dilithium/App.hpp>`, subclasses `dilithium::App`, and defines `dilithium::createApp`. CMake links `dilithium::main` alone: it is SDL's entry point (the four `SDL_App*` callbacks) and brings the engine with it. No program file includes an SDL header; the engine owns SDL's main loop and calls the `App` once per frame.
 
 ## Rules
 

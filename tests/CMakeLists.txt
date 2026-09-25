@@ -2,6 +2,7 @@ add_executable(dilithium_tests
     AssertTests.cpp
     ColorTests.cpp
     DeviceChoicesTests.cpp
+    FrameTimeTests.cpp
     LogTests.cpp
     NonCopyableTests.cpp
     SwapchainChoicesTests.cpp
