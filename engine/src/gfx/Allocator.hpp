@@ -5,7 +5,7 @@
 namespace dilithium {
 
 /// The VMA allocator for every buffer and image. Nothing is allocated in D1; creating it now fixes its place in the
-/// teardown order (after the device is made, destroyed before it). Not copyable or movable: WarpCore builds it in
+/// teardown order (after the device is made, destroyed before it). Not copyable or movable: RenderCore builds it in
 /// place.
 class Allocator {
 public:

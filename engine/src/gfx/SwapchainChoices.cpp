@@ -37,7 +37,8 @@ VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D
 
     const VkExtent2D& low = capabilities.minImageExtent;
     const VkExtent2D& high = capabilities.maxImageExtent;
-    LOGICAL(low.width <= high.width && low.height <= high.height, "surface reports min extent above max extent");
+    DILITHIUM_ASSERT(low.width <= high.width && low.height <= high.height,
+                     "surface reports min extent above max extent");
     return {std::clamp(windowPixels.width, low.width, high.width),
             std::clamp(windowPixels.height, low.height, high.height)};
 }

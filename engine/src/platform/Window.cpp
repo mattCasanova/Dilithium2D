@@ -25,9 +25,9 @@ PixelSize Window::pixelSize() const {
     int width = 0;
     int height = 0;
     if (!SDL_GetWindowSizeInPixels(m_window.get(), &width, &height)) {
-        ILLOGICAL(std::format("SDL_GetWindowSizeInPixels failed on a live window: {}", SDL_GetError()));
+        DILITHIUM_UNREACHABLE(std::format("SDL_GetWindowSizeInPixels failed on a live window: {}", SDL_GetError()));
     }
-    LOGICAL(width >= 0 && height >= 0, "SDL reported a negative window size");
+    DILITHIUM_ASSERT(width >= 0 && height >= 0, "SDL reported a negative window size");
     return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
 }
 

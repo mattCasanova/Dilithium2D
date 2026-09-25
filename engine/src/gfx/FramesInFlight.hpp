@@ -17,18 +17,18 @@ struct FrameSlot {
     VkSemaphore imageAvailable = VK_NULL_HANDLE; ///< signaled by vkAcquireNextImageKHR, waited on by the submit
 };
 
-/// The Heisenberg compensator: the per-frame sync objects that let the CPU record one frame while the GPU draws the
-/// other (LiquidMetal2D's BufferProvider semaphore, per frame instead of per buffer). How does it work? Very well,
-/// thank you. Not copyable or movable: WarpCore builds it in place.
-class HeisenbergCompensator {
+/// The per-frame sync objects that let the CPU record one frame while the GPU draws the other (the job of
+/// LiquidMetal2D's BufferProvider semaphore, per frame instead of per buffer). Not copyable or movable: RenderCore
+/// builds it in place.
+class FramesInFlight {
 public:
-    HeisenbergCompensator(VkDevice device, uint32_t queueFamily);
-    ~HeisenbergCompensator();
+    FramesInFlight(VkDevice device, uint32_t queueFamily);
+    ~FramesInFlight();
 
-    HeisenbergCompensator(const HeisenbergCompensator&) = delete;
-    HeisenbergCompensator& operator=(const HeisenbergCompensator&) = delete;
-    HeisenbergCompensator(HeisenbergCompensator&&) = delete;
-    HeisenbergCompensator& operator=(HeisenbergCompensator&&) = delete;
+    FramesInFlight(const FramesInFlight&) = delete;
+    FramesInFlight& operator=(const FramesInFlight&) = delete;
+    FramesInFlight(FramesInFlight&&) = delete;
+    FramesInFlight& operator=(FramesInFlight&&) = delete;
 
     const FrameSlot& current() const { return m_slots[m_index]; }
     void advance() { m_index = (m_index + 1) % kFramesInFlight; }

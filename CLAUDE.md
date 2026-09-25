@@ -28,11 +28,13 @@ shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 
 - **No globals, no singletons, no `static` mutable state.** Everything hangs off an object that is passed in.
 - **Every dependency is `PRIVATE` and wrapped.** No public header includes a third-party header.
-- Vulkan through the C API (`vulkan/vulkan.h`), wrapped in small move-only RAII classes. Members are declared in creation order, so they destruct in the right order.
-- `KHAAAN(expr)` checks a `VkResult`; `ILLOGICAL("…")` marks branches that cannot happen (debug: log + abort; release: throws `std::logic_error`). `LOGICAL(condition, "…")` checks an invariant in debug only; release never runs the condition, so never put a side effect in it. No silent `default:` or fallback on unexpected state.
-- Log with `logInfo` / `logWarning` / `logError` (`std::format` strings) from `<dilithium/core/Log.hpp>`, and `CAPTAINS_LOG(…)` for a line that exists in debug builds only. No `std::cout` in engine code.
+- **Plain, descriptive names** in code, log text and messages: `RenderCore`, `FramesInFlight`, `error:`. Themed names are for the engine's name and tagline only; a name must help someone debugging who has never heard the joke.
+- Macros in public headers carry the `DILITHIUM_` prefix, since macros ignore namespaces and a game's own must not collide with ours. Private ones (`VK_CHECK`) need not.
+- Vulkan through the C API (`vulkan/vulkan.h`), wrapped in small RAII classes that are neither copyable nor movable: `RenderCore` builds each in place. Members are declared in creation order, so they destruct in the right order.
+- `VK_CHECK(expr)` checks a `VkResult`; `DILITHIUM_UNREACHABLE("…")` marks branches that cannot happen (debug: log + abort; release: throws `std::logic_error`). `DILITHIUM_ASSERT(condition, "…")` checks an invariant in debug only; release never runs the condition, so never put a side effect in it. No silent `default:` or fallback on unexpected state.
+- Log with `logInfo` / `logWarning` / `logError` (`std::format` strings) from `<dilithium/core/Log.hpp>`, and `DILITHIUM_LOG_DEBUG(…)` for a line that exists in debug builds only. No `std::cout` in engine code.
 - Tests may include private headers (`engine/src` is on their include path); keep pure helpers there, out of the public API.
-- **Exceptions are on, in every build, for errors that end the program only:** `ILLOGICAL` and `KHAAAN` in release, and start-up failures. Nothing in the frame loop throws on purpose. Each SDL callback catches at the boundary and logs, so a release build still says what went wrong. Table-based exceptions cost nothing on the normal path; the price is binary size (about 9% of code) and a slow throw.
+- **Exceptions are on, in every build, for errors that end the program only:** `DILITHIUM_UNREACHABLE` and `VK_CHECK` in release, and start-up failures. Nothing in the frame loop throws on purpose. Each SDL callback catches at the boundary and logs, so a release build still says what went wrong. Table-based exceptions cost nothing on the normal path; the price is binary size (about 9% of code) and a slow throw.
 - Return values or `std::optional`, no out-parameters in our own APIs.
 - Namespace `dilithium`. `#pragma once`. `PascalCase` types, `camelCase` functions and variables, `m_` prefix on private members. 4-space indent, 120 columns; run `clang-format`.
 - Strict warnings as errors and ASan + UBSan apply to our targets only, never to a game that links the engine.
@@ -49,7 +51,7 @@ cmake --preset debug && cmake --build --preset debug && ctest --preset debug
 - `DILITHIUM_BUILD_DEMOS` / `DILITHIUM_BUILD_TESTS` default on only when this is the top-level project.
 - In-source builds are refused.
 
-**Validation:** debug builds run the Khronos validation layer; a validation error logs `Red alert: validation: …` and aborts at the call. `DILITHIUM_NO_VALIDATION=1` turns it off, loudly. Brew's layer manifest names its library by bare file name, so a program must have `/opt/homebrew/lib` in its search paths (CMake adds it to anything linking the engine); without it the layer fails to load, loudly. `VK_LOADER_DEBUG=layer` shows whether the loader inserted it.
+**Validation:** debug builds run the Khronos validation layer; a validation error logs `error: validation: …` and aborts at the call. `DILITHIUM_NO_VALIDATION=1` turns it off, loudly. Brew's layer manifest names its library by bare file name, so a program must have `/opt/homebrew/lib` in its search paths (CMake adds it to anything linking the engine); without it the layer fails to load, loudly. `VK_LOADER_DEBUG=layer` shows whether the loader inserted it.
 
 **Claude Code sandbox:** configure, build and unit tests work inside it (the `xcrun_db … Operation not permitted` lines are harmless noise). Anything that creates a Vulkan instance (`vulkaninfo`, running a demo) needs Metal and must run outside it. So do `git init`, `commit` and `push`: the sandbox blocks writes to `.git/config` and `.git/hooks`. `$TMPDIR` is a different folder inside and outside the sandbox, so output captured outside it goes to a full path. To stop a running demo cleanly, `pkill -INT -x d01_clear_screen` outside the sandbox (SDL turns Ctrl-C into a quit); `pkill -f` also matches the shell that launched it.
 

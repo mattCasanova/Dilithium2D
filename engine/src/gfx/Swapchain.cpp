@@ -49,7 +49,7 @@ Swapchain::Swapchain(VkPhysicalDevice physical, VkDevice device, VkSurfaceKHR su
         .clipped = VK_TRUE,
         .oldSwapchain = oldSwapchain,
     };
-    KHAAAN(vkCreateSwapchainKHR(device, &info, nullptr, &m_swapchain));
+    VK_CHECK(vkCreateSwapchainKHR(device, &info, nullptr, &m_swapchain));
 
     // From here on a throw would skip the destructor, so clean up by hand on the way out.
     try {
@@ -65,19 +65,19 @@ Swapchain::Swapchain(VkPhysicalDevice physical, VkDevice device, VkSurfaceKHR su
                 .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
             };
             VkImageView view = VK_NULL_HANDLE;
-            KHAAAN(vkCreateImageView(device, &viewInfo, nullptr, &view));
+            VK_CHECK(vkCreateImageView(device, &viewInfo, nullptr, &view));
             m_views.push_back(view);
 
             const VkSemaphoreCreateInfo semaphoreInfo{.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
             VkSemaphore renderFinished = VK_NULL_HANDLE;
-            KHAAAN(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinished));
+            VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinished));
             m_renderFinished.push_back(renderFinished);
         }
     } catch (...) {
         destroy();
         throw;
     }
-    CAPTAINS_LOG("swapchain {}x{}, {} images", extent.width, extent.height, m_images.size());
+    DILITHIUM_LOG_DEBUG("swapchain {}x{}, {} images", extent.width, extent.height, m_images.size());
 }
 
 Swapchain::~Swapchain() {

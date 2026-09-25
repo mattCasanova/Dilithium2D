@@ -33,7 +33,7 @@ std::vector<QueueFamilyFacts> queueFamilyFacts(VkPhysicalDevice physical, VkSurf
     std::vector<QueueFamilyFacts> facts;
     for (uint32_t index = 0; index < count; ++index) {
         VkBool32 canPresent = VK_FALSE;
-        KHAAAN(vkGetPhysicalDeviceSurfaceSupportKHR(physical, index, surface, &canPresent));
+        VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(physical, index, surface, &canPresent));
         facts.push_back({families[index].queueFlags, canPresent == VK_TRUE});
     }
     return facts;
@@ -72,8 +72,8 @@ Candidate describe(VkPhysicalDevice physical, VkSurfaceKHR surface) {
     facts.queueFamilies = queueFamilyFacts(physical, surface);
 
     // Counts only: the swapchain (Phase 6) asks again for the lists themselves.
-    KHAAAN(vkGetPhysicalDeviceSurfaceFormatsKHR(physical, surface, &facts.surfaceFormatCount, nullptr));
-    KHAAAN(vkGetPhysicalDeviceSurfacePresentModesKHR(physical, surface, &facts.presentModeCount, nullptr));
+    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical, surface, &facts.surfaceFormatCount, nullptr));
+    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physical, surface, &facts.presentModeCount, nullptr));
     return candidate;
 }
 
@@ -105,7 +105,7 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface) {
     }
     const Candidate& chosen = candidates[*best];
     const auto* usable = std::get_if<UsableDevice>(&verdicts[*best]);
-    LOGICAL(usable != nullptr, "pickDevice chose an unusable device");
+    DILITHIUM_ASSERT(usable != nullptr, "pickDevice chose an unusable device");
     m_physical = chosen.physical;
     m_queueFamily = usable->queueFamily;
 
@@ -136,7 +136,7 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface) {
         .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
         .ppEnabledExtensionNames = extensions.data(),
     };
-    KHAAAN(vkCreateDevice(m_physical, &info, nullptr, &m_device));
+    VK_CHECK(vkCreateDevice(m_physical, &info, nullptr, &m_device));
     vkGetDeviceQueue(m_device, m_queueFamily, 0, &m_queue);
     logInfo("using GPU {}: {}, queue family {}", *best, chosen.facts.name, m_queueFamily);
 }

@@ -9,15 +9,15 @@ namespace dilithium {
 std::string_view logPrefix(LogLevel level) {
     switch (level) {
     case LogLevel::Debug:
-        return "Captain's log:";
+        return "debug:";
     case LogLevel::Info:
-        return "Fascinating:";
+        return "info:";
     case LogLevel::Warning:
-        return "Yellow alert:";
+        return "warning:";
     case LogLevel::Error:
-        return "Red alert:";
+        return "error:";
     }
-    ILLOGICAL("unknown LogLevel");
+    DILITHIUM_UNREACHABLE("unknown LogLevel");
 }
 
 std::string formatLogLine(LogLevel level, std::string_view message) {

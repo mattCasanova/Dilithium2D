@@ -6,7 +6,7 @@ struct SDL_Window;
 
 namespace dilithium {
 
-/// The window's Vulkan surface, made by SDL. Destroyed before the instance. Not copyable or movable: WarpCore builds
+/// The window's Vulkan surface, made by SDL. Destroyed before the instance. Not copyable or movable: RenderCore builds
 /// it in place.
 class Surface {
 public:

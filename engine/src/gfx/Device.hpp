@@ -8,7 +8,7 @@
 namespace dilithium {
 
 /// The chosen GPU and the logical device on it, with one queue that does both graphics and present. Not copyable or
-/// movable: WarpCore builds it in place.
+/// movable: RenderCore builds it in place.
 class Device {
 public:
     /// Logs every GPU with its verdict, picks the best usable one for `surface`, and creates the logical device.

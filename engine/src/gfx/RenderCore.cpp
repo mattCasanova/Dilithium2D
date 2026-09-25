@@ -1,4 +1,4 @@
-#include "gfx/WarpCore.hpp"
+#include "gfx/RenderCore.hpp"
 
 #include "gfx/SwapchainChoices.hpp"
 #include "gfx/VkCheck.hpp"
@@ -44,23 +44,23 @@ void transition(VkCommandBuffer commands, VkImage image, VkImageLayout from, VkI
 
 } // namespace
 
-WarpCore::WarpCore(const Window& window)
+RenderCore::RenderCore(const Window& window)
     : m_surface(m_instance.handle(), window.sdlWindow()), m_device(m_instance.handle(), m_surface.handle()),
       m_allocator(m_instance.handle(), m_device.physical(), m_device.handle()),
       m_frames(m_device.handle(), m_device.queueFamily()) {
     recreateSwapchain(window.pixelSize());
 }
 
-WarpCore::~WarpCore() {
+RenderCore::~RenderCore() {
     // The GPU may still be using what the members are about to destroy. A destructor must not throw, so a failure
-    // here is logged rather than sent through KHAAAN.
+    // here is logged rather than sent through VK_CHECK.
     const VkResult idle = vkDeviceWaitIdle(m_device.handle());
     if (idle != VK_SUCCESS) {
         logError("vkDeviceWaitIdle at shutdown returned {}", describeVkResult(idle));
     }
 }
 
-FrameOutcome WarpCore::drawFrame(const Window& window, Color color) {
+FrameOutcome RenderCore::drawFrame(const Window& window, Color color) {
     if (window.isMinimized()) {
         return FrameOutcome::Idle;
     }
@@ -73,7 +73,7 @@ FrameOutcome WarpCore::drawFrame(const Window& window, Color color) {
 
     const FrameSlot& frame = m_frames.current();
     const VkDevice device = m_device.handle();
-    KHAAAN(vkWaitForFences(device, 1, &frame.inFlight, VK_TRUE, kNoTimeout));
+    VK_CHECK(vkWaitForFences(device, 1, &frame.inFlight, VK_TRUE, kNoTimeout));
 
     uint32_t imageIndex = 0;
     const VkResult acquired = vkAcquireNextImageKHR(device, m_swapchain->handle(), kNoTimeout, frame.imageAvailable,
@@ -91,7 +91,7 @@ FrameOutcome WarpCore::drawFrame(const Window& window, Color color) {
         detail::checkVk(acquired, "vkAcquireNextImageKHR");
     }
     // Only now: an early return above must leave the fence signaled, or the next wait on it never returns.
-    KHAAAN(vkResetFences(device, 1, &frame.inFlight));
+    VK_CHECK(vkResetFences(device, 1, &frame.inFlight));
 
     recordClear(frame, imageIndex, color);
     submit(frame, imageIndex);
@@ -100,13 +100,13 @@ FrameOutcome WarpCore::drawFrame(const Window& window, Color color) {
     return FrameOutcome::Presented;
 }
 
-void WarpCore::recreateSwapchain(PixelSize windowPixels) {
+void RenderCore::recreateSwapchain(PixelSize windowPixels) {
     // Nothing may still be drawing into, or waiting on, what the old swapchain owns.
-    KHAAAN(vkDeviceWaitIdle(m_device.handle()));
+    VK_CHECK(vkDeviceWaitIdle(m_device.handle()));
     m_swapchainStale = false;
 
     VkSurfaceCapabilitiesKHR capabilities{};
-    KHAAAN(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.physical(), m_surface.handle(), &capabilities));
+    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.physical(), m_surface.handle(), &capabilities));
     const VkExtent2D extent = chooseExtent(capabilities, {windowPixels.width, windowPixels.height});
     if (extent.width == 0 || extent.height == 0) {
         m_swapchain.reset(); // no swapchain until the window has area again
@@ -118,13 +118,13 @@ void WarpCore::recreateSwapchain(PixelSize windowPixels) {
                                               extent, old);
 }
 
-void WarpCore::recordClear(const FrameSlot& frame, uint32_t imageIndex, Color color) const {
-    KHAAAN(vkResetCommandPool(m_device.handle(), frame.pool, 0));
+void RenderCore::recordClear(const FrameSlot& frame, uint32_t imageIndex, Color color) const {
+    VK_CHECK(vkResetCommandPool(m_device.handle(), frame.pool, 0));
     const VkCommandBufferBeginInfo begin{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
-    KHAAAN(vkBeginCommandBuffer(frame.commands, &begin));
+    VK_CHECK(vkBeginCommandBuffer(frame.commands, &begin));
 
     const VkImage image = m_swapchain->image(imageIndex);
     // UNDEFINED, not the old layout: the whole image is about to be cleared, so nothing in it needs keeping. The
@@ -158,10 +158,10 @@ void WarpCore::recordClear(const FrameSlot& frame, uint32_t imageIndex, Color co
                {VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT},
                {VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_NONE});
 
-    KHAAAN(vkEndCommandBuffer(frame.commands));
+    VK_CHECK(vkEndCommandBuffer(frame.commands));
 }
 
-void WarpCore::submit(const FrameSlot& frame, uint32_t imageIndex) const {
+void RenderCore::submit(const FrameSlot& frame, uint32_t imageIndex) const {
     const VkSemaphoreSubmitInfo waitForImage{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
         .semaphore = frame.imageAvailable,
@@ -185,10 +185,10 @@ void WarpCore::submit(const FrameSlot& frame, uint32_t imageIndex) const {
         .signalSemaphoreInfoCount = 1,
         .pSignalSemaphoreInfos = &signalRenderFinished,
     };
-    KHAAAN(vkQueueSubmit2(m_device.queue(), 1, &info, frame.inFlight));
+    VK_CHECK(vkQueueSubmit2(m_device.queue(), 1, &info, frame.inFlight));
 }
 
-void WarpCore::present(uint32_t imageIndex) {
+void RenderCore::present(uint32_t imageIndex) {
     const VkSemaphore renderFinished = m_swapchain->renderFinished(imageIndex);
     const VkSwapchainKHR swapchain = m_swapchain->handle();
     const VkPresentInfoKHR info{

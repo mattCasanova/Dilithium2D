@@ -14,7 +14,7 @@ target_compile_definitions(dilithium
     PRIVATE DILITHIUM_VERSION="${PROJECT_VERSION}")
 
 # All PRIVATE: no public header includes a third-party header. SDL sits behind Window and the SDL main
-# shell, Vulkan and VMA behind WarpCore, JSON behind one loader.
+# shell, Vulkan and VMA behind RenderCore, JSON behind one loader.
 target_link_libraries(dilithium PRIVATE
     Vulkan::Vulkan
     SDL3::SDL3
@@ -33,7 +33,7 @@ add_library(dilithium_main OBJECT main/SdlMain.cpp)
 add_library(dilithium::main ALIAS dilithium_main)
 
 target_include_directories(dilithium_main PRIVATE src)
-# Vulkan and VMA for WarpCore's headers; the library already links them.
+# Vulkan and VMA for RenderCore's headers; the library already links them.
 target_link_libraries(dilithium_main
     PUBLIC dilithium
     PRIVATE SDL3::SDL3 Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator)

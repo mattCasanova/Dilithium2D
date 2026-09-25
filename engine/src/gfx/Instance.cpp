@@ -97,7 +97,7 @@ std::string joined(std::span<const std::string> names) {
 
 Instance::Instance() {
     uint32_t loaderVersion = 0;
-    KHAAAN(vkEnumerateInstanceVersion(&loaderVersion));
+    VK_CHECK(vkEnumerateInstanceVersion(&loaderVersion));
     if (loaderVersion < VK_API_VERSION_1_3) {
         throw std::runtime_error(
             std::format("the Vulkan loader is {}; Dilithium2D needs 1.3", formatApiVersion(loaderVersion)));
@@ -129,7 +129,7 @@ Instance::Instance() {
     if (!plan.missing.empty()) {
         throw std::runtime_error(std::format("Vulkan instance extensions missing: {}", joined(plan.missing)));
     }
-    CAPTAINS_LOG("instance extensions: {}", joined(plan.enable));
+    DILITHIUM_LOG_DEBUG("instance extensions: {}", joined(plan.enable));
 
     const VkApplicationInfo application{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -152,7 +152,7 @@ Instance::Instance() {
         .enabledExtensionCount = static_cast<uint32_t>(plan.enable.size()),
         .ppEnabledExtensionNames = plan.enable.data(),
     };
-    KHAAAN(vkCreateInstance(&info, nullptr, &m_instance));
+    VK_CHECK(vkCreateInstance(&info, nullptr, &m_instance));
 
     if (!validation) {
         return;
@@ -166,7 +166,7 @@ Instance::Instance() {
         if (create == nullptr || m_destroyMessenger == nullptr) {
             throw std::runtime_error("VK_EXT_debug_utils is enabled but its functions are missing");
         }
-        KHAAAN(create(m_instance, &messengerInfo, nullptr, &m_messenger));
+        VK_CHECK(create(m_instance, &messengerInfo, nullptr, &m_messenger));
     } catch (...) {
         vkDestroyInstance(m_instance, nullptr);
         throw;

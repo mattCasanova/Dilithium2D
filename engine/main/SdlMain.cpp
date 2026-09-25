@@ -3,7 +3,7 @@
 #define SDL_MAIN_USE_CALLBACKS 1
 
 #include "core/FrameTime.hpp"
-#include "gfx/WarpCore.hpp"
+#include "gfx/RenderCore.hpp"
 #include "platform/Window.hpp"
 
 #include <dilithium/App.hpp>
@@ -30,17 +30,17 @@ using dilithium::FrameOutcome;
 using dilithium::logError;
 using dilithium::logInfo;
 using dilithium::PixelSize;
-using dilithium::WarpCore;
+using dilithium::RenderCore;
 using dilithium::Window;
 
 /// Everything one run of the program owns, handed to SDL as `appstate`. Declared in creation order, so it is
 /// destroyed the other way round: the app first, then the GPU, then the window the GPU draws into.
 struct Runtime {
     Runtime(Window newWindow, std::unique_ptr<App> newApp)
-        : window(std::move(newWindow)), warpCore(window), app(std::move(newApp)), lastFrameNs(SDL_GetTicksNS()) {}
+        : window(std::move(newWindow)), renderCore(window), app(std::move(newApp)), lastFrameNs(SDL_GetTicksNS()) {}
 
     Window window;
-    WarpCore warpCore;
+    RenderCore renderCore;
     std::unique_ptr<App> app;
     uint64_t lastFrameNs;
 };
@@ -50,7 +50,7 @@ struct Runtime {
 constexpr uint32_t kIdleSleepMs = 16;
 
 Runtime& runtimeFrom(void* appstate) {
-    LOGICAL(appstate != nullptr, "SDL called back before SDL_AppInit handed over the runtime");
+    DILITHIUM_ASSERT(appstate != nullptr, "SDL called back before SDL_AppInit handed over the runtime");
     return *static_cast<Runtime*>(appstate);
 }
 
@@ -92,7 +92,7 @@ SDL_AppResult startUp(void** appstate, int argc, char* argv[]) {
 
     std::unique_ptr<App> app = dilithium::createApp(argc, argv);
     if (!app) {
-        ILLOGICAL("createApp returned null");
+        DILITHIUM_UNREACHABLE("createApp returned null");
     }
     const dilithium::AppConfig config = app->config();
     Window window(config.title, config.width, config.height);
@@ -119,7 +119,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
         const float dt = dilithium::frameSeconds(runtime.lastFrameNs, now);
         runtime.lastFrameNs = now;
         runtime.app->onUpdate(dt);
-        if (runtime.warpCore.drawFrame(runtime.window, runtime.app->clearColor()) == FrameOutcome::Idle) {
+        if (runtime.renderCore.drawFrame(runtime.window, runtime.app->clearColor()) == FrameOutcome::Idle) {
             SDL_Delay(kIdleSleepMs);
         }
         return SDL_APP_CONTINUE;
@@ -134,15 +134,15 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
             return SDL_APP_SUCCESS;
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
             const PixelSize pixels = runtime.window.pixelSize();
-            CAPTAINS_LOG("window is {}x{} pixels", pixels.width, pixels.height);
-            runtime.warpCore.notifyResized();
+            DILITHIUM_LOG_DEBUG("window is {}x{} pixels", pixels.width, pixels.height);
+            runtime.renderCore.notifyResized();
             return SDL_APP_CONTINUE;
         }
         case SDL_EVENT_WINDOW_MINIMIZED:
-            CAPTAINS_LOG("window minimized");
+            DILITHIUM_LOG_DEBUG("window minimized");
             return SDL_APP_CONTINUE;
         case SDL_EVENT_WINDOW_RESTORED:
-            CAPTAINS_LOG("window restored");
+            DILITHIUM_LOG_DEBUG("window restored");
             return SDL_APP_CONTINUE;
         default:
             // Every other event (keys, mouse, focus, ...) has no reader yet. Input arrives in D9.

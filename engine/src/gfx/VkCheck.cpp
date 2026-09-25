@@ -85,7 +85,7 @@ std::string describeVkResult(VkResult result) {
 namespace detail {
 
 void vkCallFailed(VkResult result, std::string_view call, const std::source_location& where) {
-    const std::string_view headline = result == VK_ERROR_DEVICE_LOST ? "Warp core breach" : "KHAAAN";
+    const std::string_view headline = result == VK_ERROR_DEVICE_LOST ? "device lost" : "VK_CHECK";
     const std::string report = std::format("{}: {} returned {} ({}:{} in {})", headline, call, describeVkResult(result),
                                            where.file_name(), where.line(), where.function_name());
     logError("{}", report);

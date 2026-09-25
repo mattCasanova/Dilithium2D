@@ -21,7 +21,7 @@ float wrapDegrees(float degrees) {
 
 Color Color::fromHSV(float hueDegrees, float saturation, float value, float alpha) {
     if (!std::isfinite(hueDegrees) || !std::isfinite(saturation) || !std::isfinite(value) || !std::isfinite(alpha)) {
-        ILLOGICAL("Color::fromHSV given a non-finite input");
+        DILITHIUM_UNREACHABLE("Color::fromHSV given a non-finite input");
     }
 
     const float hue = wrapDegrees(hueDegrees);
@@ -48,7 +48,7 @@ Color Color::fromHSV(float hueDegrees, float saturation, float value, float alph
     case 5:
         return {chroma + m, m, x + m, a};
     }
-    ILLOGICAL("hue sector outside 0...5 after wrapping");
+    DILITHIUM_UNREACHABLE("hue sector outside 0...5 after wrapping");
 }
 
 } // namespace dilithium

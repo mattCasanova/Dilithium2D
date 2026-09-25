@@ -24,12 +24,12 @@ std::string describe(const std::source_location& where) {
 
 } // namespace
 
-void illogical(std::string_view message, std::source_location where) {
-    fail(std::format("ILLOGICAL: {} ({})", message, describe(where)));
+void unreachable(std::string_view message, std::source_location where) {
+    fail(std::format("DILITHIUM_UNREACHABLE: {} ({})", message, describe(where)));
 }
 
-void logicalFailed(std::string_view condition, std::string_view message, std::source_location where) {
-    fail(std::format("LOGICAL({}) is false: {} ({})", condition, message, describe(where)));
+void assertFailed(std::string_view condition, std::string_view message, std::source_location where) {
+    fail(std::format("DILITHIUM_ASSERT({}) failed: {} ({})", condition, message, describe(where)));
 }
 
 } // namespace dilithium::detail

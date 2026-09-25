@@ -2,7 +2,7 @@
 
 #include "gfx/Allocator.hpp"
 #include "gfx/Device.hpp"
-#include "gfx/HeisenbergCompensator.hpp"
+#include "gfx/FramesInFlight.hpp"
 #include "gfx/Instance.hpp"
 #include "gfx/Surface.hpp"
 #include "gfx/Swapchain.hpp"
@@ -25,16 +25,16 @@ enum class FrameOutcome {
 
 /// Owns the GPU side of the engine (LiquidMetal2D's RenderCore): instance, surface, device, allocator, swapchain and
 /// frame sync. Members are declared in creation order, so they are destroyed in the reverse order with no code for
-/// it. Device lost anywhere is reported as a warp core breach (see `KHAAAN`).
-class WarpCore {
+/// it. A lost device anywhere fails with a "device lost" report (see `VK_CHECK`).
+class RenderCore {
 public:
-    explicit WarpCore(const Window& window);
-    ~WarpCore();
+    explicit RenderCore(const Window& window);
+    ~RenderCore();
 
-    WarpCore(const WarpCore&) = delete;
-    WarpCore& operator=(const WarpCore&) = delete;
-    WarpCore(WarpCore&&) = delete;
-    WarpCore& operator=(WarpCore&&) = delete;
+    RenderCore(const RenderCore&) = delete;
+    RenderCore& operator=(const RenderCore&) = delete;
+    RenderCore(RenderCore&&) = delete;
+    RenderCore& operator=(RenderCore&&) = delete;
 
     /// Clears the window to `color` and presents it. D1 only: D2 splits this into begin and end with drawing between.
     FrameOutcome drawFrame(const Window& window, Color color);
@@ -53,7 +53,7 @@ private:
     Device m_device;
     Allocator m_allocator;
     std::unique_ptr<Swapchain> m_swapchain; ///< null while the window has no area
-    HeisenbergCompensator m_frames;
+    FramesInFlight m_frames;
     bool m_swapchainStale = false;
 };
 

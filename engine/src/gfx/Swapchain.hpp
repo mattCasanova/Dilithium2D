@@ -9,7 +9,7 @@ namespace dilithium {
 
 /// The images the screen shows, rebuilt whenever the window changes size. Each image has its own view and its own
 /// "rendering finished" semaphore: with 3 images and 2 frames in flight, a semaphore per frame slot could be
-/// signaled again while a present still waits on it. Not copyable or movable: WarpCore swaps in a new one, and the
+/// signaled again while a present still waits on it. Not copyable or movable: RenderCore swaps in a new one, and the
 /// old one lives until the new one exists.
 class Swapchain {
 public:

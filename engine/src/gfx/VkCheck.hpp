@@ -11,7 +11,7 @@
 
 namespace dilithium {
 
-/// Thrown by `KHAAAN` in release builds (debug builds abort at the failing line instead).
+/// Thrown by `VK_CHECK` in release builds (debug builds abort at the failing line instead).
 class VulkanError : public std::runtime_error {
 public:
     VulkanError(const std::string& message, VkResult result) : std::runtime_error(message), m_result(result) {}
@@ -27,11 +27,11 @@ std::string describeVkResult(VkResult result);
 
 namespace detail {
 
-/// The failure path of `KHAAAN`: reports the call, its result and the caller's location, then aborts (debug) or
-/// throws `VulkanError` (release). `VK_ERROR_DEVICE_LOST` is reported as a warp core breach.
+/// The failure path of `VK_CHECK`: reports the call, its result and the caller's location, then aborts (debug) or
+/// throws `VulkanError` (release). `VK_ERROR_DEVICE_LOST` is reported as "device lost".
 [[noreturn]] void vkCallFailed(VkResult result, std::string_view call, const std::source_location& where);
 
-/// Behind `KHAAAN`. Inline, so a successful call costs one comparison.
+/// Behind `VK_CHECK`. Inline, so a successful call costs one comparison.
 inline void checkVk(VkResult result, std::string_view call,
                     const std::source_location& where = std::source_location::current()) {
     if (result != VK_SUCCESS) [[unlikely]] {
@@ -63,5 +63,5 @@ std::vector<T> vkEnumerate(std::string_view call, Query&& query,
 
 /// Checks a Vulkan call that must return `VK_SUCCESS`: on anything else, logs the call, the result's name, file and
 /// line, then aborts in debug builds or throws `dilithium::VulkanError` in release. Results that are part of normal
-/// flow (`vkAcquireNextImageKHR`, `vkQueuePresentKHR`) are handled by hand, never through `KHAAAN`.
-#define KHAAAN(call) ::dilithium::detail::checkVk((call), #call)
+/// flow (`vkAcquireNextImageKHR`, `vkQueuePresentKHR`) are handled by hand, never through `VK_CHECK`.
+#define VK_CHECK(call) ::dilithium::detail::checkVk((call), #call)

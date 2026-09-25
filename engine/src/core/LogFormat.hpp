@@ -7,8 +7,7 @@
 
 namespace dilithium {
 
-/// The prefix for each level: debug is `Captain's log:`, info `Fascinating:`, warning `Yellow alert:`, error
-/// `Red alert:`.
+/// The prefix for each level: `debug:`, `info:`, `warning:` or `error:`.
 std::string_view logPrefix(LogLevel level);
 
 /// One complete log line, newline included, ready for a single write.

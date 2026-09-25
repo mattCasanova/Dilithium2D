@@ -19,19 +19,20 @@ bool countedTrue(int& calls) {
 
 } // namespace
 
-// A failing LOGICAL or ILLOGICAL aborts in debug, which a test cannot catch; those paths were checked by hand.
+// A failing DILITHIUM_ASSERT or DILITHIUM_UNREACHABLE aborts in debug, which a test cannot catch; those paths were
+// checked by hand.
 
-TEST_CASE("LOGICAL lets a true condition through", "[assert]") {
-    // Both are used only inside LOGICAL: the release build proves they still count as used under -Werror.
-    const int shields = 40;
-    LOGICAL(shields > 0, "shields are up");
-    LOGICAL(isPositive(shields), "helper functions count as used too");
+TEST_CASE("DILITHIUM_ASSERT lets a true condition through", "[assert]") {
+    // Both are used only inside DILITHIUM_ASSERT: the release build proves they still count as used under -Werror.
+    const int spriteCount = 40;
+    DILITHIUM_ASSERT(spriteCount > 0, "there are sprites to draw");
+    DILITHIUM_ASSERT(isPositive(spriteCount), "helper functions count as used too");
     SUCCEED();
 }
 
-TEST_CASE("LOGICAL runs its condition once in debug and never in release", "[assert]") {
+TEST_CASE("DILITHIUM_ASSERT runs its condition once in debug and never in release", "[assert]") {
     int calls = 0;
-    LOGICAL(countedTrue(calls), "counted");
+    DILITHIUM_ASSERT(countedTrue(calls), "counted");
 #if defined(DILITHIUM_DEBUG)
     CHECK(calls == 1);
 #else
@@ -39,11 +40,11 @@ TEST_CASE("LOGICAL runs its condition once in debug and never in release", "[ass
 #endif
 }
 
-TEST_CASE("LOGICAL is one expression, safe in a brace-less if", "[assert]") {
-    const bool redAlert = false;
+TEST_CASE("DILITHIUM_ASSERT is one expression, safe in a brace-less if", "[assert]") {
+    const bool takeFirstBranch = false;
     bool tookElse = false;
-    if (redAlert)
-        LOGICAL(true, "never reached");
+    if (takeFirstBranch)
+        DILITHIUM_ASSERT(true, "never reached");
     else
         tookElse = true;
     CHECK(tookElse);
@@ -51,8 +52,8 @@ TEST_CASE("LOGICAL is one expression, safe in a brace-less if", "[assert]") {
 
 #if !defined(DILITHIUM_DEBUG)
 
-TEST_CASE("ILLOGICAL throws logic_error in release", "[assert]") {
-    CHECK_THROWS_AS(ILLOGICAL("the needs of the many"), std::logic_error);
+TEST_CASE("DILITHIUM_UNREACHABLE throws logic_error in release", "[assert]") {
+    CHECK_THROWS_AS(DILITHIUM_UNREACHABLE("a branch that cannot happen"), std::logic_error);
 }
 
 TEST_CASE("fromHSV rejects non-finite input in release", "[assert][color]") {

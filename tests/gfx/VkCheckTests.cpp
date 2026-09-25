@@ -17,8 +17,8 @@ TEST_CASE("describeVkResult still prints a result newer than its list", "[vkchec
     CHECK(describeVkResult(static_cast<VkResult>(1234567)) == "VkResult (1234567)");
 }
 
-TEST_CASE("KHAAAN lets VK_SUCCESS through", "[vkcheck]") {
-    KHAAAN(VK_SUCCESS);
+TEST_CASE("VK_CHECK lets VK_SUCCESS through", "[vkcheck]") {
+    VK_CHECK(VK_SUCCESS);
     SUCCEED();
 }
 
@@ -56,18 +56,18 @@ TEST_CASE("vkEnumerate starts again when the list grows between the two calls", 
 
 #if !defined(DILITHIUM_DEBUG)
 
-TEST_CASE("KHAAAN throws VulkanError with the result in release", "[vkcheck]") {
+TEST_CASE("VK_CHECK throws VulkanError with the result in release", "[vkcheck]") {
     try {
-        KHAAAN(VK_ERROR_OUT_OF_HOST_MEMORY);
-        FAIL("KHAAAN did not throw");
+        VK_CHECK(VK_ERROR_OUT_OF_HOST_MEMORY);
+        FAIL("VK_CHECK did not throw");
     } catch (const dilithium::VulkanError& error) {
         CHECK(error.result() == VK_ERROR_OUT_OF_HOST_MEMORY);
     }
 }
 
-TEST_CASE("KHAAAN fails on any result but VK_SUCCESS, positive ones too", "[vkcheck]") {
-    CHECK_THROWS_AS(KHAAAN(VK_INCOMPLETE), dilithium::VulkanError);
-    CHECK_THROWS_AS(KHAAAN(VK_SUBOPTIMAL_KHR), dilithium::VulkanError);
+TEST_CASE("VK_CHECK fails on any result but VK_SUCCESS, positive ones too", "[vkcheck]") {
+    CHECK_THROWS_AS(VK_CHECK(VK_INCOMPLETE), dilithium::VulkanError);
+    CHECK_THROWS_AS(VK_CHECK(VK_SUBOPTIMAL_KHR), dilithium::VulkanError);
 }
 
 #endif
