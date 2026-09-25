@@ -33,9 +33,10 @@ add_library(dilithium_main OBJECT main/SdlMain.cpp)
 add_library(dilithium::main ALIAS dilithium_main)
 
 target_include_directories(dilithium_main PRIVATE src)
+# Vulkan and VMA for WarpCore's headers; the library already links them.
 target_link_libraries(dilithium_main
     PUBLIC dilithium
-    PRIVATE SDL3::SDL3)
+    PRIVATE SDL3::SDL3 Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator)
 
 dilithium_set_warnings(dilithium_main)
 dilithium_enable_sanitizers(dilithium_main)

@@ -67,6 +67,17 @@ TEST_CASE("a device type newer than our headers scores as other", "[device]") {
     CHECK(deviceTypeScore(static_cast<VkPhysicalDeviceType>(42)) == 10);
 }
 
+TEST_CASE("deviceTypeName gives the log a word for every type", "[device]") {
+    CHECK(dilithium::deviceTypeName(VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) == "discrete GPU");
+    CHECK(dilithium::deviceTypeName(VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) == "integrated GPU");
+    CHECK(dilithium::deviceTypeName(static_cast<VkPhysicalDeviceType>(42)) == "unknown device type");
+}
+
+TEST_CASE("formatApiVersion unpacks major, minor and patch", "[device]") {
+    CHECK(dilithium::formatApiVersion(VK_MAKE_API_VERSION(0, 1, 4, 357)) == "1.4.357");
+    CHECK(dilithium::formatApiVersion(VK_API_VERSION_1_3) == "1.3.0");
+}
+
 TEST_CASE("a Vulkan 1.2 device is unusable, and the reason says so", "[device]") {
     DeviceFacts device = appleM4Max();
     device.apiVersion = VK_MAKE_API_VERSION(0, 1, 2, 283);

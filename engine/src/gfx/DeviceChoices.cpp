@@ -25,6 +25,30 @@ int deviceTypeScore(VkPhysicalDeviceType type) {
     return 10;
 }
 
+std::string_view deviceTypeName(VkPhysicalDeviceType type) {
+    switch (type) {
+    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+        return "discrete GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+        return "integrated GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+        return "virtual GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_CPU:
+        return "CPU";
+    case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+        return "other";
+    case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
+        break;
+    }
+    // deviceTypeScore already warns about a type newer than our headers; the log just needs a word.
+    return "unknown device type";
+}
+
+std::string formatApiVersion(uint32_t version) {
+    return std::format("{}.{}.{}", VK_API_VERSION_MAJOR(version), VK_API_VERSION_MINOR(version),
+                       VK_API_VERSION_PATCH(version));
+}
+
 std::optional<uint32_t> findQueueFamily(std::span<const QueueFamilyFacts> families) {
     for (std::size_t index = 0; index < families.size(); ++index) {
         const QueueFamilyFacts& family = families[index];

@@ -7,6 +7,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -47,6 +48,12 @@ using DeviceVerdict = std::variant<UsableDevice, UnusableDevice>;
 
 /// Discrete 1000, integrated 100, anything else 10.
 int deviceTypeScore(VkPhysicalDeviceType type);
+
+/// "discrete GPU", "integrated GPU", ... for the device log.
+std::string_view deviceTypeName(VkPhysicalDeviceType type);
+
+/// A packed Vulkan version as text: "1.4.357".
+std::string formatApiVersion(uint32_t version);
 
 /// The first family that does both graphics and present. Every real GPU has one; we require it rather than juggle
 /// two queues.

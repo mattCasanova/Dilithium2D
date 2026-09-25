@@ -25,6 +25,9 @@ public:
     PixelSize pixelSize() const;
     bool isMinimized() const;
 
+    /// For the engine's Vulkan surface only.
+    SDL_Window* sdlWindow() const { return m_window.get(); }
+
 private:
     struct Destroy {
         void operator()(SDL_Window* window) const;

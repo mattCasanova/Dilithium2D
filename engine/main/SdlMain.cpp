@@ -3,6 +3,7 @@
 #define SDL_MAIN_USE_CALLBACKS 1
 
 #include "core/FrameTime.hpp"
+#include "gfx/WarpCore.hpp"
 #include "platform/Window.hpp"
 
 #include <dilithium/App.hpp>
@@ -15,7 +16,11 @@
 
 #include <cstdint>
 #include <exception>
+#include <format>
 #include <memory>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 #include <utility>
 
 namespace {
@@ -25,14 +30,19 @@ using dilithium::logError;
 using dilithium::logInfo;
 using dilithium::logWarning;
 using dilithium::PixelSize;
+using dilithium::WarpCore;
 using dilithium::Window;
 
-/// Everything one run of the program owns, handed to SDL as `appstate`. `app` is declared last, so it is destroyed
-/// first, while the window (and, from Phase 5, the GPU) it may use still exist.
+/// Everything one run of the program owns, handed to SDL as `appstate`. Declared in creation order, so it is
+/// destroyed the other way round: the app first, then the GPU, then the window the GPU draws into.
 struct Runtime {
+    Runtime(Window newWindow, std::unique_ptr<App> newApp)
+        : window(std::move(newWindow)), warpCore(window), app(std::move(newApp)), lastFrameNs(SDL_GetTicksNS()) {}
+
     Window window;
+    WarpCore warpCore;
     std::unique_ptr<App> app;
-    uint64_t lastFrameNs = 0;
+    uint64_t lastFrameNs;
 };
 
 Runtime& runtimeFrom(void* appstate) {
@@ -40,47 +50,67 @@ Runtime& runtimeFrom(void* appstate) {
     return *static_cast<Runtime*>(appstate);
 }
 
+/// A start-up failure is shown to the player too in release builds: a game launched from Finder or Explorer has no
+/// visible stderr. Debug builds run from a terminal, and a box would block an automated run.
+void showStartupFailure([[maybe_unused]] std::string_view message) {
+#if !defined(DILITHIUM_DEBUG)
+    const std::string text(message);
+    if (!SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Dilithium2D could not start", text.c_str(), nullptr)) {
+        logError("could not show the error box: {}", SDL_GetError());
+    }
+#endif
+}
+
 /// Runs one callback's body. An exception must not cross into SDL's C code, so it is logged and ends the program.
 template <typename Body>
-SDL_AppResult guarded(const char* callback, Body&& body) {
+SDL_AppResult guarded(const char* callback, Body&& body, bool startingUp = false) {
     try {
         return body();
     } catch (const std::exception& error) {
         logError("{}: {}", callback, error.what());
+        if (startingUp) {
+            showStartupFailure(error.what());
+        }
     } catch (...) {
         logError("{}: unknown exception", callback);
+        if (startingUp) {
+            showStartupFailure("unknown exception");
+        }
     }
     return SDL_APP_FAILURE;
+}
+
+/// Everything SDL_AppInit does. Kept out of the callback so `guarded` can wrap it in one line.
+SDL_AppResult startUp(void** appstate, int argc, char* argv[]) {
+    // Nothing paces the loop until Phase 6 presents frames through FIFO, so SDL sleeps to 60 Hz. Not "waitevent":
+    // that sleeps until the OS sends the window an event, and a Ctrl-C from the terminal does not wake it.
+    if (!SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, "60")) {
+        logWarning("could not set {}: {}", SDL_HINT_MAIN_CALLBACK_RATE, SDL_GetError());
+    }
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        throw std::runtime_error(std::format("SDL_Init failed: {}", SDL_GetError()));
+    }
+
+    std::unique_ptr<App> app = dilithium::createApp(argc, argv);
+    if (!app) {
+        ILLOGICAL("createApp returned null");
+    }
+    const dilithium::AppConfig config = app->config();
+    Window window(config.title, config.width, config.height);
+    const PixelSize pixels = window.pixelSize();
+    logInfo("Dilithium2D {}: '{}', {}x{} pixels", dilithium::version(), config.title, pixels.width, pixels.height);
+
+    auto runtime = std::make_unique<Runtime>(std::move(window), std::move(app));
+    runtime->app->onStart();
+    // appstate is a plain pointer: ownership passes to SDL here and comes back in SDL_AppQuit.
+    *appstate = runtime.release();
+    return SDL_APP_CONTINUE;
 }
 
 } // namespace
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-    return guarded("SDL_AppInit", [&] {
-        // Nothing paces the loop until Phase 6 presents frames through FIFO, so iterate only when an event arrives.
-        if (!SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, "waitevent")) {
-            logWarning("could not set {}: {}", SDL_HINT_MAIN_CALLBACK_RATE, SDL_GetError());
-        }
-        if (!SDL_Init(SDL_INIT_VIDEO)) {
-            logError("SDL_Init failed: {}", SDL_GetError());
-            return SDL_APP_FAILURE;
-        }
-
-        std::unique_ptr<App> app = dilithium::createApp(argc, argv);
-        if (!app) {
-            ILLOGICAL("createApp returned null");
-        }
-        const dilithium::AppConfig config = app->config();
-        Window window(config.title, config.width, config.height);
-        const PixelSize pixels = window.pixelSize();
-        logInfo("Dilithium2D {}: '{}', {}x{} pixels", dilithium::version(), config.title, pixels.width, pixels.height);
-
-        auto runtime = std::make_unique<Runtime>(std::move(window), std::move(app), SDL_GetTicksNS());
-        runtime->app->onStart();
-        // appstate is a plain pointer: ownership passes to SDL here and comes back in SDL_AppQuit.
-        *appstate = runtime.release();
-        return SDL_APP_CONTINUE;
-    });
+    return guarded("SDL_AppInit", [&] { return startUp(appstate, argc, argv); }, /*startingUp=*/true);
 }
 
 SDL_AppResult SDL_AppIterate(void* appstate) {
