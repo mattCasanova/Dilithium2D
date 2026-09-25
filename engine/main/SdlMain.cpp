@@ -26,9 +26,9 @@
 namespace {
 
 using dilithium::App;
+using dilithium::FrameOutcome;
 using dilithium::logError;
 using dilithium::logInfo;
-using dilithium::logWarning;
 using dilithium::PixelSize;
 using dilithium::WarpCore;
 using dilithium::Window;
@@ -44,6 +44,10 @@ struct Runtime {
     std::unique_ptr<App> app;
     uint64_t lastFrameNs;
 };
+
+/// How long to sleep when no frame was presented (minimized, or no area). FIFO present paces every other frame; this
+/// keeps an idle window from spinning a CPU core while still noticing a restore within a frame or so.
+constexpr uint32_t kIdleSleepMs = 16;
 
 Runtime& runtimeFrom(void* appstate) {
     LOGICAL(appstate != nullptr, "SDL called back before SDL_AppInit handed over the runtime");
@@ -82,11 +86,6 @@ SDL_AppResult guarded(const char* callback, Body&& body, bool startingUp = false
 
 /// Everything SDL_AppInit does. Kept out of the callback so `guarded` can wrap it in one line.
 SDL_AppResult startUp(void** appstate, int argc, char* argv[]) {
-    // Nothing paces the loop until Phase 6 presents frames through FIFO, so SDL sleeps to 60 Hz. Not "waitevent":
-    // that sleeps until the OS sends the window an event, and a Ctrl-C from the terminal does not wake it.
-    if (!SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, "60")) {
-        logWarning("could not set {}: {}", SDL_HINT_MAIN_CALLBACK_RATE, SDL_GetError());
-    }
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         throw std::runtime_error(std::format("SDL_Init failed: {}", SDL_GetError()));
     }
@@ -120,6 +119,9 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
         const float dt = dilithium::frameSeconds(runtime.lastFrameNs, now);
         runtime.lastFrameNs = now;
         runtime.app->onUpdate(dt);
+        if (runtime.warpCore.drawFrame(runtime.window, runtime.app->clearColor()) == FrameOutcome::Idle) {
+            SDL_Delay(kIdleSleepMs);
+        }
         return SDL_APP_CONTINUE;
     });
 }
@@ -133,6 +135,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
             const PixelSize pixels = runtime.window.pixelSize();
             CAPTAINS_LOG("window is {}x{} pixels", pixels.width, pixels.height);
+            runtime.warpCore.notifyResized();
             return SDL_APP_CONTINUE;
         }
         case SDL_EVENT_WINDOW_MINIMIZED:
