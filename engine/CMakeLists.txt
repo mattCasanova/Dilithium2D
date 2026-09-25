@@ -2,7 +2,9 @@ add_library(dilithium STATIC
     src/core/Assert.cpp
     src/core/Color.cpp
     src/core/Log.cpp
-    src/core/Version.cpp)
+    src/core/Version.cpp
+    src/gfx/DeviceChoices.cpp
+    src/gfx/SwapchainChoices.cpp)
 add_library(dilithium::dilithium ALIAS dilithium)
 
 target_include_directories(dilithium
