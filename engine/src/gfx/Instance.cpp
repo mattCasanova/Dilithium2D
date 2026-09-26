@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace dilithium {
 namespace {
@@ -104,6 +105,7 @@ Instance::Instance() {
     }
 
     const bool validation = validationWanted();
+    std::vector<VkExtensionProperties> layerOffered; // what the validation layer itself adds
     if (validation) {
         const auto layers = vkEnumerate<VkLayerProperties>(
             "vkEnumerateInstanceLayerProperties",
@@ -112,9 +114,12 @@ Instance::Instance() {
             throw std::runtime_error("the Vulkan validation layer is not installed (brew install "
                                      "vulkan-validationlayers), or set DILITHIUM_NO_VALIDATION=1 to run without it");
         }
+        layerOffered = vkEnumerate<VkExtensionProperties>(
+            "vkEnumerateInstanceExtensionProperties", [](uint32_t* count, VkExtensionProperties* items) {
+                return vkEnumerateInstanceExtensionProperties(kValidationLayer, count, items);
+            });
         m_validationLog = std::make_unique<ValidationLog>();
     }
-    logInfo("Vulkan loader {}, validation {}", formatApiVersion(loaderVersion), validation ? "on" : "off");
 
     Uint32 sdlCount = 0;
     const char* const* sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlCount);
@@ -125,10 +130,19 @@ Instance::Instance() {
         "vkEnumerateInstanceExtensionProperties", [](uint32_t* count, VkExtensionProperties* items) {
             return vkEnumerateInstanceExtensionProperties(nullptr, count, items);
         });
-    const InstanceExtensionPlan plan = planInstanceExtensions(std::span(sdlExtensions, sdlCount), offered, validation);
+    const InstanceExtensionPlan plan =
+        planInstanceExtensions(std::span(sdlExtensions, sdlCount), offered, layerOffered, validation);
     if (!plan.missing.empty()) {
         throw std::runtime_error(std::format("Vulkan instance extensions missing: {}", joined(plan.missing)));
     }
+    if (validation && !plan.layerSettings) {
+        logWarning("the validation layer takes no settings ({} missing): synchronization checks are off",
+                   kLayerSettings);
+    }
+    logInfo("Vulkan loader {}, validation {}", formatApiVersion(loaderVersion),
+            !validation          ? "off"
+            : plan.layerSettings ? "on, with synchronization checks"
+                                 : "on");
     DILITHIUM_LOG_DEBUG("instance extensions: {}", joined(plan.enable));
 
     const VkApplicationInfo application{
@@ -140,10 +154,30 @@ Instance::Instance() {
     // A copy of the messenger's create-info rides on the instance's own, so instance creation and destruction are
     // checked too, before and after the real messenger exists.
     const VkDebugUtilsMessengerCreateInfoEXT messengerInfo = messengerCreateInfo(m_validationLog.get());
+    // Synchronization validation checks that barriers and semaphores really order the GPU's work, which core
+    // validation does not. The layer has it off by default.
+    const VkBool32 enabled = VK_TRUE;
+    const VkLayerSettingEXT syncValidation{
+        .pLayerName = kValidationLayer,
+        .pSettingName = "validate_sync",
+        .type = VK_LAYER_SETTING_TYPE_BOOL32_EXT,
+        .valueCount = 1,
+        .pValues = &enabled,
+    };
+    const VkLayerSettingsCreateInfoEXT layerSettings{
+        .sType = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT,
+        .pNext = &messengerInfo,
+        .settingCount = 1,
+        .pSettings = &syncValidation,
+    };
+    const void* chain = nullptr;
+    if (validation) {
+        chain = plan.layerSettings ? static_cast<const void*>(&layerSettings) : &messengerInfo;
+    }
     const char* const layer = kValidationLayer;
     const VkInstanceCreateInfo info{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext = validation ? &messengerInfo : nullptr,
+        .pNext = chain,
         .flags = plan.portabilityEnumeration ? VkInstanceCreateFlags{VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR}
                                              : VkInstanceCreateFlags{0},
         .pApplicationInfo = &application,

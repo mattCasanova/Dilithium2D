@@ -27,7 +27,8 @@ bool hasLayer(std::span<const VkLayerProperties> offered, std::string_view name)
 }
 
 InstanceExtensionPlan planInstanceExtensions(std::span<const char* const> sdlRequired,
-                                             std::span<const VkExtensionProperties> offered, bool validation) {
+                                             std::span<const VkExtensionProperties> offered,
+                                             std::span<const VkExtensionProperties> layerOffered, bool validation) {
     InstanceExtensionPlan plan;
     for (const char* name : sdlRequired) {
         if (!hasExtension(offered, name)) {
@@ -39,10 +40,17 @@ InstanceExtensionPlan planInstanceExtensions(std::span<const char* const> sdlReq
         addOnce(plan.enable, kPortabilityEnumeration);
     }
     if (validation) {
-        if (!hasExtension(offered, VK_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
+        const auto available = [&](const char* name) {
+            return hasExtension(offered, name) || hasExtension(layerOffered, name);
+        };
+        if (!available(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
             plan.missing.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
         addOnce(plan.enable, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        if (available(kLayerSettings)) {
+            addOnce(plan.enable, kLayerSettings);
+            plan.layerSettings = true;
+        }
     }
     plan.portabilityEnumeration = std::ranges::any_of(
         plan.enable, [](const char* name) { return std::string_view(name) == kPortabilityEnumeration; });

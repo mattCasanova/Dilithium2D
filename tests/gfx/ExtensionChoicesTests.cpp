@@ -53,7 +53,7 @@ TEST_CASE("hasExtension and hasLayer match whole names", "[extensions]") {
 }
 
 TEST_CASE("on the Mac: SDL's extensions, portability enumeration, and debug utils with validation", "[extensions]") {
-    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, true);
+    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, {}, true);
     CHECK(names(plan.enable) == std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface",
                                                          "VK_KHR_portability_enumeration", "VK_EXT_debug_utils"});
     CHECK(plan.portabilityEnumeration);
@@ -61,7 +61,7 @@ TEST_CASE("on the Mac: SDL's extensions, portability enumeration, and debug util
 }
 
 TEST_CASE("without validation, no debug utils", "[extensions]") {
-    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, false);
+    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, {}, false);
     CHECK(names(plan.enable) ==
           std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface", "VK_KHR_portability_enumeration"});
 }
@@ -70,7 +70,7 @@ TEST_CASE("where the loader offers no portability enumeration (a native driver),
     const std::vector<VkExtensionProperties> nativeDriver{extension("VK_KHR_surface"), extension("VK_KHR_xcb_surface"),
                                                           extension("VK_EXT_debug_utils")};
     const std::array<const char*, 2> sdl{"VK_KHR_surface", "VK_KHR_xcb_surface"};
-    const InstanceExtensionPlan plan = planInstanceExtensions(sdl, nativeDriver, true);
+    const InstanceExtensionPlan plan = planInstanceExtensions(sdl, nativeDriver, {}, true);
     CHECK(names(plan.enable) == std::vector<std::string>{"VK_KHR_surface", "VK_KHR_xcb_surface", "VK_EXT_debug_utils"});
     CHECK_FALSE(plan.portabilityEnumeration);
     CHECK(plan.missing.empty());
@@ -78,7 +78,7 @@ TEST_CASE("where the loader offers no portability enumeration (a native driver),
 
 TEST_CASE("an extension SDL lists itself is not added twice", "[extensions]") {
     const std::array<const char*, 3> sdl{"VK_KHR_surface", "VK_EXT_metal_surface", "VK_KHR_portability_enumeration"};
-    const InstanceExtensionPlan plan = planInstanceExtensions(sdl, kMacOffered, false);
+    const InstanceExtensionPlan plan = planInstanceExtensions(sdl, kMacOffered, {}, false);
     CHECK(names(plan.enable) ==
           std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface", "VK_KHR_portability_enumeration"});
     CHECK(plan.portabilityEnumeration);
@@ -86,8 +86,29 @@ TEST_CASE("an extension SDL lists itself is not added twice", "[extensions]") {
 
 TEST_CASE("a required extension the loader does not offer is reported missing", "[extensions]") {
     const std::vector<VkExtensionProperties> bare{extension("VK_KHR_surface")};
-    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, bare, true);
+    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, bare, {}, true);
     CHECK(plan.missing == std::vector<std::string>{"VK_EXT_metal_surface", "VK_EXT_debug_utils"});
+}
+
+TEST_CASE("with validation, the layer's own layer-settings extension turns on its settings", "[extensions]") {
+    const std::vector<VkExtensionProperties> layer{extension("VK_EXT_debug_utils"), extension("VK_EXT_layer_settings")};
+    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, layer, true);
+    CHECK(names(plan.enable) == std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface",
+                                                         "VK_KHR_portability_enumeration", "VK_EXT_debug_utils",
+                                                         "VK_EXT_layer_settings"});
+    CHECK(plan.layerSettings);
+}
+
+TEST_CASE("layer settings stay off without validation, or when nothing offers them", "[extensions]") {
+    const std::vector<VkExtensionProperties> layer{extension("VK_EXT_layer_settings")};
+    CHECK_FALSE(planInstanceExtensions(kSdlOnMac, kMacOffered, layer, false).layerSettings);
+    CHECK_FALSE(planInstanceExtensions(kSdlOnMac, kMacOffered, {}, true).layerSettings);
+}
+
+TEST_CASE("debug utils offered only by the validation layer is enough", "[extensions]") {
+    const std::vector<VkExtensionProperties> loader{extension("VK_KHR_surface"), extension("VK_EXT_metal_surface")};
+    const std::vector<VkExtensionProperties> layer{extension("VK_EXT_debug_utils")};
+    CHECK(planInstanceExtensions(kSdlOnMac, loader, layer, true).missing.empty());
 }
 
 TEST_CASE("device extensions: swapchain, plus portability subset when offered", "[extensions]") {
