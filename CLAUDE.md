@@ -45,15 +45,19 @@ shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 
 ```bash
 cmake --preset debug && cmake --build --preset debug && ctest --preset debug
+./build/debug/demos/d01_clear_screen/d01_clear_screen                         # the window; quit with Cmd-Q
+./build/debug/demos/d01_clear_screen/d01_clear_screen --frames 600 --torture  # D1's proof: exit 0, no validation output
 ```
 
 - `debug`: Ninja, `build/debug`, ASan + UBSan (`DILITHIUM_SANITIZE=ON`), `DILITHIUM_DEBUG=1`. `release`: `build/release`, no sanitizers.
 - `DILITHIUM_BUILD_DEMOS` / `DILITHIUM_BUILD_TESTS` default on only when this is the top-level project.
 - In-source builds are refused.
+- Every program understands two engine flags: `--frames N` quits after N loop ticks (exit 1 if validation reported anything), `--torture` resizes the window every 20 frames and minimizes it every 97 (restoring 10 later). Anything else on the command line is the game's.
+- A Catch2 test name must not start with `-`: ctest passes the name on the command line, where Catch2 reads it as a flag.
 
 **Validation:** debug builds run the Khronos validation layer with synchronization validation on (`validate_sync`, through `VK_EXT_layer_settings`), which checks that barriers and semaphores really order the GPU's work; core validation does not. A validation error logs `error: validation: …` and aborts at the call. `DILITHIUM_NO_VALIDATION=1` turns it off, loudly. Brew's layer manifest names its library by bare file name, so a program must have `/opt/homebrew/lib` in its search paths (CMake adds it to anything linking the engine); without it the layer fails to load, loudly. `VK_LOADER_DEBUG=layer` shows whether the loader inserted it.
 
-**Claude Code sandbox:** configure, build and unit tests work inside it (the `xcrun_db … Operation not permitted` lines are harmless noise). Anything that creates a Vulkan instance (`vulkaninfo`, running a demo) needs Metal and must run outside it. So do `git init`, `commit` and `push`: the sandbox blocks writes to `.git/config` and `.git/hooks`. `$TMPDIR` is a different folder inside and outside the sandbox, so output captured outside it goes to a full path. To stop a running demo cleanly, `pkill -INT -x d01_clear_screen` outside the sandbox (SDL turns Ctrl-C into a quit); `pkill -f` also matches the shell that launched it.
+**Claude Code sandbox:** configure, build and unit tests work inside it (the `xcrun_db … Operation not permitted` lines are harmless noise). Anything that creates a Vulkan instance (`vulkaninfo`, running a demo) needs Metal and must run outside it. So do `git init`, `commit` and `push`: the sandbox blocks writes to `.git/config` and `.git/hooks`. `$TMPDIR` is a different folder inside and outside the sandbox, so output captured outside it goes to a full path. To stop a running demo cleanly, `pkill -TERM -x d01_clear_screen` outside the sandbox (SDL turns SIGTERM into a quit). Not `-INT`: a job started with `&` from a non-interactive shell has SIGINT ignored, and SDL leaves it that way. Not `-f`: it also matches the shell that launched it.
 
 ## Dependencies
 

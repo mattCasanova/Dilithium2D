@@ -1,6 +1,7 @@
 #include "platform/Window.hpp"
 
 #include <dilithium/core/Assert.hpp>
+#include <dilithium/core/Log.hpp>
 
 #include <SDL3/SDL.h>
 
@@ -33,6 +34,24 @@ PixelSize Window::pixelSize() const {
 
 bool Window::isMinimized() const {
     return (SDL_GetWindowFlags(m_window.get()) & SDL_WINDOW_MINIMIZED) != 0;
+}
+
+void Window::resize(int width, int height) {
+    if (!SDL_SetWindowSize(m_window.get(), width, height)) {
+        logWarning("SDL_SetWindowSize({}, {}) refused: {}", width, height, SDL_GetError());
+    }
+}
+
+void Window::minimize() {
+    if (!SDL_MinimizeWindow(m_window.get())) {
+        logWarning("SDL_MinimizeWindow refused: {}", SDL_GetError());
+    }
+}
+
+void Window::restore() {
+    if (!SDL_RestoreWindow(m_window.get())) {
+        logWarning("SDL_RestoreWindow refused: {}", SDL_GetError());
+    }
 }
 
 } // namespace dilithium

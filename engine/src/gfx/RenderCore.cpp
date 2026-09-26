@@ -116,6 +116,7 @@ void RenderCore::recreateSwapchain(PixelSize windowPixels) {
     // The new swapchain is built from the old one, which assigning then destroys: after the new one exists.
     m_swapchain = std::make_unique<Swapchain>(m_device.physical(), m_device.handle(), m_surface.handle(), capabilities,
                                               extent, old);
+    ++m_swapchainBuilds;
 }
 
 void RenderCore::recordClear(const FrameSlot& frame, uint32_t imageIndex, Color color) const {

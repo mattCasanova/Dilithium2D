@@ -31,6 +31,11 @@ public:
 
     VkInstance handle() const { return m_instance; }
 
+    /// Errors plus warnings the validation layer has reported so far; 0 with validation off.
+    uint32_t validationMessages() const {
+        return m_validationLog ? m_validationLog->errors + m_validationLog->warnings : 0;
+    }
+
 private:
     std::unique_ptr<ValidationLog> m_validationLog; ///< null when validation is off; outlives both handles
     VkInstance m_instance = VK_NULL_HANDLE;

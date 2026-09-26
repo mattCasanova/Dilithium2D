@@ -42,6 +42,9 @@ public:
     /// The window's pixel size changed: rebuild the swapchain before the next frame.
     void notifyResized() { m_swapchainStale = true; }
 
+    uint32_t validationMessages() const { return m_instance.validationMessages(); }
+    uint32_t swapchainBuilds() const { return m_swapchainBuilds; }
+
 private:
     void recreateSwapchain(PixelSize windowPixels);
     void recordClear(const FrameSlot& frame, uint32_t imageIndex, Color color) const;
@@ -55,6 +58,7 @@ private:
     std::unique_ptr<Swapchain> m_swapchain; ///< null while the window has no area
     FramesInFlight m_frames;
     bool m_swapchainStale = false;
+    uint32_t m_swapchainBuilds = 0;
 };
 
 } // namespace dilithium

@@ -25,6 +25,12 @@ public:
     PixelSize pixelSize() const;
     bool isMinimized() const;
 
+    /// For `--torture`. Each asks the window system and returns at once; the size or state changes a little later,
+    /// through events. A refusal is logged, not thrown.
+    void resize(int width, int height);
+    void minimize();
+    void restore();
+
     /// For the engine's Vulkan surface only.
     SDL_Window* sdlWindow() const { return m_window.get(); }
 
