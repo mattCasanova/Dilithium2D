@@ -14,3 +14,6 @@ dilithium_apply_guard_rails(dilithium_tests)
 
 include(${catch2_SOURCE_DIR}/extras/Catch.cmake)
 catch_discover_tests(dilithium_tests)
+
+# Every public header compiles alone, with no third-party include path: see headers/CMakeLists.txt.
+add_subdirectory(headers)
