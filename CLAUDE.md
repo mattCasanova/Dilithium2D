@@ -13,7 +13,8 @@ engine/
   include/dilithium/   public headers: everything a game may include. No SDL, Vulkan, VMA, glm or JSON types
     App.hpp            the one header every program starts from
     core/  gfx/        one folder per area, the same names in src/ and tests/
-  src/                 private: core/, gfx/ (Vulkan), platform/ (SDL). Every .cpp here is the library (globbed)
+  src/                 private: core/, engine/ (frame clock, run flags), platform/ (SDL), gfx/ with renderers/,
+                       vulkan/ and swapchain/. Every .cpp here is the library (globbed)
   main/                SdlMain.cpp: the dilithium::main target, kept outside src/ so the library glob skips it
 demos/d01_clear_screen/
 tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)

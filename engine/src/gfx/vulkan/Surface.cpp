@@ -1,4 +1,4 @@
-#include "gfx/Surface.hpp"
+#include "gfx/vulkan/Surface.hpp"
 
 #include <SDL3/SDL_vulkan.h>
 

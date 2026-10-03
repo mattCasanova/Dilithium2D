@@ -1,6 +1,6 @@
-#include "gfx/FramesInFlight.hpp"
+#include "gfx/swapchain/FramesInFlight.hpp"
 
-#include "gfx/VkCheck.hpp"
+#include "gfx/vulkan/VkCheck.hpp"
 
 namespace dilithium {
 

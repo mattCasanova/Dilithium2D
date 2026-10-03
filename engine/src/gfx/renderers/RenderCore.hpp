@@ -1,11 +1,11 @@
 #pragma once
 
-#include "gfx/Allocator.hpp"
-#include "gfx/Device.hpp"
-#include "gfx/FramesInFlight.hpp"
-#include "gfx/Instance.hpp"
-#include "gfx/Surface.hpp"
-#include "gfx/Swapchain.hpp"
+#include "gfx/swapchain/FramesInFlight.hpp"
+#include "gfx/swapchain/Swapchain.hpp"
+#include "gfx/vulkan/Allocator.hpp"
+#include "gfx/vulkan/Device.hpp"
+#include "gfx/vulkan/Instance.hpp"
+#include "gfx/vulkan/Surface.hpp"
 
 #include <dilithium/gfx/Color.hpp>
 

@@ -2,10 +2,10 @@
 // four SDL_App* callbacks below, which run the game's App. A game links this file and never includes an SDL header.
 #define SDL_MAIN_USE_CALLBACKS 1
 
-#include "core/FrameTime.hpp"
-#include "gfx/RenderCore.hpp"
-#include "platform/RunOptions.hpp"
-#include "platform/Torture.hpp"
+#include "engine/FrameTime.hpp"
+#include "engine/RunOptions.hpp"
+#include "engine/Torture.hpp"
+#include "gfx/renderers/RenderCore.hpp"
 #include "platform/Window.hpp"
 
 #include <dilithium/App.hpp>

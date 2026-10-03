@@ -1,7 +1,7 @@
-#include "gfx/RenderCore.hpp"
+#include "gfx/renderers/RenderCore.hpp"
 
-#include "gfx/SwapchainChoices.hpp"
-#include "gfx/VkCheck.hpp"
+#include "gfx/swapchain/SwapchainChoices.hpp"
+#include "gfx/vulkan/VkCheck.hpp"
 #include "platform/Window.hpp"
 
 #include <dilithium/core/Log.hpp>

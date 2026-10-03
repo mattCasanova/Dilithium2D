@@ -1,4 +1,4 @@
-#include "gfx/ExtensionChoices.hpp"
+#include "gfx/vulkan/ExtensionChoices.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 

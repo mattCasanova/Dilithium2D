@@ -1,4 +1,4 @@
-#include "gfx/DeviceChoices.hpp"
+#include "gfx/vulkan/DeviceChoices.hpp"
 
 #include <dilithium/core/Log.hpp>
 

@@ -1,8 +1,8 @@
-#include "gfx/Device.hpp"
+#include "gfx/vulkan/Device.hpp"
 
-#include "gfx/DeviceChoices.hpp"
-#include "gfx/ExtensionChoices.hpp"
-#include "gfx/VkCheck.hpp"
+#include "gfx/vulkan/DeviceChoices.hpp"
+#include "gfx/vulkan/ExtensionChoices.hpp"
+#include "gfx/vulkan/VkCheck.hpp"
 
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>

@@ -1,7 +1,7 @@
-#include "gfx/Swapchain.hpp"
+#include "gfx/swapchain/Swapchain.hpp"
 
-#include "gfx/SwapchainChoices.hpp"
-#include "gfx/VkCheck.hpp"
+#include "gfx/swapchain/SwapchainChoices.hpp"
+#include "gfx/vulkan/VkCheck.hpp"
 
 #include <dilithium/core/Log.hpp>
 

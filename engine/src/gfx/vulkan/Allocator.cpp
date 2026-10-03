@@ -1,6 +1,6 @@
-#include "gfx/Allocator.hpp"
+#include "gfx/vulkan/Allocator.hpp"
 
-#include "gfx/VkCheck.hpp"
+#include "gfx/vulkan/VkCheck.hpp"
 
 namespace dilithium {
 

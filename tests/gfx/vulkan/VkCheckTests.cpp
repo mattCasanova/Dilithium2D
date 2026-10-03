@@ -1,4 +1,4 @@
-#include "gfx/VkCheck.hpp"
+#include "gfx/vulkan/VkCheck.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
