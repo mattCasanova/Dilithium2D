@@ -2,7 +2,7 @@
 
 C++20 + raw Vulkan 1.3 2D game engine. Mirrors the design of LiquidMetal2D (Swift/Metal, `~/src/games/LiquidMetal2D`): a 3D-capable renderer locked to 2D gameplay. It is a library: each game is its own repo and pulls the engine in by git tag through `FetchContent`. Demos live here, one executable each.
 
-Plans live outside the repo, in `~/workspace/LM2D/VulkanEngine/` (`roadmap.md`, one plan per demo rung).
+Plans live outside the repo, in `~/workspace/Dilithium2D/` (`roadmap.md`, one plan per demo rung).
 
 ## Layout
 
