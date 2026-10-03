@@ -58,7 +58,8 @@ cmake --preset debug && cmake --build --preset debug && ctest --preset debug
   ```bash
   uv tool install clang-tidy==22.1.8 && uv tool install clang-format==23.1.1   # both land in ~/.local/bin
   ```
-  A debug configure fails with that command if clang-tidy is missing or another version. Upgrading either is a commit of its own: new pin in `cmake/Lint.cmake` (and here), fix the new findings.
+  A debug configure fails with that command if clang-tidy is missing or another version. Upgrading either is a commit of its own: new pin in `cmake/Lint.cmake`, `tools/git-hooks/pre-commit` and here, fix the new findings.
+- Pre-commit hook, turned on once per clone with `git config core.hooksPath tools/git-hooks`: the staged C++ files must be clang-formatted (checked on the staged bytes) and pass clang-tidy (staged `.cpp` files; every `.cpp` if a header is staged). It needs `build/debug` configured and fails loudly without it. Never `git commit --no-verify`.
 - `debug`: Ninja, `build/debug`, ASan + UBSan (`DILITHIUM_SANITIZE=ON`), `DILITHIUM_DEBUG=1`, clang-tidy on every file. `release`: `build/release`, no sanitizers, no lint.
 - `DILITHIUM_BUILD_DEMOS` / `DILITHIUM_BUILD_TESTS` default on only when this is the top-level project.
 - In-source builds are refused.

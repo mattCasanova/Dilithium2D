@@ -12,10 +12,17 @@ You need CMake 3.25+, Ninja, a C++20 compiler, and the Vulkan loader, headers an
 brew install cmake ninja vulkan-headers vulkan-loader molten-vk vulkan-validationlayers vulkan-tools shaderc sdl3
 ```
 
+Debug builds lint with clang-tidy and the pre-commit hook checks formatting and lint, both at pinned versions:
+
+```bash
+uv tool install clang-tidy==22.1.8 && uv tool install clang-format==23.1.1   # once per machine
+git config core.hooksPath tools/git-hooks                                     # once per clone
+```
+
 Then:
 
 ```bash
-cmake --preset debug           # Debug, with AddressSanitizer + UndefinedBehaviorSanitizer
+cmake --preset debug           # Debug, with AddressSanitizer + UndefinedBehaviorSanitizer, clang-tidy on every file
 cmake --build --preset debug
 ctest --preset debug
 ```

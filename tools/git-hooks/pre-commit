@@ -1,0 +1,71 @@
+#!/bin/sh
+# Pre-commit check: the staged C++ files must be clang-formatted and pass clang-tidy. Turned on once per clone with
+#   git config core.hooksPath tools/git-hooks
+# It never skips silently: a missing tool, a wrong version or a missing debug build fails the commit and says why.
+# clang-tidy reads the file on disk, so it checks the working-tree copy of each staged file; clang-format checks the
+# exact staged bytes.
+set -eu
+
+CLANG_FORMAT_VERSION=23.1.1
+CLANG_TIDY_VERSION=22.1.8
+COMPILE_COMMANDS=build/debug/compile_commands.json
+
+say() { printf '%s\n' "$*" >&2; }
+fail() { say "pre-commit: $*"; exit 1; }
+
+cd "$(git rev-parse --show-toplevel)"
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.cpp' '*.hpp')
+[ -n "$staged" ] || exit 0
+
+# --- tools, pinned
+clang_format=$(command -v clang-format || true)
+clang_tidy=$(command -v clang-tidy || true)
+[ -n "$clang_format" ] || fail "clang-format not found; install it with: uv tool install clang-format==$CLANG_FORMAT_VERSION"
+[ -n "$clang_tidy" ] || fail "clang-tidy not found; install it with: uv tool install clang-tidy==$CLANG_TIDY_VERSION"
+case "$("$clang_format" --version)" in *"$CLANG_FORMAT_VERSION"*) ;; *)
+    fail "clang-format is not $CLANG_FORMAT_VERSION; install it with: uv tool install clang-format==$CLANG_FORMAT_VERSION" ;;
+esac
+case "$("$clang_tidy" --version)" in *"LLVM version $CLANG_TIDY_VERSION"*) ;; *)
+    fail "clang-tidy is not $CLANG_TIDY_VERSION; install it with: uv tool install clang-tidy==$CLANG_TIDY_VERSION" ;;
+esac
+
+# --- format: the staged bytes, not the working tree
+staged_copy=$(mktemp)
+trap 'rm -f "$staged_copy"' EXIT
+unformatted=""
+for file in $staged; do
+    git show ":$file" > "$staged_copy"
+    if ! "$clang_format" --style=file --assume-filename="$file" < "$staged_copy" | cmp -s - "$staged_copy"; then
+        unformatted="$unformatted $file"
+    fi
+done
+if [ -n "$unformatted" ]; then
+    say "pre-commit: not clang-formatted:"
+    for file in $unformatted; do say "  $file"; done
+    fail "fix with: clang-format -i$unformatted && git add$unformatted"
+fi
+
+# --- lint: staged .cpp files; if any header is staged, every .cpp (a header can be included from anywhere)
+[ -f "$COMPILE_COMMANDS" ] || fail "no $COMPILE_COMMANDS; configure the debug build first: cmake --preset debug"
+to_lint=$(printf '%s\n' $staged | grep '\.cpp$' || true)
+if printf '%s\n' $staged | grep -q '\.hpp$'; then
+    to_lint=$(python3 -c '
+import json, os
+root = os.getcwd() + "/"
+for entry in json.load(open("'"$COMPILE_COMMANDS"'")):
+    f = entry["file"]
+    if f.startswith(root) and "/build/" not in f:
+        print(f[len(root):])' | sort -u)
+fi
+[ -n "$to_lint" ] || exit 0
+
+extra_args="--extra-arg=-Wno-missing-designated-field-initializers"
+if [ "$(uname)" = Darwin ]; then
+    extra_args="$extra_args --extra-arg=-isysroot$(xcrun --show-sdk-path)"
+fi
+say "pre-commit: clang-tidy on $(printf '%s\n' $to_lint | wc -l | tr -d ' ') file(s)"
+if ! printf '%s\n' $to_lint | xargs -P "$(sysctl -n hw.ncpu 2>/dev/null || nproc)" -n 1 \
+        "$clang_tidy" -p build/debug --quiet $extra_args > "${TMPDIR:-/tmp}/pre-commit-tidy" 2>/dev/null; then
+    grep -E ': (error|warning):' "${TMPDIR:-/tmp}/pre-commit-tidy" >&2 || true
+    fail "clang-tidy reported findings; fix them (a debug build shows the same)"
+fi
