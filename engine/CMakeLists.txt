@@ -22,9 +22,7 @@ target_link_libraries(dilithium PRIVATE
     glm::glm
     nlohmann_json::nlohmann_json)
 
-dilithium_set_warnings(dilithium)
-dilithium_enable_sanitizers(dilithium)
-dilithium_enable_lint(dilithium)
+dilithium_apply_guard_rails(dilithium)
 
 # The entry point: SDL's main() drives the game's App through the four SDL_App* callbacks in main/SdlMain.cpp. An
 # OBJECT library, so its object file is always linked in, and a target of its own, so the unit tests (Catch2's
@@ -39,6 +37,4 @@ target_link_libraries(dilithium_main
     PUBLIC dilithium
     PRIVATE SDL3::SDL3 Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator)
 
-dilithium_set_warnings(dilithium_main)
-dilithium_enable_sanitizers(dilithium_main)
-dilithium_enable_lint(dilithium_main)
+dilithium_apply_guard_rails(dilithium_main)

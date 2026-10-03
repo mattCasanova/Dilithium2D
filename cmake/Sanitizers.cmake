@@ -9,7 +9,14 @@ function(dilithium_enable_sanitizers target)
         message(FATAL_ERROR "DILITHIUM_SANITIZE supports clang and gcc only")
     endif()
 
-    set(flags -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
+    # `undefined` leaves out four groups worth having: a float divided by zero; an implicit conversion that changes
+    # the value at run time (a size_t truncated to uint32_t through a cast -Wconversion cannot see); a null passed
+    # where _Nonnull is declared; and out-of-bounds indexing of a local array. Not unsigned-integer-overflow: a hash
+    # or a wrapping counter does that on purpose.
+    set(flags
+        -fsanitize=address,undefined,float-divide-by-zero,implicit-conversion,nullability,local-bounds
+        -fno-sanitize-recover=all
+        -fno-omit-frame-pointer)
     target_compile_options(${target} PRIVATE ${flags})
     # PUBLIC: whatever links an instrumented library needs the sanitizer runtime too.
     target_link_options(${target} PUBLIC ${flags})

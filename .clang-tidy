@@ -81,8 +81,11 @@ CheckOptions:
   # Vulkan-style extension function pointers (PFN_vkCreate...) and SDL's callbacks keep their given names.
   readability-identifier-naming.FunctionIgnoredRegexp: '^SDL_App.*'
 
-  # Function size: a function over 100 lines fails (CLAUDE.md asks for small functions).
+  # Function size: over 100 lines, more than 6 parameters, or blocks nested deeper than 4 fails (CLAUDE.md asks for
+  # small functions). Cognitive complexity is on at its default of 25.
   readability-function-size.LineThreshold: 100
+  readability-function-size.ParameterThreshold: 6
+  readability-function-size.NestingThreshold: 4
 
   # Magic numbers: 0, 1 and 2 need no name. Tests are exempt through tests/.clang-tidy.
   readability-magic-numbers.IgnoredIntegerValues: '1;2'

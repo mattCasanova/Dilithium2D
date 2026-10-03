@@ -6,7 +6,9 @@
       "name": "base",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}"
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "warnings": { "dev": true, "deprecated": true },
+      "errors": { "dev": true, "deprecated": true }
     },
     {
       "name": "debug",

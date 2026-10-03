@@ -22,9 +22,7 @@ option(DILITHIUM_BUILD_DEMOS "Build the demo programs" ${PROJECT_IS_TOP_LEVEL})
 option(DILITHIUM_BUILD_TESTS "Build the unit tests" ${PROJECT_IS_TOP_LEVEL})
 option(DILITHIUM_SANITIZE "Build Dilithium2D's own targets with ASan + UBSan" OFF)
 
-include(${PROJECT_SOURCE_DIR}/cmake/Warnings.cmake)
-include(${PROJECT_SOURCE_DIR}/cmake/Sanitizers.cmake)
-include(${PROJECT_SOURCE_DIR}/cmake/Lint.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/GuardRails.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake)
 
 dilithium_find_clang_tidy()

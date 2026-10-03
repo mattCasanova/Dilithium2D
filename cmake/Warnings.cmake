@@ -21,7 +21,16 @@ function(dilithium_set_warnings target)
             -Wnull-dereference
             -Wformat=2
             -Wundef
-            -Wcast-qual)
+            -Wcast-qual
+            -Wdocumentation
+            -Wsuggest-override
+            -Wsuggest-destructor-override
+            -Wzero-as-null-pointer-constant
+            -Wunreachable-code
+            -Wunused-macros)
+        # Not -Weverything: clang's manual advises against it (some of its warnings contradict each other, and every
+        # release adds more). Not -Wswitch-enum: it would make every switch over a Vulkan enum list hundreds of
+        # values; -Wswitch plus the no-silent-default rule does the job.
     endif()
     set_target_properties(${target} PROPERTIES COMPILE_WARNING_AS_ERROR ON)
 endfunction()

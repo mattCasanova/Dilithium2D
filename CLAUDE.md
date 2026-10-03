@@ -8,7 +8,7 @@ Plans live outside the repo, in `~/workspace/Dilithium2D/` (`roadmap.md`, one pl
 
 ```
 CMakeLists.txt  CMakePresets.json  .clang-format  .clang-tidy (tests/.clang-tidy drops the magic-number rule)
-cmake/          Dependencies.cmake  Warnings.cmake  Sanitizers.cmake  Lint.cmake
+cmake/          Dependencies.cmake  GuardRails.cmake (Warnings, Sanitizers, Lint, Hardening: one call per target)
 engine/
   include/dilithium/   public headers: everything a game may include. No SDL, Vulkan, VMA, glm or JSON types
     App.hpp            the one header every program starts from
@@ -18,6 +18,7 @@ engine/
   main/                SdlMain.cpp: the dilithium::main target, kept outside src/ so the library glob skips it
 demos/d01_clear_screen/
 tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)
+  headers/             compiles each public header alone with no third-party include path: a leak fails the build
 shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 ```
 
@@ -42,7 +43,8 @@ shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 - **A constant lives with the code that owns it.** One `.cpp`: `constexpr` in its anonymous namespace. One class: a `static constexpr` member. Several files: `inline constexpr` in the owning area's header. No project-wide constants file (every system would include it, and one change would rebuild everything). Never `#define`, never `static const` in a header.
 - **A header includes only what it needs and forward declares the rest.** A type used only through a pointer, a reference, or a declared function's signature gets `class Window;`, and the `.cpp` includes the header. A member held by value, a base class, inline code and templates need the include. Never forward declare `std` or third-party types (undefined behavior; a library may turn a class into an alias). Don't turn a value member into a pointer to save an include; where a header must hide its members, use a private `Impl`.
 - **Linted.** clang-tidy runs on every debug build of our targets, with every finding an error, same as a warning. `.clang-tidy` lists each check that is off with its reason beside it; a finding that is wrong in one place gets `// NOLINT(check-name): reason` on that line, never a wider exemption. The checker reads the debug configuration, so an include used only inside `#ifndef DILITHIUM_DEBUG` goes inside that block.
-- Strict warnings as errors, ASan + UBSan and clang-tidy apply to our targets only, never to a game that links the engine.
+- Strict warnings as errors, sanitizers, clang-tidy and library hardening apply to our targets only (`dilithium_apply_guard_rails`), never to a game that links the engine.
+- `v[i]` is checked: libc++ hardening is on (every check in debug, the cheap ones in release), so no `.at()` for bounds safety. Debug builds also run UBSan's `implicit-conversion`, `float-divide-by-zero`, `nullability` and `local-bounds` groups, and any report aborts.
 - `.gitignore` drops any folder named `debug/`, `release/`, `bin/`, `obj/` or `log/`. Never name a source folder that.
 - Sources and tests are globbed: adding a `.cpp` needs no CMake edit, but any `.cpp` under `engine/src/` or `tests/` gets built. Keep experiments elsewhere.
 
@@ -60,7 +62,7 @@ cmake --preset debug && cmake --build --preset debug && ctest --preset debug
   ```
   A debug configure fails with that command if clang-tidy is missing or another version. Upgrading either is a commit of its own: new pin in `cmake/Lint.cmake`, `tools/git-hooks/pre-commit` and here, fix the new findings.
 - Pre-commit hook, turned on once per clone with `git config core.hooksPath tools/git-hooks`: the staged C++ files must be clang-formatted (checked on the staged bytes) and pass clang-tidy (staged `.cpp` files; every `.cpp` if a header is staged). It needs `build/debug` configured and fails loudly without it. Never `git commit --no-verify`.
-- `debug`: Ninja, `build/debug`, ASan + UBSan (`DILITHIUM_SANITIZE=ON`), `DILITHIUM_DEBUG=1`, clang-tidy on every file. `release`: `build/release`, no sanitizers, no lint.
+- `debug`: Ninja, `build/debug`, ASan + UBSan (`DILITHIUM_SANITIZE=ON`), `DILITHIUM_DEBUG=1`, libc++ hardening DEBUG, clang-tidy on every file. `release`: `build/release`, no sanitizers, no lint, hardening FAST, `_FORTIFY_SOURCE=3`, stack protector. CMake's own dev and deprecation warnings are errors in both.
 - `DILITHIUM_BUILD_DEMOS` / `DILITHIUM_BUILD_TESTS` default on only when this is the top-level project.
 - In-source builds are refused.
 - Every program understands two engine flags: `--frames N` quits after N loop ticks (exit 1 if validation reported anything), `--torture` resizes the window every 20 frames and minimizes it every 97 (restoring 10 later). Anything else on the command line is the game's.
