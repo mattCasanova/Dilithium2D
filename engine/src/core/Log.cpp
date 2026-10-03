@@ -1,8 +1,12 @@
 #include "core/LogFormat.hpp"
 
 #include <dilithium/core/Assert.hpp>
+#include <dilithium/core/Log.hpp>
 
 #include <cstdio>
+#include <format>
+#include <string>
+#include <string_view>
 
 namespace dilithium {
 

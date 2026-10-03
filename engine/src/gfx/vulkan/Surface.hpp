@@ -19,7 +19,7 @@ public:
     Surface(Surface&&) = delete;
     Surface& operator=(Surface&&) = delete;
 
-    VkSurfaceKHR handle() const { return m_surface; }
+    [[nodiscard]] VkSurfaceKHR handle() const { return m_surface; }
 
 private:
     VkInstance m_instance;

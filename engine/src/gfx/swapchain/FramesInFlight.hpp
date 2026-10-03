@@ -30,7 +30,7 @@ public:
     FramesInFlight(FramesInFlight&&) = delete;
     FramesInFlight& operator=(FramesInFlight&&) = delete;
 
-    const FrameSlot& current() const { return m_slots[m_index]; }
+    [[nodiscard]] const FrameSlot& current() const { return m_slots[m_index]; }
     void advance() { m_index = (m_index + 1) % kFramesInFlight; }
 
 private:

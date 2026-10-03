@@ -42,7 +42,7 @@ void logError(std::format_string<Args...> format, Args&&... args) {
 /// A log line for debug builds only (Mach 5's `M5DEBUG_PRINT`), printed as `debug: …`. Release still compiles the
 /// call, so the format string is checked and anything the arguments name counts as used, but never runs it: an
 /// expensive argument costs nothing outside debug.
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
 #define DILITHIUM_LOG_DEBUG(...) ::dilithium::detail::logDebug(__VA_ARGS__)
 #else
 #define DILITHIUM_LOG_DEBUG(...) static_cast<void>(false && (::dilithium::detail::logDebug(__VA_ARGS__), true))

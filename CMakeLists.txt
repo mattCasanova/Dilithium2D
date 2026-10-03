@@ -24,7 +24,10 @@ option(DILITHIUM_SANITIZE "Build Dilithium2D's own targets with ASan + UBSan" OF
 
 include(${PROJECT_SOURCE_DIR}/cmake/Warnings.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/Sanitizers.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/Lint.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake)
+
+dilithium_find_clang_tidy()
 
 add_subdirectory(engine)
 

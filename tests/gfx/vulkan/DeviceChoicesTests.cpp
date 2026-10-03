@@ -64,12 +64,14 @@ TEST_CASE("discrete outscores integrated outscores everything else", "[device]")
 }
 
 TEST_CASE("a device type newer than our headers scores as other", "[device]") {
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange): a value newer than the headers is the point
     CHECK(deviceTypeScore(static_cast<VkPhysicalDeviceType>(42)) == 10);
 }
 
 TEST_CASE("deviceTypeName gives the log a word for every type", "[device]") {
     CHECK(dilithium::deviceTypeName(VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) == "discrete GPU");
     CHECK(dilithium::deviceTypeName(VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) == "integrated GPU");
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange): a value newer than the headers is the point
     CHECK(dilithium::deviceTypeName(static_cast<VkPhysicalDeviceType>(42)) == "unknown device type");
 }
 

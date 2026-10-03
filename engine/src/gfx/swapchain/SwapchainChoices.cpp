@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <bit>
+#include <cstdint>
 #include <limits>
+#include <optional>
+#include <span>
 
 namespace dilithium {
 

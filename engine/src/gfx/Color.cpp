@@ -7,14 +7,20 @@
 namespace dilithium {
 namespace {
 
+constexpr float kDegreesPerTurn = 360.0f;
+constexpr float kDegreesPerSector = 60.0f; ///< the hue wheel is six sectors of 60 degrees
+
+/// One sixth of the hue wheel. Within a sector one channel is at full chroma, one at none, and one ramps between.
+enum class Sector { RedToYellow, YellowToGreen, GreenToCyan, CyanToBlue, BlueToMagenta, MagentaToRed };
+
 /// Wraps any finite angle into [0, 360).
 float wrapDegrees(float degrees) {
-    float wrapped = std::fmod(degrees, 360.0f);
+    float wrapped = std::fmod(degrees, kDegreesPerTurn);
     if (wrapped < 0.0f) {
-        wrapped += 360.0f;
+        wrapped += kDegreesPerTurn;
     }
     // A tiny negative input rounds up to exactly 360 after the add.
-    return wrapped >= 360.0f ? 0.0f : wrapped;
+    return wrapped >= kDegreesPerTurn ? 0.0f : wrapped;
 }
 
 } // namespace
@@ -30,25 +36,25 @@ Color Color::fromHSV(float hueDegrees, float saturation, float value, float alph
     const float a = std::clamp(alpha, 0.0f, 1.0f);
 
     const float chroma = v * s;
-    const float sector = hue / 60.0f; // [0, 6)
-    const float x = chroma * (1.0f - std::abs(std::fmod(sector, 2.0f) - 1.0f));
+    const float position = hue / kDegreesPerSector; // [0, 6): sector number plus how far into it
+    const float x = chroma * (1.0f - std::abs(std::fmod(position, 2.0f) - 1.0f));
     const float m = v - chroma;
 
-    switch (static_cast<int>(sector)) {
-    case 0:
+    switch (static_cast<Sector>(static_cast<int>(position))) {
+    case Sector::RedToYellow:
         return {chroma + m, x + m, m, a};
-    case 1:
+    case Sector::YellowToGreen:
         return {x + m, chroma + m, m, a};
-    case 2:
+    case Sector::GreenToCyan:
         return {m, chroma + m, x + m, a};
-    case 3:
+    case Sector::CyanToBlue:
         return {m, x + m, chroma + m, a};
-    case 4:
+    case Sector::BlueToMagenta:
         return {x + m, m, chroma + m, a};
-    case 5:
+    case Sector::MagentaToRed:
         return {chroma + m, m, x + m, a};
     }
-    DILITHIUM_UNREACHABLE("hue sector outside 0...5 after wrapping");
+    DILITHIUM_UNREACHABLE("hue sector outside the wheel after wrapping");
 }
 
 } // namespace dilithium

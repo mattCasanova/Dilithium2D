@@ -42,8 +42,8 @@ public:
     /// The window's pixel size changed: rebuild the swapchain before the next frame.
     void notifyResized() { m_swapchainStale = true; }
 
-    uint32_t validationMessages() const { return m_instance.validationMessages(); }
-    uint32_t swapchainBuilds() const { return m_swapchainBuilds; }
+    [[nodiscard]] uint32_t validationMessages() const { return m_instance.validationMessages(); }
+    [[nodiscard]] uint32_t swapchainBuilds() const { return m_swapchainBuilds; }
 
 private:
     void recreateSwapchain(PixelSize windowPixels);

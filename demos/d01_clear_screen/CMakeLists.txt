@@ -3,3 +3,4 @@ target_link_libraries(d01_clear_screen PRIVATE dilithium::main)
 
 dilithium_set_warnings(d01_clear_screen)
 dilithium_enable_sanitizers(d01_clear_screen)
+dilithium_enable_lint(d01_clear_screen)

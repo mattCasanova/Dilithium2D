@@ -1,5 +1,7 @@
 #include "core/LogFormat.hpp"
 
+#include <dilithium/core/Log.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 
 using dilithium::formatLogLine;
@@ -32,7 +34,7 @@ TEST_CASE("DILITHIUM_LOG_DEBUG runs its arguments in debug and never in release"
 
     int calls = 0;
     DILITHIUM_LOG_DEBUG("counted: {}", counted(calls));
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
     CHECK(calls == 1);
 #else
     CHECK(calls == 0);

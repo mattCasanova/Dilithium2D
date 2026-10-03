@@ -2,6 +2,8 @@
 
 #include "gfx/vulkan/VkCheck.hpp"
 
+#include <cstdint>
+
 namespace dilithium {
 
 FramesInFlight::FramesInFlight(VkDevice device, uint32_t queueFamily) : m_device(device) {

@@ -13,7 +13,15 @@ function(dilithium_set_warnings target)
             -Wconversion
             -Wsign-conversion
             -Wnon-virtual-dtor
-            -Wold-style-cast)
+            -Wold-style-cast
+            -Wdouble-promotion
+            -Wimplicit-fallthrough
+            -Woverloaded-virtual
+            -Wextra-semi
+            -Wnull-dereference
+            -Wformat=2
+            -Wundef
+            -Wcast-qual)
     endif()
     set_target_properties(${target} PROPERTIES COMPILE_WARNING_AS_ERROR ON)
 endfunction()

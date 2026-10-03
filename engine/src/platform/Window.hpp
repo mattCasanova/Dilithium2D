@@ -22,8 +22,8 @@ public:
     /// Throws `std::runtime_error` with SDL's message if the window cannot be made.
     Window(const std::string& title, int width, int height);
 
-    PixelSize pixelSize() const;
-    bool isMinimized() const;
+    [[nodiscard]] PixelSize pixelSize() const;
+    [[nodiscard]] bool isMinimized() const;
 
     /// For `--torture`. Each asks the window system and returns at once; the size or state changes a little later,
     /// through events. A refusal is logged, not thrown.
@@ -32,7 +32,7 @@ public:
     void restore();
 
     /// For the engine's Vulkan surface only.
-    SDL_Window* sdlWindow() const { return m_window.get(); }
+    [[nodiscard]] SDL_Window* sdlWindow() const { return m_window.get(); }
 
 private:
     struct Destroy {

@@ -2,27 +2,43 @@
 
 #include <dilithium/core/Log.hpp>
 
+#include <cstddef>
+#include <cstdint>
 #include <format>
+#include <optional>
+#include <span>
+#include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
+#include <vector>
 
 namespace dilithium {
+namespace {
+
+// A discrete GPU beats an integrated one beats everything else, by a margin no tie-break can cross.
+constexpr int kDiscreteGpuScore = 1000;
+constexpr int kIntegratedGpuScore = 100;
+constexpr int kOtherDeviceScore = 10;
+
+} // namespace
 
 int deviceTypeScore(VkPhysicalDeviceType type) {
     switch (type) {
     case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-        return 1000;
+        return kDiscreteGpuScore;
     case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-        return 100;
+        return kIntegratedGpuScore;
     case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
     case VK_PHYSICAL_DEVICE_TYPE_CPU:
     case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-        return 10;
+        return kOtherDeviceScore;
     case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
         break;
     }
     // A type newer than these headers is the driver's news, not our bug: say so, then treat it as "other".
     logWarning("unknown VkPhysicalDeviceType {}; scoring it as 'other'", static_cast<int>(type));
-    return 10;
+    return kOtherDeviceScore;
 }
 
 std::string_view deviceTypeName(VkPhysicalDeviceType type) {
@@ -85,7 +101,9 @@ DeviceVerdict scoreDevice(const DeviceFacts& device) {
         reasons.emplace_back("the surface offers no present modes");
     }
 
-    if (!reasons.empty()) {
+    // A missing queue family is already in `reasons`; naming it again here lets a reader (and the linter) see that
+    // the optional below is never empty.
+    if (!reasons.empty() || !queueFamily) {
         return UnusableDevice{std::move(reasons)};
     }
     return UsableDevice{deviceTypeScore(device.type), *queueFamily};

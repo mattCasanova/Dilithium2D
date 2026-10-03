@@ -40,7 +40,7 @@ TEST_CASE("no restore before the first minimize", "[torture]") {
 }
 
 TEST_CASE("minimize and restore win over a resize due on the same frame", "[torture]") {
-    CHECK(tortureStep(20 * 97).action == TortureAction::Minimize); // 1940: due for both
+    CHECK(tortureStep(uint64_t{20} * 97).action == TortureAction::Minimize); // 1940: due for both
 }
 
 TEST_CASE("a 600-frame torture run minimizes and restores six times", "[torture]") {

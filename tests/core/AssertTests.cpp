@@ -1,10 +1,6 @@
 #include <dilithium/core/Assert.hpp>
-#include <dilithium/gfx/Color.hpp>
 
 #include <catch2/catch_test_macros.hpp>
-
-#include <limits>
-#include <stdexcept>
 
 namespace {
 
@@ -33,7 +29,7 @@ TEST_CASE("DILITHIUM_ASSERT lets a true condition through", "[assert]") {
 TEST_CASE("DILITHIUM_ASSERT runs its condition once in debug and never in release", "[assert]") {
     int calls = 0;
     DILITHIUM_ASSERT(countedTrue(calls), "counted");
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
     CHECK(calls == 1);
 #else
     CHECK(calls == 0);
@@ -43,14 +39,22 @@ TEST_CASE("DILITHIUM_ASSERT runs its condition once in debug and never in releas
 TEST_CASE("DILITHIUM_ASSERT is one expression, safe in a brace-less if", "[assert]") {
     const bool takeFirstBranch = false;
     bool tookElse = false;
+    // The unbraced if/else is the point: the macro must not swallow the else.
+    // NOLINTBEGIN(readability-braces-around-statements)
     if (takeFirstBranch)
         DILITHIUM_ASSERT(true, "never reached");
     else
         tookElse = true;
+    // NOLINTEND(readability-braces-around-statements)
     CHECK(tookElse);
 }
 
-#if !defined(DILITHIUM_DEBUG)
+#ifndef DILITHIUM_DEBUG
+// Only this block uses them; the linter checks the debug build, where the block does not exist.
+#include <dilithium/gfx/Color.hpp>
+
+#include <limits>
+#include <stdexcept>
 
 TEST_CASE("DILITHIUM_UNREACHABLE throws logic_error in release", "[assert]") {
     CHECK_THROWS_AS(DILITHIUM_UNREACHABLE("a branch that cannot happen"), std::logic_error);

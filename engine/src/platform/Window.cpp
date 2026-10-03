@@ -5,8 +5,10 @@
 
 #include <SDL3/SDL.h>
 
+#include <cstdint>
 #include <format>
 #include <stdexcept>
+#include <string>
 
 namespace dilithium {
 

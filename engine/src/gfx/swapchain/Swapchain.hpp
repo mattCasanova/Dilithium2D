@@ -24,11 +24,11 @@ public:
     Swapchain(Swapchain&&) = delete;
     Swapchain& operator=(Swapchain&&) = delete;
 
-    VkSwapchainKHR handle() const { return m_swapchain; }
-    VkExtent2D extent() const { return m_extent; }
-    VkImage image(uint32_t index) const { return m_images.at(index); }
-    VkImageView view(uint32_t index) const { return m_views.at(index); }
-    VkSemaphore renderFinished(uint32_t index) const { return m_renderFinished.at(index); }
+    [[nodiscard]] VkSwapchainKHR handle() const { return m_swapchain; }
+    [[nodiscard]] VkExtent2D extent() const { return m_extent; }
+    [[nodiscard]] VkImage image(uint32_t index) const { return m_images.at(index); }
+    [[nodiscard]] VkImageView view(uint32_t index) const { return m_views.at(index); }
+    [[nodiscard]] VkSemaphore renderFinished(uint32_t index) const { return m_renderFinished.at(index); }
 
 private:
     void destroy();

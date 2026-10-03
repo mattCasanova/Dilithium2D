@@ -1,5 +1,7 @@
 #include <dilithium/core/Version.hpp>
 
+#include <string_view>
+
 namespace dilithium {
 
 std::string_view version() {

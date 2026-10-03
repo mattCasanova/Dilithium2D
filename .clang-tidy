@@ -1,0 +1,102 @@
+# clang-tidy 22.1.8 (pinned; see CLAUDE.md -> Build). Runs on every debug build of our own targets and in the
+# pre-commit hook. Every finding is an error. Each check switched off below has its reason beside it; a finding that
+# is wrong in one place gets `// NOLINT(check-name): reason` on that line, never a wider exemption.
+---
+Checks: >
+  bugprone-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-type-union-access,
+  -readability-uppercase-literal-suffix,
+  -portability-avoid-pragma-once,
+  -modernize-use-designated-initializers,
+  -misc-misplaced-const,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -bugprone-invalid-enum-default-initialization,
+  -performance-enum-size
+
+# Why each one is off:
+#   modernize-use-trailing-return-type          rewrites every function as `auto f() -> int`
+#   readability-identifier-length               flags `dt`, `x`, `i`
+#   bugprone-easily-swappable-parameters        flags every `f(float, float, float, float)`
+#   cppcoreguidelines-avoid-magic-numbers       a second name for readability-magic-numbers; each finding twice
+#   cppcoreguidelines-pro-type-union-access     Vulkan's VkClearValue is a union we have to write
+#   readability-uppercase-literal-suffix        wants `1.0F`; we write `1.0f`
+#   portability-avoid-pragma-once               wants include guards; we chose `#pragma once`
+#   modernize-use-designated-initializers       Vulkan structs name their fields by hand already; `{r, g, b, a}` is clearer
+#   misc-misplaced-const                        `const VkDevice device` is what we mean: a handle that stays fixed
+#   cppcoreguidelines-pro-bounds-avoid-unchecked-container-access   wants `.at()` on every `v[i]`, hot loops included
+#   cppcoreguidelines-pro-bounds-constant-array-index   wants gsl::at() for every std::array[i] with a runtime index
+#   cppcoreguidelines-pro-bounds-array-to-pointer-decay fires on reading Vulkan's fixed char[] name fields, the only way
+#   cppcoreguidelines-pro-bounds-pointer-arithmetic     fires on argv + argc, from_chars's end pointer, Vulkan fill-the-array
+#   bugprone-invalid-enum-default-initialization        fires on `VkSurfaceCapabilitiesKHR caps{}`: zeroing a Vulkan
+#                                                       out-struct before the driver fills it; flag-bit enums have no 0
+#   performance-enum-size                               wants `: std::uint8_t` on every enum; none here is a size problem
+
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*/Dilithium2D/(engine|demos|tests)/.*'
+FormatStyle: file
+
+CheckOptions:
+  # Naming: PascalCase types, camelCase functions and variables, m_ on private members, k on constants,
+  # UPPER_CASE macros, lower_case namespaces.
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.EnumConstantCase: CamelCase
+  readability-identifier-naming.TypeAliasCase: CamelCase
+  readability-identifier-naming.TypedefCase: CamelCase
+  readability-identifier-naming.TemplateParameterCase: CamelCase
+  readability-identifier-naming.FunctionCase: camelBack
+  readability-identifier-naming.MethodCase: camelBack
+  readability-identifier-naming.VariableCase: camelBack
+  readability-identifier-naming.ParameterCase: camelBack
+  readability-identifier-naming.MemberCase: camelBack
+  readability-identifier-naming.PrivateMemberCase: camelBack
+  readability-identifier-naming.PrivateMemberPrefix: m_
+  readability-identifier-naming.ProtectedMemberCase: camelBack
+  readability-identifier-naming.ProtectedMemberPrefix: m_
+  readability-identifier-naming.ConstexprVariableCase: CamelCase
+  readability-identifier-naming.ConstexprVariablePrefix: k
+  readability-identifier-naming.StaticConstantCase: CamelCase
+  readability-identifier-naming.StaticConstantPrefix: k
+  readability-identifier-naming.GlobalConstantCase: CamelCase
+  readability-identifier-naming.GlobalConstantPrefix: k
+  readability-identifier-naming.ClassConstantCase: CamelCase
+  readability-identifier-naming.ClassConstantPrefix: k
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+  # Vulkan-style extension function pointers (PFN_vkCreate...) and SDL's callbacks keep their given names.
+  readability-identifier-naming.FunctionIgnoredRegexp: '^SDL_App.*'
+
+  # Function size: a function over 100 lines fails (CLAUDE.md asks for small functions).
+  readability-function-size.LineThreshold: 100
+
+  # Magic numbers: 0, 1 and 2 need no name. Tests are exempt through tests/.clang-tidy.
+  readability-magic-numbers.IgnoredIntegerValues: '1;2'
+  readability-magic-numbers.IgnoredFloatingPointValues: '1.0;2.0;0.5'
+  readability-magic-numbers.IgnorePowersOf2IntegerValues: true
+
+  # Includes: accept the one main header of each third-party library instead of the inner header that declares a name.
+  misc-include-cleaner.IgnoreHeaders: 'vulkan/.*;vk_mem_alloc\.h;SDL3/.*;catch2/.*;glm/.*;nlohmann/.*'
+
+  # Our deliberate macros.
+  cppcoreguidelines-macro-usage.AllowedRegexp: '^(DILITHIUM_|VK_CHECK)'
+
+  # Plain structs with every member public (Color, Config structs) are fine.
+  misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
+
+  # An interface with a virtual `= default` destructor on a NonCopyable base (App, Scene) needs no copy and move rules.
+  cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true

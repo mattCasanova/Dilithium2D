@@ -29,10 +29,10 @@ public:
     Instance(Instance&&) = delete;
     Instance& operator=(Instance&&) = delete;
 
-    VkInstance handle() const { return m_instance; }
+    [[nodiscard]] VkInstance handle() const { return m_instance; }
 
     /// Errors plus warnings the validation layer has reported so far; 0 with validation off.
-    uint32_t validationMessages() const {
+    [[nodiscard]] uint32_t validationMessages() const {
         return m_validationLog ? m_validationLog->errors + m_validationLog->warnings : 0;
     }
 

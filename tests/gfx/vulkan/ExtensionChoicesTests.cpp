@@ -32,28 +32,31 @@ std::vector<std::string> names(const std::vector<const char*>& list) {
     return {list.begin(), list.end()};
 }
 
-/// What brew's loader offers on the M4 Max, for the parts that matter here.
-const std::vector<VkExtensionProperties> kMacOffered{
-    extension("VK_KHR_surface"),
-    extension("VK_EXT_metal_surface"),
-    extension("VK_KHR_portability_enumeration"),
-    extension("VK_EXT_debug_utils"),
-};
+/// What brew's loader offers on the M4 Max, for the parts that matter here. A function, not a global: a global's
+/// initializer runs before main, where a throw cannot be caught.
+std::vector<VkExtensionProperties> macOffered() {
+    return {
+        extension("VK_KHR_surface"),
+        extension("VK_EXT_metal_surface"),
+        extension("VK_KHR_portability_enumeration"),
+        extension("VK_EXT_debug_utils"),
+    };
+}
 
 const std::array<const char*, 2> kSdlOnMac{"VK_KHR_surface", "VK_EXT_metal_surface"};
 
 } // namespace
 
 TEST_CASE("hasExtension and hasLayer match whole names", "[extensions]") {
-    CHECK(hasExtension(kMacOffered, "VK_EXT_debug_utils"));
-    CHECK_FALSE(hasExtension(kMacOffered, "VK_EXT_debug"));
+    CHECK(hasExtension(macOffered(), "VK_EXT_debug_utils"));
+    CHECK_FALSE(hasExtension(macOffered(), "VK_EXT_debug"));
     const std::vector<VkLayerProperties> layers{layer("VK_LAYER_KHRONOS_validation")};
     CHECK(hasLayer(layers, "VK_LAYER_KHRONOS_validation"));
     CHECK_FALSE(hasLayer(layers, "VK_LAYER_KHRONOS"));
 }
 
 TEST_CASE("on the Mac: SDL's extensions, portability enumeration, and debug utils with validation", "[extensions]") {
-    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, {}, true);
+    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, macOffered(), {}, true);
     CHECK(names(plan.enable) == std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface",
                                                          "VK_KHR_portability_enumeration", "VK_EXT_debug_utils"});
     CHECK(plan.portabilityEnumeration);
@@ -61,7 +64,7 @@ TEST_CASE("on the Mac: SDL's extensions, portability enumeration, and debug util
 }
 
 TEST_CASE("without validation, no debug utils", "[extensions]") {
-    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, {}, false);
+    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, macOffered(), {}, false);
     CHECK(names(plan.enable) ==
           std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface", "VK_KHR_portability_enumeration"});
 }
@@ -78,7 +81,7 @@ TEST_CASE("where the loader offers no portability enumeration (a native driver),
 
 TEST_CASE("an extension SDL lists itself is not added twice", "[extensions]") {
     const std::array<const char*, 3> sdl{"VK_KHR_surface", "VK_EXT_metal_surface", "VK_KHR_portability_enumeration"};
-    const InstanceExtensionPlan plan = planInstanceExtensions(sdl, kMacOffered, {}, false);
+    const InstanceExtensionPlan plan = planInstanceExtensions(sdl, macOffered(), {}, false);
     CHECK(names(plan.enable) ==
           std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface", "VK_KHR_portability_enumeration"});
     CHECK(plan.portabilityEnumeration);
@@ -92,7 +95,7 @@ TEST_CASE("a required extension the loader does not offer is reported missing", 
 
 TEST_CASE("with validation, the layer's own layer-settings extension turns on its settings", "[extensions]") {
     const std::vector<VkExtensionProperties> layer{extension("VK_EXT_debug_utils"), extension("VK_EXT_layer_settings")};
-    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, kMacOffered, layer, true);
+    const InstanceExtensionPlan plan = planInstanceExtensions(kSdlOnMac, macOffered(), layer, true);
     CHECK(names(plan.enable) == std::vector<std::string>{"VK_KHR_surface", "VK_EXT_metal_surface",
                                                          "VK_KHR_portability_enumeration", "VK_EXT_debug_utils",
                                                          "VK_EXT_layer_settings"});
@@ -101,8 +104,8 @@ TEST_CASE("with validation, the layer's own layer-settings extension turns on it
 
 TEST_CASE("layer settings stay off without validation, or when nothing offers them", "[extensions]") {
     const std::vector<VkExtensionProperties> layer{extension("VK_EXT_layer_settings")};
-    CHECK_FALSE(planInstanceExtensions(kSdlOnMac, kMacOffered, layer, false).layerSettings);
-    CHECK_FALSE(planInstanceExtensions(kSdlOnMac, kMacOffered, {}, true).layerSettings);
+    CHECK_FALSE(planInstanceExtensions(kSdlOnMac, macOffered(), layer, false).layerSettings);
+    CHECK_FALSE(planInstanceExtensions(kSdlOnMac, macOffered(), {}, true).layerSettings);
 }
 
 TEST_CASE("debug utils offered only by the validation layer is enough", "[extensions]") {

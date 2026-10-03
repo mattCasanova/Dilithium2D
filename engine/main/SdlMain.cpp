@@ -1,6 +1,6 @@
 // SDL's entry point for every Dilithium2D program: the dilithium::main target. SDL owns the main loop and calls the
 // four SDL_App* callbacks below, which run the game's App. A game links this file and never includes an SDL header.
-#define SDL_MAIN_USE_CALLBACKS 1
+#define SDL_MAIN_USE_CALLBACKS 1 // NOLINT(cppcoreguidelines-macro-usage): SDL_main.h reads it as a macro
 
 #include "engine/FrameTime.hpp"
 #include "engine/RunOptions.hpp"
@@ -74,7 +74,7 @@ Runtime& runtimeFrom(void* appstate) {
 /// A start-up failure is shown to the player too in release builds: a game launched from Finder or Explorer has no
 /// visible stderr. Debug builds run from a terminal, and a box would block an automated run.
 void showStartupFailure([[maybe_unused]] std::string_view message) {
-#if !defined(DILITHIUM_DEBUG)
+#ifndef DILITHIUM_DEBUG
     const std::string text(message);
     if (!SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Dilithium2D could not start", text.c_str(), nullptr)) {
         logError("could not show the error box: {}", SDL_GetError());
@@ -84,7 +84,7 @@ void showStartupFailure([[maybe_unused]] std::string_view message) {
 
 /// Runs one callback's body. An exception must not cross into SDL's C code, so it is logged and ends the program.
 template <typename Body>
-SDL_AppResult guarded(const char* callback, Body&& body, bool startingUp = false) {
+SDL_AppResult guarded(const char* callback, const Body& body, bool startingUp = false) {
     try {
         return body();
     } catch (const std::exception& error) {
@@ -148,7 +148,7 @@ SDL_AppResult finishRun(const Runtime& runtime) {
 }
 
 /// Everything SDL_AppInit does. Kept out of the callback so `guarded` can wrap it in one line.
-SDL_AppResult startUp(void** appstate, int argc, char* argv[]) {
+SDL_AppResult startUp(void** appstate, int argc, char** argv) {
     const std::vector<std::string_view> args(argv, argv + argc);
     const RunOptions options = dilithium::parseRunOptions(args);
     if (!SDL_Init(SDL_INIT_VIDEO)) {

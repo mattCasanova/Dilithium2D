@@ -1,0 +1,5 @@
+# Tests keep every root check but two: an expected value reads best inline, so no magic-number rule; and
+# `REQUIRE(opt.has_value())` ends the test on failure, which the optional-access check cannot see through Catch2's macro.
+---
+InheritParentConfig: true
+Checks: '-readability-magic-numbers,-bugprone-unchecked-optional-access'

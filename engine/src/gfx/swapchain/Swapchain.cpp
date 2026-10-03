@@ -5,6 +5,7 @@
 
 #include <dilithium/core/Log.hpp>
 
+#include <cstdint>
 #include <optional>
 #include <stdexcept>
 

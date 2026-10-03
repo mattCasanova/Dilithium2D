@@ -8,9 +8,11 @@
 #include <dilithium/core/Log.hpp>
 
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <variant>
 #include <vector>
 

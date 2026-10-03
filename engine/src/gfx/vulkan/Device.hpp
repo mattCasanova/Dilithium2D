@@ -21,10 +21,10 @@ public:
     Device(Device&&) = delete;
     Device& operator=(Device&&) = delete;
 
-    VkPhysicalDevice physical() const { return m_physical; }
-    VkDevice handle() const { return m_device; }
-    VkQueue queue() const { return m_queue; }
-    uint32_t queueFamily() const { return m_queueFamily; }
+    [[nodiscard]] VkPhysicalDevice physical() const { return m_physical; }
+    [[nodiscard]] VkDevice handle() const { return m_device; }
+    [[nodiscard]] VkQueue queue() const { return m_queue; }
+    [[nodiscard]] uint32_t queueFamily() const { return m_queueFamily; }
 
 private:
     VkPhysicalDevice m_physical = VK_NULL_HANDLE;

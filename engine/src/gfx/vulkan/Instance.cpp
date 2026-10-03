@@ -8,8 +8,10 @@
 
 #include <SDL3/SDL_vulkan.h>
 
+#include <cstdint>
 #include <cstdlib>
 #include <format>
+#include <memory>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -20,7 +22,7 @@ namespace dilithium {
 namespace {
 
 bool validationWanted() {
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
     const char* optOut = std::getenv("DILITHIUM_NO_VALIDATION");
     if (optOut != nullptr && std::string_view(optOut) == "1") {
         logWarning(
@@ -56,7 +58,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL onValidationMessage(VkDebugUtilsMessageSeverityFl
         ++log.warnings;
         logWarning("{}: {}", messageKind(types), message);
     }
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
     if (isError) {
         std::abort(); // stop inside the Vulkan call that caused it, so the debugger's stack points there
     }
@@ -94,30 +96,63 @@ std::string joined(std::span<const std::string> names) {
     return line;
 }
 
-} // namespace
-
-Instance::Instance() {
+/// The loader's Vulkan version, which must be 1.3 or newer.
+uint32_t checkLoaderVersion() {
     uint32_t loaderVersion = 0;
     VK_CHECK(vkEnumerateInstanceVersion(&loaderVersion));
     if (loaderVersion < VK_API_VERSION_1_3) {
         throw std::runtime_error(
             std::format("the Vulkan loader is {}; Dilithium2D needs 1.3", formatApiVersion(loaderVersion)));
     }
+    return loaderVersion;
+}
 
+/// The extensions the validation layer itself adds. Throws when the layer is not installed.
+std::vector<VkExtensionProperties> validationLayerExtensions() {
+    const auto layers = vkEnumerate<VkLayerProperties>(
+        "vkEnumerateInstanceLayerProperties",
+        [](uint32_t* count, VkLayerProperties* items) { return vkEnumerateInstanceLayerProperties(count, items); });
+    if (!hasLayer(layers, kValidationLayer)) {
+        throw std::runtime_error("the Vulkan validation layer is not installed (brew install "
+                                 "vulkan-validationlayers), or set DILITHIUM_NO_VALIDATION=1 to run without it");
+    }
+    return vkEnumerate<VkExtensionProperties>(
+        "vkEnumerateInstanceExtensionProperties", [](uint32_t* count, VkExtensionProperties* items) {
+            return vkEnumerateInstanceExtensionProperties(kValidationLayer, count, items);
+        });
+}
+
+struct Messenger {
+    VkDebugUtilsMessengerEXT handle = VK_NULL_HANDLE;
+    PFN_vkDestroyDebugUtilsMessengerEXT destroy = nullptr;
+};
+
+/// Creates the debug messenger through the extension's function pointers. Throws if the extension is enabled but
+/// its functions are missing.
+Messenger createMessenger(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT& info) {
+    // vkGetInstanceProcAddr returns one generic function pointer type; reinterpret_cast is how Vulkan hands out
+    // extension functions.
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
+    auto create = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
+        vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+    Messenger messenger{.destroy = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
+                            vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"))};
+    // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
+    if (create == nullptr || messenger.destroy == nullptr) {
+        throw std::runtime_error("VK_EXT_debug_utils is enabled but its functions are missing");
+    }
+    VK_CHECK(create(instance, &info, nullptr, &messenger.handle));
+    return messenger;
+}
+
+} // namespace
+
+Instance::Instance() {
+    const uint32_t loaderVersion = checkLoaderVersion();
     const bool validation = validationWanted();
     std::vector<VkExtensionProperties> layerOffered; // what the validation layer itself adds
     if (validation) {
-        const auto layers = vkEnumerate<VkLayerProperties>(
-            "vkEnumerateInstanceLayerProperties",
-            [](uint32_t* count, VkLayerProperties* items) { return vkEnumerateInstanceLayerProperties(count, items); });
-        if (!hasLayer(layers, kValidationLayer)) {
-            throw std::runtime_error("the Vulkan validation layer is not installed (brew install "
-                                     "vulkan-validationlayers), or set DILITHIUM_NO_VALIDATION=1 to run without it");
-        }
-        layerOffered = vkEnumerate<VkExtensionProperties>(
-            "vkEnumerateInstanceExtensionProperties", [](uint32_t* count, VkExtensionProperties* items) {
-                return vkEnumerateInstanceExtensionProperties(kValidationLayer, count, items);
-            });
+        layerOffered = validationLayerExtensions();
         m_validationLog = std::make_unique<ValidationLog>();
     }
 
@@ -139,10 +174,11 @@ Instance::Instance() {
         logWarning("the validation layer takes no settings ({} missing): synchronization checks are off",
                    kLayerSettings);
     }
-    logInfo("Vulkan loader {}, validation {}", formatApiVersion(loaderVersion),
-            !validation          ? "off"
-            : plan.layerSettings ? "on, with synchronization checks"
-                                 : "on");
+    const char* validationState = "off";
+    if (validation) {
+        validationState = plan.layerSettings ? "on, with synchronization checks" : "on";
+    }
+    logInfo("Vulkan loader {}, validation {}", formatApiVersion(loaderVersion), validationState);
     DILITHIUM_LOG_DEBUG("instance extensions: {}", joined(plan.enable));
 
     const VkApplicationInfo application{
@@ -193,20 +229,16 @@ Instance::Instance() {
     }
     // The instance exists now, and a throw from here on would skip the destructor: destroy it by hand on the way out.
     try {
-        auto create = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
-            vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
-        m_destroyMessenger = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
-            vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
-        if (create == nullptr || m_destroyMessenger == nullptr) {
-            throw std::runtime_error("VK_EXT_debug_utils is enabled but its functions are missing");
-        }
-        VK_CHECK(create(m_instance, &messengerInfo, nullptr, &m_messenger));
+        const Messenger messenger = createMessenger(m_instance, messengerInfo);
+        m_messenger = messenger.handle;
+        m_destroyMessenger = messenger.destroy;
     } catch (...) {
         vkDestroyInstance(m_instance, nullptr);
         throw;
     }
 }
 
+// NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
 Instance::~Instance() {
     if (m_messenger != VK_NULL_HANDLE) {
         m_destroyMessenger(m_instance, m_messenger, nullptr);

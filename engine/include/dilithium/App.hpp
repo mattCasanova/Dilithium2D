@@ -10,9 +10,12 @@ namespace dilithium {
 
 /// The window a program starts with.
 struct AppConfig {
+    static constexpr int kDefaultWidth = 1280;
+    static constexpr int kDefaultHeight = 720;
+
     std::string title = "Dilithium2D";
-    int width = 1280; ///< in points, not pixels: on a high-density display the window has more pixels than this
-    int height = 720;
+    int width = kDefaultWidth; ///< in points, not pixels: on a high-density display the window has more pixels
+    int height = kDefaultHeight;
 };
 
 /// What a game or demo implements. The engine calls it; it never sees SDL or Vulkan.
@@ -20,10 +23,10 @@ class App : NonCopyable {
 public:
     virtual ~App() = default;
 
-    virtual AppConfig config() const { return {}; }
+    [[nodiscard]] virtual AppConfig config() const { return {}; }
     virtual void onStart() {}
-    virtual void onUpdate(float dt) = 0;  ///< `dt` in seconds, clamped to 1/15 like LiquidMetal2D
-    virtual Color clearColor() const = 0; ///< D1 only; real drawing replaces it in D2
+    virtual void onUpdate(float dt) = 0;                ///< `dt` in seconds, clamped to 1/15 like LiquidMetal2D
+    [[nodiscard]] virtual Color clearColor() const = 0; ///< D1 only; real drawing replaces it in D2
     virtual void onShutdown() {}
 };
 

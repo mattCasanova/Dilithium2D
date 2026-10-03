@@ -2,8 +2,12 @@
 
 #include <dilithium/core/Log.hpp>
 
+#include <cstdint>
 #include <cstdlib>
 #include <format>
+#include <source_location>
+#include <string>
+#include <string_view>
 
 namespace dilithium {
 namespace {
@@ -89,7 +93,7 @@ void vkCallFailed(VkResult result, std::string_view call, const std::source_loca
     const std::string report = std::format("{}: {} returned {} ({}:{} in {})", headline, call, describeVkResult(result),
                                            where.file_name(), where.line(), where.function_name());
     logError("{}", report);
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
     std::abort();
 #else
     throw VulkanError(report, result);

@@ -2,6 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <cstdint>
 #include <vector>
 
 using dilithium::describeVkResult;
@@ -14,6 +15,7 @@ TEST_CASE("describeVkResult names the result and gives its number", "[vkcheck]")
 }
 
 TEST_CASE("describeVkResult still prints a result newer than its list", "[vkcheck]") {
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange): a result newer than the list is the point
     CHECK(describeVkResult(static_cast<VkResult>(1234567)) == "VkResult (1234567)");
 }
 
@@ -54,8 +56,7 @@ TEST_CASE("vkEnumerate starts again when the list grows between the two calls", 
     CHECK(items == std::vector<int>{0, 1});
 }
 
-#if !defined(DILITHIUM_DEBUG)
-
+#ifndef DILITHIUM_DEBUG
 TEST_CASE("VK_CHECK throws VulkanError with the result in release", "[vkcheck]") {
     try {
         VK_CHECK(VK_ERROR_OUT_OF_HOST_MEMORY);

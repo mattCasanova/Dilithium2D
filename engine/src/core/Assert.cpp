@@ -3,8 +3,9 @@
 
 #include <cstdlib>
 #include <format>
-#include <stdexcept>
+#include <source_location>
 #include <string>
+#include <string_view>
 
 namespace dilithium::detail {
 namespace {
@@ -15,7 +16,7 @@ std::string describe(const std::source_location& where) {
 
 [[noreturn]] void fail(const std::string& report) {
     writeLog(LogLevel::Error, report);
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
     std::abort();
 #else
     throw std::logic_error(report);

@@ -1,6 +1,7 @@
 #include "engine/Torture.hpp"
 
 #include <array>
+#include <cstdint>
 
 namespace dilithium {
 namespace {

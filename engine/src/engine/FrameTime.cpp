@@ -3,6 +3,7 @@
 #include <dilithium/core/Assert.hpp>
 
 #include <algorithm>
+#include <cstdint>
 
 namespace dilithium {
 

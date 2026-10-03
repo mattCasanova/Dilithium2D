@@ -23,7 +23,7 @@ namespace dilithium::detail {
 /// `M5DEBUG_ASSERT`). Release builds still compile `condition` but never run it, so the check is free on per-frame
 /// paths; never put a side effect in it. Expands to one expression, so it is safe as the body of a brace-less `if`.
 /// A condition with a top-level comma (`std::is_same_v<A, B>`) needs its own parentheses.
-#if defined(DILITHIUM_DEBUG)
+#ifdef DILITHIUM_DEBUG
 #define DILITHIUM_ASSERT(condition, message)                                                                           \
     (static_cast<bool>(condition) ? static_cast<void>(0) : ::dilithium::detail::assertFailed(#condition, message))
 #else

@@ -1,9 +1,14 @@
 #include "engine/RunOptions.hpp"
 
 #include <charconv>
+#include <cstddef>
+#include <cstdint>
 #include <format>
+#include <span>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+#include <system_error>
 
 namespace dilithium {
 namespace {

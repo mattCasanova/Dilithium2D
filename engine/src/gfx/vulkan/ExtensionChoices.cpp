@@ -1,6 +1,9 @@
 #include "gfx/vulkan/ExtensionChoices.hpp"
 
 #include <algorithm>
+#include <span>
+#include <string_view>
+#include <vector>
 
 namespace dilithium {
 namespace {

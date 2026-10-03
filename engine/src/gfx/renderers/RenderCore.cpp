@@ -1,13 +1,16 @@
 #include "gfx/renderers/RenderCore.hpp"
 
+#include "gfx/swapchain/FramesInFlight.hpp"
 #include "gfx/swapchain/SwapchainChoices.hpp"
 #include "gfx/vulkan/VkCheck.hpp"
 #include "platform/Window.hpp"
 
 #include <dilithium/core/Log.hpp>
+#include <dilithium/gfx/Color.hpp>
 
 #include <cstdint>
 #include <limits>
+#include <memory>
 
 namespace dilithium {
 namespace {
@@ -51,6 +54,7 @@ RenderCore::RenderCore(const Window& window)
     recreateSwapchain(window.pixelSize());
 }
 
+// NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
 RenderCore::~RenderCore() {
     // The GPU may still be using what the members are about to destroy. A destructor must not throw, so a failure
     // here is logged rather than sent through VK_CHECK.

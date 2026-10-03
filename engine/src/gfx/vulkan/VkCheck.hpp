@@ -16,7 +16,7 @@ class VulkanError : public std::runtime_error {
 public:
     VulkanError(const std::string& message, VkResult result) : std::runtime_error(message), m_result(result) {}
 
-    VkResult result() const { return m_result; }
+    [[nodiscard]] VkResult result() const { return m_result; }
 
 private:
     VkResult m_result;
@@ -44,7 +44,7 @@ inline void checkVk(VkResult result, std::string_view call,
 /// Vulkan's "ask for the count, then fill" idiom, retried while the list grows between the two calls
 /// (`VK_INCOMPLETE`). `call` names the Vulkan function for the error report.
 template <typename T, typename Query>
-std::vector<T> vkEnumerate(std::string_view call, Query&& query,
+std::vector<T> vkEnumerate(std::string_view call, const Query& query,
                            const std::source_location& where = std::source_location::current()) {
     std::vector<T> items;
     VkResult result = VK_INCOMPLETE;
