@@ -7,6 +7,7 @@
 
 #include <dilithium/core/Log.hpp>
 #include <dilithium/gfx/Color.hpp>
+#include <dilithium/gfx/Renderer.hpp>
 
 #include <cstdint>
 #include <limits>

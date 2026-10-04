@@ -12,6 +12,7 @@
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>
 #include <dilithium/core/Version.hpp>
+#include <dilithium/gfx/Renderer.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>

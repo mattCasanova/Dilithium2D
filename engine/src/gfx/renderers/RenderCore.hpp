@@ -8,6 +8,7 @@
 #include "gfx/vulkan/Surface.hpp"
 
 #include <dilithium/gfx/Color.hpp>
+#include <dilithium/gfx/Renderer.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -16,12 +17,6 @@ namespace dilithium {
 
 class Window;
 struct PixelSize;
-
-enum class FrameOutcome {
-    Presented, ///< drawn and handed to the screen; FIFO present paced the frame
-    Skipped,   ///< the swapchain went out of date; it is rebuilt at the start of the next frame, so call again now
-    Idle,      ///< the window is minimized or has no area; nothing paced the frame, so the caller should sleep
-};
 
 /// Owns the GPU side of the engine (LiquidMetal2D's RenderCore): instance, surface, device, allocator, swapchain and
 /// frame sync. Members are declared in creation order, so they are destroyed in the reverse order with no code for

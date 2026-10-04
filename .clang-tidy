@@ -25,7 +25,8 @@ Checks: >
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   -bugprone-invalid-enum-default-initialization,
-  -performance-enum-size
+  -performance-enum-size,
+  -cppcoreguidelines-avoid-const-or-ref-data-members
 
 # Why each one is off:
 #   modernize-use-trailing-return-type          rewrites every function as `auto f() -> int`
@@ -44,6 +45,8 @@ Checks: >
 #   bugprone-invalid-enum-default-initialization        fires on `VkSurfaceCapabilitiesKHR caps{}`: zeroing a Vulkan
 #                                                       out-struct before the driver fills it; flag-bit enums have no 0
 #   performance-enum-size                               wants `: std::uint8_t` on every enum; none here is a size problem
+#   cppcoreguidelines-avoid-const-or-ref-data-members   injected services (SceneServices, a scene's Renderer&) are references for
+#                                                       the object's whole life by design; a pointer would only add a null state
 
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*/Dilithium2D/(engine|demos|tests)/.*'
