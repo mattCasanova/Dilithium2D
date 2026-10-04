@@ -13,6 +13,7 @@
 
 namespace dilithium {
 
+class Application;
 class Renderer;
 
 /// A scene ID is any enum the game declares: `enum class SceneId { Menu, Play }`.
@@ -28,7 +29,7 @@ concept SceneId = std::is_enum_v<Id>;
 /// left, a frame with no scene) stop the program at the request through `DILITHIUM_UNREACHABLE`.
 class SceneManager {
 public:
-    explicit SceneManager(Renderer& renderer);
+    SceneManager(Renderer& renderer, Application& app);
     ~SceneManager(); ///< destroys the stack top down
 
     SceneManager(const SceneManager&) = delete;

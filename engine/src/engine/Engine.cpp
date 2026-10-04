@@ -64,7 +64,7 @@ void count(FrameCounts& counts, FrameOutcome outcome) {
 Engine::Impl::Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> newRenderer,
                    const CommandLine& commandLine)
     : options(parseRunOptions(commandLine.all())), window(std::move(newWindow)), renderer(std::move(newRenderer)),
-      scenes(*renderer), lastFrameNs(SDL_GetTicksNS()) {
+      scenes(*renderer, *this), lastFrameNs(SDL_GetTicksNS()) {
     if (!window || !renderer) {
         DILITHIUM_UNREACHABLE("Engine needs a window and a renderer");
     }
@@ -75,6 +75,9 @@ Engine::Impl::Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> 
 }
 
 FrameResult Engine::Impl::frame() {
+    if (quitting) {
+        return FrameResult::Finished;
+    }
     ++frameNumber;
     if (options.torture) {
         applyTorture(*window, tortureStep(frameNumber));
@@ -99,6 +102,18 @@ FrameResult Engine::Impl::frame() {
         return finishRun();
     }
     return FrameResult::Continue;
+}
+
+void Engine::Impl::quitRequested() {
+    switch (scenes.current().quitRequested()) {
+    case QuitResponse::Quit:
+        quit();
+        return;
+    case QuitResponse::Handled:
+        DILITHIUM_LOG_DEBUG("quit requested; the scene took it over");
+        return;
+    }
+    DILITHIUM_UNREACHABLE("unknown QuitResponse");
 }
 
 void Engine::Impl::resized() {

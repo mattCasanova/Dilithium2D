@@ -1,4 +1,5 @@
 #include <dilithium/core/Assert.hpp>
+#include <dilithium/engine/Application.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/scenes/Scene.hpp>
@@ -10,8 +11,10 @@
 #include <string>
 #include <vector>
 
+using dilithium::Application;
 using dilithium::Color;
 using dilithium::FrameOutcome;
+using dilithium::QuitResponse;
 using dilithium::Renderer;
 using dilithium::Scene;
 using dilithium::SceneManager;
@@ -29,6 +32,13 @@ public:
 
     std::vector<std::string> log;
     Color clearColor;
+};
+
+/// Counts quits instead of quitting.
+class FakeApplication final : public Application {
+public:
+    void quit() override { ++quits; }
+    int quits = 0;
 };
 
 FakeRenderer& fakeRendererOf(SceneServices& services) {
@@ -67,6 +77,15 @@ public:
     }
     void resize() override { note("resize"); }
     void resume() override { note("resume"); }
+    QuitResponse quitRequested() override {
+        note("quit requested");
+        if (!m_handlesQuit) {
+            return QuitResponse::Quit; // the base class's default answer, spelled out
+        }
+        m_services.app.quit(); // a real scene would prompt first and call this later
+        return QuitResponse::Handled;
+    }
+    void handleQuit() { m_handlesQuit = true; }
 
     /// The scene's own transition requests, so a test can ask for one from inside `update` as a game would.
     void onNextUpdate(void (*request)(SceneManager&)) { m_request = request; }
@@ -76,6 +95,7 @@ private:
 
     SceneServices& m_services;
     void (*m_request)(SceneManager&) = nullptr;
+    bool m_handlesQuit = false;
 };
 
 using SceneA = FakeScene<'A'>;
@@ -85,7 +105,8 @@ using SceneC = FakeScene<'C'>;
 /// A manager with A, B and C registered and A started, plus its renderer.
 struct Fixture {
     FakeRenderer renderer;
-    SceneManager scenes{renderer};
+    FakeApplication app;
+    SceneManager scenes{renderer, app};
 
     Fixture() {
         scenes.add<SceneA>(SceneId::A);
@@ -170,8 +191,9 @@ TEST_CASE("performTransition says whether one happened", "[scenes]") {
 
 TEST_CASE("the stack is destroyed top down with the manager", "[scenes]") {
     FakeRenderer renderer;
+    FakeApplication app;
     {
-        SceneManager scenes{renderer};
+        SceneManager scenes{renderer, app};
         scenes.add<SceneA>(SceneId::A);
         scenes.add<SceneB>(SceneId::B);
         scenes.start(SceneId::A);
@@ -194,12 +216,32 @@ TEST_CASE("a scene can ask for a transition from its own update", "[scenes]") {
     CHECK(f.scenes.depth() == 2);
 }
 
+TEST_CASE("a scene answers a quit request: Quit by default, or Handled and it quits itself later", "[scenes]") {
+    Fixture f;
+    auto& a = dynamic_cast<SceneA&>(f.scenes.current());
+    CHECK(a.quitRequested() == QuitResponse::Quit);
+    CHECK(f.app.quits == 0);
+
+    a.handleQuit();
+    CHECK(a.quitRequested() == QuitResponse::Handled);
+    CHECK(f.app.quits == 1); // the fake quits at once; a game would after its prompt
+}
+
+TEST_CASE("the base Scene's quitRequested quits", "[scenes]") {
+    struct Bare final : Scene {
+        void update(float /*dt*/) override {}
+        void draw() override {}
+    } bare;
+    CHECK(bare.quitRequested() == QuitResponse::Quit);
+}
+
 #ifndef DILITHIUM_DEBUG
 #include <stdexcept>
 
 TEST_CASE("programmer errors stop at the request, in release as logic_error", "[scenes][assert]") {
     FakeRenderer renderer;
-    SceneManager scenes{renderer};
+    FakeApplication app;
+    SceneManager scenes{renderer, app};
     scenes.add<SceneA>(SceneId::A);
 
     CHECK_THROWS_AS(scenes.add<SceneB>(SceneId::A), std::logic_error); // registered twice

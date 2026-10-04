@@ -9,7 +9,8 @@
 
 namespace dilithium {
 
-SceneManager::SceneManager(Renderer& renderer) : m_services{.renderer = renderer, .scenes = *this} {}
+SceneManager::SceneManager(Renderer& renderer, Application& app)
+    : m_services{.renderer = renderer, .scenes = *this, .app = app} {}
 
 SceneManager::~SceneManager() {
     // Top down, the reverse of how they were built: a vector would destroy them front to back.

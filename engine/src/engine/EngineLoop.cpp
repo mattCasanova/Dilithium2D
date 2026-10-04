@@ -24,8 +24,12 @@ SDL_AppResult EngineLoop::iterate(Engine& engine) {
 
 SDL_AppResult EngineLoop::event(Engine& engine, const SDL_Event& event) {
     switch (event.type) {
-    case SDL_EVENT_QUIT: // the close button, Cmd-Q, Ctrl-C in the terminal, or SIGTERM
-        return SDL_APP_SUCCESS;
+    case SDL_EVENT_QUIT:                   // Command-Q, the menu's Quit, the Dock's Quit, a logout
+    case SDL_EVENT_WINDOW_CLOSE_REQUESTED: // the close button
+        // A request, not an order: the scene on top decides (Scene::quitRequested). Terminal signals never
+        // arrive here; SdlMain handles them itself.
+        engine.m_impl->quitRequested();
+        return SDL_APP_CONTINUE;
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
         engine.m_impl->resized();
         return SDL_APP_CONTINUE;

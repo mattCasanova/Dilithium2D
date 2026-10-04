@@ -2,6 +2,12 @@
 
 namespace dilithium {
 
+/// A scene's answer to `Scene::quitRequested`.
+enum class QuitResponse {
+    Quit,    ///< quit now, with the normal teardown
+    Handled, ///< the scene takes it from here: a prompt, a save, then `Application::quit()` when ready
+};
+
 /// One screen or state of the game: a menu, the play field, a pause overlay. The game subclasses it and registers
 /// the subclass with `SceneManager::add`; the manager builds it with `SceneType(SceneServices&)` and destroys it when
 /// it is replaced or popped. The constructor is the setup and the destructor the shutdown, so there is no `init` or
@@ -28,6 +34,11 @@ public:
 
     /// Back on top: the scene pushed over this one was popped.
     virtual void resume() {}
+
+    /// The player asked to quit: the close button, Command-Q, the Dock's Quit, a logout. The engine never quits on
+    /// its own; it asks the scene on top. The default quits at once, so a game with no handler is still quittable.
+    /// Return `Handled` to take over: show a prompt, save, then call `services.app.quit()` when ready.
+    virtual QuitResponse quitRequested() { return QuitResponse::Quit; }
 };
 
 } // namespace dilithium

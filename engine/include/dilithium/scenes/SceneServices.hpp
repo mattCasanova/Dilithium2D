@@ -2,6 +2,7 @@
 
 namespace dilithium {
 
+class Application;
 class Renderer;
 class SceneManager;
 
@@ -11,6 +12,7 @@ class SceneManager;
 struct SceneServices {
     Renderer& renderer;
     SceneManager& scenes;
+    Application& app;
 };
 
 } // namespace dilithium

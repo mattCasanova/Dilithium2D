@@ -13,6 +13,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include <atomic>
+#include <csignal>
 #include <exception>
 #include <format>
 #include <memory>
@@ -25,6 +27,14 @@ using dilithium::Engine;
 using dilithium::EngineLoop;
 using dilithium::logError;
 using dilithium::logInfo;
+
+/// Set by the signal handler, read once per iteration. The one file-scope variable in the engine: a signal handler
+/// can reach nothing else, and an atomic is the only thing it may touch.
+std::atomic<bool> gQuitSignalReceived{false}; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+void onQuitSignal(int /*signal*/) {
+    gQuitSignalReceived.store(true);
+}
 
 Engine& engineFrom(void* appstate) {
     DILITHIUM_ASSERT(appstate != nullptr, "SDL called back before SDL_AppInit handed over the engine");
@@ -63,6 +73,13 @@ SDL_AppResult guarded(const char* callback, const Body& body, bool startingUp = 
 
 /// Everything SDL_AppInit does. Kept out of the callback so `guarded` can wrap it in one line.
 SDL_AppResult startUp(void** appstate, int argc, char** argv) {
+    // The close button and Command-Q are requests the scene answers (Scene::quitRequested), never a quit by
+    // themselves. Ctrl-C and SIGTERM in a terminal are a developer's deliberate quit and end the run at once: our
+    // own handler, not SDL's, which would fold them into the same request.
+    SDL_SetHint(SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0");
+    SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
+    std::signal(SIGINT, onQuitSignal);
+    std::signal(SIGTERM, onQuitSignal);
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         throw std::runtime_error(std::format("SDL_Init failed: {}", SDL_GetError()));
     }
@@ -83,7 +100,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 }
 
 SDL_AppResult SDL_AppIterate(void* appstate) {
-    return guarded("SDL_AppIterate", [&] { return EngineLoop::iterate(engineFrom(appstate)); });
+    return guarded("SDL_AppIterate", [&] {
+        if (gQuitSignalReceived.load()) {
+            logInfo("quitting on a signal");
+            return SDL_APP_SUCCESS;
+        }
+        return EngineLoop::iterate(engineFrom(appstate));
+    });
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
