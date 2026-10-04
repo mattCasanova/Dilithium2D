@@ -36,4 +36,39 @@ Then run the first demo, a window that clears to a slowly cycling color:
 ./build/debug/demos/d01_clear_screen/d01_clear_screen --frames 600 --torture  # stress run: resizes, minimizes, quits
 ```
 
+## Writing a game
+
+A game is scenes plus one function. A scene subclasses `dilithium::Scene`: its constructor is the setup, its destructor the shutdown, and it gets `update(dt)` and `draw()` once per frame. The function is `dilithium::createEngine`, which builds the window and the renderer, hands both to the engine, and registers the scenes:
+
+```cpp
+#include <dilithium/engine/Engine.hpp>
+#include <dilithium/gfx/renderers/DefaultRenderer.hpp>
+#include <dilithium/platform/Window.hpp>
+#include <dilithium/scenes/Scene.hpp>
+#include <dilithium/scenes/SceneManager.hpp>
+#include <dilithium/scenes/SceneServices.hpp>
+
+enum class SceneId { Menu };
+
+class MenuScene final : public dilithium::Scene {
+public:
+    explicit MenuScene(dilithium::SceneServices& services) : m_renderer(services.renderer) {}
+    void update(float dt) override {}
+    void draw() override { m_renderer.setClearColor({.r = 0.1f, .g = 0.4f, .b = 0.8f}); }
+private:
+    dilithium::Renderer& m_renderer;
+};
+
+std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& commandLine) {
+    auto window = std::make_unique<Window>(WindowConfig{.title = "My Game"});
+    auto renderer = std::make_unique<DefaultRenderer>(*window);
+    auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);
+    engine->scenes().add<MenuScene>(SceneId::Menu);
+    engine->scenes().start(SceneId::Menu);
+    return engine;
+}
+```
+
+Scenes change screens through `services.scenes`: `set` replaces the current scene, `push` covers it (a pause menu), `pop` returns. Each happens at the start of the next frame. In CMake, pull the engine in with `FetchContent` and link `dilithium::main`; it brings SDL's entry point and the engine with it, and your code never sees an SDL or Vulkan header. `demos/d01_clear_screen/main.cpp` is a complete example.
+
 Render long and prosper.
