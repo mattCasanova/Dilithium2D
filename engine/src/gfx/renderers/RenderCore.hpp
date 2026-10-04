@@ -49,6 +49,13 @@ public:
     [[nodiscard]] VkCommandBuffer commands() const;
     [[nodiscard]] VkExtent2D extent() const;
 
+    /// Which frame slot the next (or open) frame uses: 0 or 1. A renderer keeps per-slot buffers under this index,
+    /// so the CPU never writes a buffer the GPU may still be reading; the slot's fence, waited on in `beginFrame`,
+    /// guarantees it.
+    [[nodiscard]] uint32_t frameIndex() const { return m_frames.index(); }
+    [[nodiscard]] VmaAllocator allocator() const { return m_allocator.handle(); }
+    [[nodiscard]] VkFormat colorFormat() const;
+
     [[nodiscard]] uint32_t validationMessages() const { return m_instance.validationMessages(); }
     [[nodiscard]] uint32_t swapchainBuilds() const { return m_swapchainBuilds; }
 

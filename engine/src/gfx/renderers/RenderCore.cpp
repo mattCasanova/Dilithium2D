@@ -125,6 +125,13 @@ void RenderCore::endFrame() {
     m_frameOpen = false;
 }
 
+VkFormat RenderCore::colorFormat() const {
+    if (!m_swapchain) {
+        DILITHIUM_UNREACHABLE("colorFormat() with no swapchain");
+    }
+    return m_swapchain->format();
+}
+
 VkCommandBuffer RenderCore::commands() const {
     if (!m_frameOpen) {
         DILITHIUM_UNREACHABLE("commands() outside an open frame");

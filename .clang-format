@@ -20,7 +20,7 @@ IncludeCategories:
     Priority: 1
   - Regex: '^<dilithium/'
     Priority: 2
-  - Regex: '^<(SDL3|vulkan|vk_mem_alloc|glm|nlohmann|catch2)/'
+  - Regex: '^<(SDL3|vulkan|glm|nlohmann|catch2)/|^<vk_mem_alloc\.h>'
     Priority: 3
   - Regex: '^<'
     Priority: 4

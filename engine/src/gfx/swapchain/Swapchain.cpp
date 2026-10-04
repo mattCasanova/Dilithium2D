@@ -34,6 +34,7 @@ Swapchain::Swapchain(VkPhysicalDevice physical, VkDevice device, VkSurfaceKHR su
                    static_cast<int>(format->format));
     }
 
+    m_format = format->format;
     const VkSwapchainCreateInfoKHR info{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surface,

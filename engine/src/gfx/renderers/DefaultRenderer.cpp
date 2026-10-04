@@ -1,4 +1,7 @@
+#include "gfx/buffers/Buffer.hpp"
+#include "gfx/renderers/ColorVertex.hpp"
 #include "gfx/renderers/RenderCore.hpp"
+#include "gfx/swapchain/FramesInFlight.hpp"
 
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>
@@ -7,6 +10,10 @@
 #include <dilithium/gfx/renderers/DefaultRenderer.hpp>
 #include <dilithium/math/Types.hpp>
 
+#include <vk_mem_alloc.h>
+#include <vulkan/vulkan.h>
+
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -14,19 +21,26 @@
 namespace dilithium {
 namespace {
 
-/// One corner of a triangle, as the color shader's vertex input will want it (D2 Phase 4 pins the layout).
-struct ColorVertex {
-    Vec2 position;
-    Color color;
-};
+/// One vertex buffer per frame slot (LiquidMetal2D's `BufferProvider`): the slot's fence guarantees the GPU is done
+/// reading a slot's buffer before the CPU writes it again.
+std::array<Buffer, kFramesInFlight> makeVertexBuffers(VmaAllocator allocator) {
+    constexpr VkDeviceSize kBytes = sizeof(ColorVertex) * kMaxColorVertices;
+    std::array<Buffer, kFramesInFlight> buffers;
+    for (Buffer& buffer : buffers) {
+        buffer = Buffer::hostVisible(allocator, kBytes, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    }
+    return buffers;
+}
 
 } // namespace
 
 struct DefaultRenderer::Impl {
-    explicit Impl(const Window& newWindow) : window(newWindow), core(newWindow) {}
+    explicit Impl(const Window& newWindow)
+        : window(newWindow), core(newWindow), vertexBuffers(makeVertexBuffers(core.allocator())) {}
 
     const Window& window;
     RenderCore core;
+    std::array<Buffer, kFramesInFlight> vertexBuffers; ///< one per frame slot, indexed by `core.frameIndex()`
     Color clearColor;                   ///< what the current frame starts from; black until a scene says otherwise
     std::vector<ColorVertex> triangles; ///< what the scene asked to draw this frame, three vertices each
 };

@@ -26,6 +26,7 @@ public:
 
     [[nodiscard]] VkSwapchainKHR handle() const { return m_swapchain; }
     [[nodiscard]] VkExtent2D extent() const { return m_extent; }
+    [[nodiscard]] VkFormat format() const { return m_format; }
     [[nodiscard]] VkImage image(uint32_t index) const { return m_images.at(index); }
     [[nodiscard]] VkImageView view(uint32_t index) const { return m_views.at(index); }
     [[nodiscard]] VkSemaphore renderFinished(uint32_t index) const { return m_renderFinished.at(index); }
@@ -36,6 +37,7 @@ private:
     VkDevice m_device;
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
     VkExtent2D m_extent{};
+    VkFormat m_format = VK_FORMAT_UNDEFINED;
     std::vector<VkImage> m_images; ///< owned by the swapchain, not by us
     std::vector<VkImageView> m_views;
     std::vector<VkSemaphore> m_renderFinished;
