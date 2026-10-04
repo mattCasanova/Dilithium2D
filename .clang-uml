@@ -1,0 +1,97 @@
+# Architecture diagrams generated from the code by clang-uml (brew install clang-uml), as Mermaid text under
+# docs/architecture/generated/. Regenerate with tools/diagrams.sh after an API change; GitHub renders Mermaid in
+# Markdown, and VS Code does with the markdown-mermaid extension. The generated diagrams show what the code is;
+# the hand-drawn layer diagram in docs/architecture/README.md says what it is meant to be.
+#
+# Globs and paths in each diagram are relative to its `relative_to` (engine/).
+compilation_database_dir: build/debug
+output_directory: docs/architecture/generated
+generate_metadata: false
+# The compile commands carry -Werror and a warning clang-uml's newer clang adds; neither should stop a diagram.
+remove_compile_flags: [-Werror]
+add_compile_flags: [-Wno-missing-designated-field-initializers]
+
+diagrams:
+  # The public API: what a game sees, with ownership and inheritance between the pieces. The math namespaces are
+  # free functions and constants, not classes, so they add nothing here.
+  public_api:
+    type: class
+    title: Public API (engine/include)
+    relative_to: engine
+    glob:
+      - src/*/*.cpp
+      - src/*/*/*.cpp
+      - main/SdlMain.cpp
+    using_namespace: dilithium
+    include:
+      paths: [include]
+      namespaces: [dilithium]
+    exclude:
+      namespaces: [dilithium::detail, dilithium::math, dilithium::easing, dilithium::intersect, dilithium::colors]
+      elements: [dilithium::Engine::Impl, dilithium::EngineLoop, dilithium::SceneManager::Request]
+    generate_packages: true
+    package_type: directory
+
+  # The renderer stack: the public interface, the engine's implementation, and the Vulkan pieces under it.
+  renderer_stack:
+    type: class
+    title: Renderer stack (gfx)
+    relative_to: engine
+    glob:
+      - src/gfx/*.cpp
+      - src/gfx/*/*.cpp
+    using_namespace: dilithium
+    include:
+      paths: [include/dilithium/gfx, src/gfx]
+      namespaces: [dilithium]
+    exclude:
+      namespaces: [dilithium::detail, dilithium::shaders, dilithium::colors]
+    generate_packages: true
+    package_type: directory
+
+  # The folders as layers, with the arrows between them.
+  layers:
+    type: package
+    title: Layers (folders of engine/)
+    relative_to: engine
+    glob:
+      - src/*/*.cpp
+      - src/*/*/*.cpp
+      - main/SdlMain.cpp
+    using_namespace: dilithium
+    package_type: directory
+    include:
+      paths: [include, src, main]
+
+  # One frame, from the engine loop down to the renderer. Logging, assertions and the torture step are left out:
+  # they are everywhere and say nothing about the flow.
+  frame:
+    type: sequence
+    title: One frame
+    relative_to: engine
+    glob:
+      - src/engine/*.cpp
+      - src/scenes/*.cpp
+      - src/gfx/renderers/*.cpp
+    using_namespace: dilithium
+    include:
+      paths: [include, src]
+    exclude:
+      paths: [include/dilithium/core, src/core, src/engine/Torture.cpp]
+      namespaces: [dilithium::detail]
+    combine_free_functions_into_file_participants: true
+    from:
+      - function: "dilithium::EngineLoop::iterate(Engine &)"
+
+  # Who includes whom; a check on the header rules.
+  includes:
+    type: include
+    title: Includes
+    relative_to: engine
+    glob:
+      - src/*/*.cpp
+      - src/*/*/*.cpp
+      - main/SdlMain.cpp
+    include:
+      paths: [include, src, main]
+    generate_system_headers: false

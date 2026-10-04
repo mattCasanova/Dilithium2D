@@ -1,0 +1,261 @@
+# Public API (engine/include)
+
+Generated from the code by `tools/diagrams.sh` (clang-uml). Do not edit; regenerate.
+
+```mermaid
+---
+title: Public API (engine/include)
+---
+classDiagram
+    class C_0003264976227049871993["LogLevel"]
+    class C_0003264976227049871993 {
+        <<enumeration>>
+        Debug
+        Info
+        Warning
+        Error
+    }
+    class C_0010140022438352470747["Engine::Impl"]
+    class C_0010140022438352470747 {
+    }
+    class C_0003433841011590959626["CommandLine"]
+    class C_0003433841011590959626 {
+        +CommandLine(int argc, const char *const * argv) void
+        +all() [const] std::span&lt;const std::string_view&gt;
+        +has(std::string_view flag) [const] bool
+        +value(std::string_view flag) [const] std::optional&lt;std::string_view&gt;
+        -m_args : std::vector&lt;std::string_view&gt;
+    }
+    class C_0002322712453429534017["AppState"]
+    class C_0002322712453429534017 {
+        <<enumeration>>
+        Active
+        Inactive
+        Background
+    }
+    class C_0012078689987532246651["Application"]
+    class C_0012078689987532246651 {
+        <<abstract>>
+        +Application() [default] void
+        +Application(const Application &) void
+        +Application(Application &&) void
+        +~Application() [default,constexpr] void
+        +operator=(const Application &) Application &
+        +operator=(Application &&) Application &
+        +quit() void*
+        +state() [const] AppState*
+    }
+    class C_0012504818906105801797["Engine"]
+    class C_0012504818906105801797 {
+        +Engine(std::unique_ptr&lt;Window&gt; window, std::unique_ptr&lt;Renderer&gt; renderer, const CommandLine & commandLine) void
+        +Engine(const Engine &) void
+        +Engine(Engine &&) void
+        +~Engine() void
+        +operator=(const Engine &) Engine &
+        +operator=(Engine &&) Engine &
+        +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void
+        +scenes() SceneManager &
+        +setPausesWhenInactive(bool pauses) void
+        -m_impl : std::unique_ptr&lt;Impl&gt;
+    }
+    class C_0017246818890119119619["SceneId&lt;Id&gt;"]
+    class C_0017246818890119119619 {
+        <<concept>>
+    }
+    class C_0006986081634680691647["QuitResponse"]
+    class C_0006986081634680691647 {
+        <<enumeration>>
+        Quit
+        Handled
+    }
+    class C_0007999178659969704793["Scene"]
+    class C_0007999178659969704793 {
+        <<abstract>>
+        +Scene() [default] void
+        +Scene(const Scene &) void
+        +Scene(Scene &&) void
+        +~Scene() [default,constexpr] void
+        +operator=(const Scene &) Scene &
+        +operator=(Scene &&) Scene &
+        +appStateChanged(AppState) void
+        +draw() void*
+        +quitRequested() QuitResponse
+        +resize() void
+        +resume() void
+        +update(float dt) void*
+    }
+    class C_0012015077915189623278["SceneServices"]
+    class C_0012015077915189623278 {
+        +app : Application &
+        +renderer : Renderer &
+        +scenes : SceneManager &
+    }
+    class C_0004769106082399727328["SceneManager"]
+    class C_0004769106082399727328 {
+        +SceneManager(Renderer & renderer, Application & app) void
+        +SceneManager(const SceneManager &) void
+        +SceneManager(SceneManager &&) void
+        +~SceneManager() void
+        +operator=(const SceneManager &) SceneManager &
+        +operator=(SceneManager &&) SceneManager &
+        -add(SceneKey key, const Builder & builder) void
+        +add<std::derived_from SceneType,SceneId Id>(Id id) void
+        -build(SceneKey key) std::unique_ptr&lt;Scene&gt;
+        +current() Scene &
+        +depth() [const] int
+        -key<SceneId Id>(Id id) SceneKey$
+        +performTransition() bool
+        +pop() void
+        -push(SceneKey key) void
+        +push<SceneId Id>(Id id) void
+        -request(Request request, SceneKey key) void
+        -set(SceneKey key) void
+        +set<SceneId Id>(Id id) void
+        -start(SceneKey key) void
+        +start<SceneId Id>(Id id) void
+        -m_builders : std::unordered_map&lt;SceneKey,Builder&gt;
+        -m_pending : Request
+        -m_pendingKey : SceneKey
+        -m_services : SceneServices
+        -m_stack : std::vector&lt;std::unique_ptr&lt;Scene&gt;&gt;
+    }
+    class C_0006182999335698346784["SceneManager::Request"]
+    class C_0006182999335698346784 {
+        <<enumeration>>
+        None
+        Set
+        Push
+        Pop
+    }
+    class C_0008073970071378886621["Window::Impl"]
+    class C_0008073970071378886621 {
+    }
+    class C_0004412478778605507385["WindowConfig"]
+    class C_0004412478778605507385 {
+        +height : int
+        +kDefaultHeight : const int
+        +kDefaultWidth : const int
+        +title : std::string
+        +width : int
+    }
+    class C_0013342733560284370218["PixelSize"]
+    class C_0013342733560284370218 {
+        +height : uint32_t
+        +width : uint32_t
+    }
+    class C_0006970481197969800549["Window"]
+    class C_0006970481197969800549 {
+        +Window(const WindowConfig & config) void
+        +Window(const Window &) void
+        +Window(Window &&) void
+        +~Window() void
+        +operator=(const Window &) Window &
+        +operator=(Window &&) Window &
+        +impl() [const] const Impl &
+        +isMinimized() [const] bool
+        +minimize() void
+        +pixelSize() [const] PixelSize
+        +resize(int width, int height) void
+        +restore() void
+        -m_impl : std::unique_ptr&lt;Impl&gt;
+    }
+    class C_0012289527777118496709["Circle"]
+    class C_0012289527777118496709 {
+        +center : Vec2
+        +radius : float
+    }
+    class C_0008957317046561685532["AABB"]
+    class C_0008957317046561685532 {
+        +halfHeight() [const] float
+        +halfWidth() [const] float
+        +max() [const] Vec2
+        +min() [const] Vec2
+        +center : Vec2
+        +height : float
+        +width : float
+    }
+    class C_0001973791248981465142["LineSegment"]
+    class C_0001973791248981465142 {
+        +end : Vec2
+        +start : Vec2
+    }
+    class C_0014381799943743737761["FrameOutcome"]
+    class C_0014381799943743737761 {
+        <<enumeration>>
+        Presented
+        Skipped
+        Idle
+    }
+    class C_0002210481607728283061["Renderer"]
+    class C_0002210481607728283061 {
+        <<abstract>>
+        +Renderer() [default] void
+        +Renderer(const Renderer &) void
+        +Renderer(Renderer &&) void
+        +~Renderer() [default,constexpr] void
+        +operator=(const Renderer &) Renderer &
+        +operator=(Renderer &&) Renderer &
+        +drawFrame() FrameOutcome*
+        +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
+        +problemsReported() [const] uint32_t
+        +setClearColor(Color color) void*
+    }
+    class C_0014652720749054439479["DefaultRenderer"]
+    class C_0014652720749054439479 {
+        +DefaultRenderer(const Window & window) void
+        +DefaultRenderer(const DefaultRenderer &) void
+        +DefaultRenderer(DefaultRenderer &&) void
+        +~DefaultRenderer() void
+        +operator=(const DefaultRenderer &) DefaultRenderer &
+        +operator=(DefaultRenderer &&) DefaultRenderer &
+        +drawFrame() FrameOutcome
+        +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void
+        +problemsReported() [const] uint32_t
+        +setClearColor(Color color) void
+        +swapchainBuilds() [const] uint32_t
+        -m_impl : std::unique_ptr&lt;Impl&gt;
+    }
+    class C_0014853951067043476245["DefaultRenderer::Impl"]
+    class C_0014853951067043476245 {
+    }
+    class C_0003444073062530109576["Color"]
+    class C_0003444073062530109576 {
+        +fromHSV(float hueDegrees, float saturation, float value, float alpha = 1.0f) Color$
+        +fromHex(uint32_t rgba) [constexpr] Color$
+        +fromRGBA8(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = kOpaque) [constexpr] Color$
+        +toRGBA8() [const] std::array&lt;uint8_t,4&gt;
+        +a : float
+        +b : float
+        +g : float
+        +kOpaque : const uint8_t
+        +r : float
+    }
+    C_0012504818906105801797 ()-- C_0010140022438352470747 : 
+    C_0012078689987532246651 ..> C_0002322712453429534017 : 
+    C_0012504818906105801797 ..> C_0006970481197969800549 : 
+    C_0012504818906105801797 ..> C_0002210481607728283061 : 
+    C_0012504818906105801797 ..> C_0003433841011590959626 : 
+    C_0012504818906105801797 ..> C_0004769106082399727328 : 
+    C_0012504818906105801797 ..> C_0002322712453429534017 : 
+    C_0007999178659969704793 ..> C_0006986081634680691647 : 
+    C_0007999178659969704793 ..> C_0002322712453429534017 : 
+    C_0012015077915189623278 --> C_0002210481607728283061 : +renderer
+    C_0012015077915189623278 --> C_0004769106082399727328 : +scenes
+    C_0012015077915189623278 --> C_0012078689987532246651 : +app
+    C_0004769106082399727328 ..> C_0002210481607728283061 : 
+    C_0004769106082399727328 ..> C_0012078689987532246651 : 
+    C_0004769106082399727328 --> C_0012015077915189623278 : -m_builders
+    C_0004769106082399727328 o-- C_0007999178659969704793 : -m_stack
+    C_0004769106082399727328 o-- C_0012015077915189623278 : -m_services
+    C_0004769106082399727328 o-- C_0006182999335698346784 : -m_pending
+    C_0004769106082399727328 ()-- C_0006182999335698346784 : 
+    C_0006970481197969800549 ()-- C_0008073970071378886621 : 
+    C_0006970481197969800549 ..> C_0004412478778605507385 : 
+    C_0006970481197969800549 ..> C_0013342733560284370218 : 
+    C_0002210481607728283061 ..> C_0003444073062530109576 : 
+    C_0002210481607728283061 ..> C_0014381799943743737761 : 
+    C_0014652720749054439479 ..> C_0003444073062530109576 : 
+    C_0014652720749054439479 ..> C_0014381799943743737761 : 
+    C_0002210481607728283061 <|-- C_0014652720749054439479 : 
+    C_0014652720749054439479 ()-- C_0014853951067043476245 : 
+```

@@ -71,4 +71,8 @@ std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& co
 
 Scenes change screens through `services.scenes`: `set` replaces the current scene, `push` covers it (a pause menu), `pop` returns. Each happens at the start of the next frame. In CMake, pull the engine in with `FetchContent` and link `dilithium::main`; it brings SDL's entry point and the engine with it, and your code never sees an SDL or Vulkan header. `demos/d01_clear_screen/main.cpp` is a complete example.
 
+## Architecture
+
+`docs/architecture/README.md` has the layer diagram and links to class, package, sequence and include diagrams generated from the code.
+
 Render long and prosper.

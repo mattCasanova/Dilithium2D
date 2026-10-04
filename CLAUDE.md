@@ -22,6 +22,8 @@ engine/
                        Every .cpp here is the library (globbed)
   main/                SdlMain.cpp: the dilithium::main target, kept outside src/ so the library glob skips it
 demos/d01_clear_screen/
+docs/architecture/      README.md: the hand-drawn layer diagram; generated/: class, package, sequence and include
+                       diagrams drawn from the code by tools/diagrams.sh (clang-uml), as Mermaid in Markdown
 tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)
   headers/             compiles each public header alone with no third-party include path: a leak fails the build
 shaders/               GLSL (#version 450); compiled by glslc at build time and embedded as `dilithium::shaders::k<Name><Stage>`
@@ -69,6 +71,7 @@ cmake --preset debug && cmake --build --preset debug && ctest --preset debug
   uv tool install clang-tidy==22.1.8 && uv tool install clang-format==23.1.1   # both land in ~/.local/bin
   ```
   A debug configure fails with that command if clang-tidy is missing or another version. Upgrading either is a commit of its own: new pin in `cmake/Lint.cmake`, `tools/git-hooks/pre-commit` and here, fix the new findings.
+- Architecture diagrams: `tools/diagrams.sh` regenerates `docs/architecture/generated/` from the debug build's compile commands (`brew install clang-uml`; it pulls `llvm@22`, kept out of the `PATH`). Run it after an API change and commit the result; `.clang-uml` says what each diagram includes.
 - Pre-commit hook, turned on once per clone with `git config core.hooksPath tools/git-hooks`: the staged C++ files must be clang-formatted (checked on the staged bytes) and pass clang-tidy (staged `.cpp` files; every `.cpp` if a header is staged). It needs `build/debug` configured and fails loudly without it. Never `git commit --no-verify`.
 - `debug`: Ninja, `build/debug`, ASan + UBSan (`DILITHIUM_SANITIZE=ON`), `DILITHIUM_DEBUG=1`, libc++ hardening DEBUG, clang-tidy on every file. `release`: `build/release`, no sanitizers, no lint, hardening FAST, `_FORTIFY_SOURCE=3`, stack protector. CMake's own dev and deprecation warnings are errors in both.
 - `DILITHIUM_BUILD_DEMOS` / `DILITHIUM_BUILD_TESTS` default on only when this is the top-level project.
