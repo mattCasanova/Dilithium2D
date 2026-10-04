@@ -19,6 +19,12 @@ using Mat4 = glm::mat4;
 
 namespace math {
 
+/// The 2D cross product: the signed area of the parallelogram the two span. Positive when `b` is counter-clockwise
+/// from `a`, zero when they are parallel.
+constexpr float cross(Vec2 a, Vec2 b) {
+    return (a.x * b.y) - (a.y * b.x);
+}
+
 /// Whether every component differs by no more than `epsilon`.
 constexpr bool isNearlyEqual(Vec2 a, Vec2 b, float epsilon = kEpsilon) {
     return isNearlyEqual(a.x, b.x, epsilon) && isNearlyEqual(a.y, b.y, epsilon);
