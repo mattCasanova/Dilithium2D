@@ -15,7 +15,7 @@ engine/
     scenes/            Scene, SceneManager, SceneServices: the game's code and how it changes screens
     gfx/               Renderer (the interface), Color; renderers/DefaultRenderer (the engine's own, pimpl)
     platform/          Window (pimpl: the window system is in the .cpp)
-    core/  math/       Assert, Log, NonCopyable, Version; Math
+    core/  math/       Assert, Log, NonCopyable, Version; Math, Types (glm aliases), Bezier
   src/                 private, the same tree: engine/ (EngineImpl, EngineLoop, frame clock, run flags),
                        scenes/, platform/ (SDL), gfx/renderers/ (RenderCore), gfx/vulkan/, gfx/swapchain/.
                        Every .cpp here is the library (globbed)
@@ -33,7 +33,7 @@ A game is scenes plus one function. Each scene subclasses `dilithium::Scene` (co
 ## Rules
 
 - **No globals, no singletons, no `static` mutable state.** Everything hangs off an object that is passed in. The one exception is the atomic flag a signal handler sets in `SdlMain.cpp`: a handler can reach nothing else.
-- **Every dependency is `PRIVATE` and wrapped.** No public header includes a third-party header.
+- **Every dependency is `PRIVATE` and wrapped, but glm.** No public header includes a third-party header, except that the public math types are glm's (`<dilithium/math/Types.hpp>`: `Vec2`, `Vec3`, `Vec4`, `Mat4`), so glm is `PUBLIC`, built with intrinsics and Vulkan's depth range for engine and game alike. Its aligned types cannot be built in a constant expression, so functions over them are `inline`, not `constexpr`. The header check (`tests/headers/`) allows glm and nothing else.
 - **Plain, descriptive names** in code, log text and messages: `RenderCore`, `FramesInFlight`, `error:`. Themed names are for the engine's name and tagline only; a name must help someone debugging who has never heard the joke.
 - Macros in public headers carry the `DILITHIUM_` prefix, since macros ignore namespaces and a game's own must not collide with ours. Private ones (`VK_CHECK`) need not.
 - Vulkan through the C API (`vulkan/vulkan.h`), wrapped in small RAII classes that are neither copyable nor movable: `RenderCore` builds each in place. Members are declared in creation order, so they destruct in the right order.

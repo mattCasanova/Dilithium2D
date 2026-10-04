@@ -13,13 +13,15 @@ target_compile_definitions(dilithium
     PUBLIC $<$<CONFIG:Debug>:DILITHIUM_DEBUG=1>
     PRIVATE DILITHIUM_VERSION="${PROJECT_VERSION}")
 
-# All PRIVATE: no public header includes a third-party header. SDL sits behind Window and the SDL main
-# shell, Vulkan and VMA behind RenderCore, JSON behind one loader.
-target_link_libraries(dilithium PRIVATE
+# PRIVATE, all but one: no public header includes a third-party header. SDL sits behind Window and the SDL main
+# shell, Vulkan and VMA behind RenderCore, JSON behind one loader. glm is PUBLIC on purpose: the public math types
+# are its types (see include/dilithium/math/Types.hpp).
+target_link_libraries(dilithium
+    PUBLIC glm::glm
+    PRIVATE
     Vulkan::Vulkan
     SDL3::SDL3
     GPUOpen::VulkanMemoryAllocator
-    glm::glm
     nlohmann_json::nlohmann_json)
 
 dilithium_apply_guard_rails(dilithium)

@@ -42,6 +42,14 @@ FetchContent_Declare(nlohmann_json
 
 FetchContent_MakeAvailable(VulkanMemoryAllocator glm nlohmann_json)
 
+# glm is the one public dependency (the engine's Vec2, Mat4 and friends are its types), so its build must agree
+# between the engine and a game. On the target itself, these reach everything that links glm::glm: intrinsics on
+# (NEON on arm64, SSE on x86) with the aligned types they need, and Vulkan's (and Metal's) 0..1 depth range.
+target_compile_definitions(glm INTERFACE
+    GLM_FORCE_INTRINSICS
+    GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+    GLM_FORCE_DEPTH_ZERO_TO_ONE)
+
 if(DILITHIUM_BUILD_TESTS)
     FetchContent_Declare(Catch2
         URL https://github.com/catchorg/Catch2/archive/refs/tags/v3.16.0.tar.gz

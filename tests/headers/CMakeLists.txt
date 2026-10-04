@@ -1,7 +1,8 @@
-# Every public header, compiled on its own with only the public include folder on the path. Proves two rules on
-# every build, mechanically: each header under engine/include is self-contained (includes what it needs), and none
-# reaches a third-party header (there is no SDL, Vulkan, VMA, glm or JSON include path here, so a leak fails to
-# compile). The same rules a game that pulls the engine in through FetchContent relies on.
+# Every public header, compiled on its own with the public include folder and glm on the path, nothing else. Proves
+# two rules on every build, mechanically: each header under engine/include is self-contained (includes what it
+# needs), and none reaches a third-party header but glm, the one public dependency (there is no SDL, Vulkan, VMA or
+# JSON include path here, so a leak fails to compile). The same rules a game that pulls the engine in through
+# FetchContent relies on.
 file(GLOB_RECURSE DILITHIUM_PUBLIC_HEADERS CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/engine/include/*.hpp)
 
 set(check_sources)
@@ -15,6 +16,7 @@ endforeach()
 
 add_library(dilithium_public_headers OBJECT ${check_sources})
 target_include_directories(dilithium_public_headers PRIVATE ${PROJECT_SOURCE_DIR}/engine/include)
+target_link_libraries(dilithium_public_headers PRIVATE glm::glm)
 target_compile_features(dilithium_public_headers PRIVATE cxx_std_20)
 target_compile_definitions(dilithium_public_headers PRIVATE $<$<CONFIG:Debug>:DILITHIUM_DEBUG=1>)
 # Warnings and hardening, not clang-tidy: a file that only includes a header "uses" nothing, and the include checker

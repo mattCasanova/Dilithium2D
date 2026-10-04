@@ -81,4 +81,38 @@ TEST_CASE("wrap rejects an empty or backwards range in release", "[math][assert]
     CHECK_THROWS_AS(wrap(1.0f, 5.0f, 5.0f), std::logic_error);
     CHECK_THROWS_AS(wrap(1.0f, 10.0f, 0.0f), std::logic_error);
 }
+
+TEST_CASE("inverseLerp rejects equal ends in release", "[math][assert]") {
+    CHECK_THROWS_AS(inverseLerp(3.0f, 3.0f, 3.0f), std::logic_error);
+}
 #endif
+
+TEST_CASE("inverseLerp is where a value sits between two ends; remap moves it to another range", "[math]") {
+    CHECK(inverseLerp(0.0f, 10.0f, 5.0f) == 0.5f);
+    CHECK(inverseLerp(0.0f, 10.0f, 0.0f) == 0.0f);
+    CHECK(inverseLerp(0.0f, 10.0f, 10.0f) == 1.0f);
+    CHECK(inverseLerp(10.0f, 0.0f, 2.5f) == 0.75f); // ends may be reversed
+    CHECK(inverseLerp(0.0f, 10.0f, 20.0f) == 2.0f); // not clamped
+    CHECK(remap(5.0f, 0.0f, 10.0f, 0.0f, 100.0f) == 50.0f);
+    CHECK(remap(0.0f, -1.0f, 1.0f, 0.0f, 360.0f) == 180.0f);
+}
+
+TEST_CASE("lerpAngle turns the short way round", "[math]") {
+    const float almostFull = degreesToRadians(350.0f);
+    const float justPast = degreesToRadians(10.0f);
+    // From 350 to 10 is 20 degrees through 0, not 340 the other way.
+    CHECK_THAT(lerpAngle(almostFull, justPast, 0.5f), nearly(degreesToRadians(360.0f)));
+    CHECK_THAT(lerpAngle(justPast, almostFull, 0.5f), nearly(degreesToRadians(0.0f)));
+    CHECK_THAT(lerpAngle(0.0f, kHalfPi, 0.5f), nearly(kHalfPi / 2.0f));
+    CHECK(lerpAngle(1.0f, 2.0f, 0.0f) == 1.0f);
+}
+
+TEST_CASE("smootherstep is 0 before, 1 after, and half way at the middle with flat ends", "[math]") {
+    STATIC_CHECK(smootherstep(0.0f, 1.0f, -1.0f) == 0.0f);
+    STATIC_CHECK(smootherstep(0.0f, 1.0f, 2.0f) == 1.0f);
+    STATIC_CHECK(smootherstep(0.0f, 1.0f, 0.5f) == 0.5f);
+    STATIC_CHECK(smootherstep(10.0f, 20.0f, 15.0f) == 0.5f);
+    // Flat at the ends: a step just inside barely moves, unlike a straight line.
+    STATIC_CHECK(smootherstep(0.0f, 1.0f, 0.1f) < 0.01f);
+    STATIC_CHECK(smootherstep(0.0f, 1.0f, 0.9f) > 0.99f);
+}
