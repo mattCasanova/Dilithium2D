@@ -3,11 +3,12 @@
 #include "gfx/swapchain/FramesInFlight.hpp"
 #include "gfx/swapchain/SwapchainChoices.hpp"
 #include "gfx/vulkan/VkCheck.hpp"
-#include "platform/Window.hpp"
+#include "platform/WindowImpl.hpp"
 
 #include <dilithium/core/Log.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
+#include <dilithium/platform/Window.hpp>
 
 #include <cstdint>
 #include <limits>
@@ -49,7 +50,7 @@ void transition(VkCommandBuffer commands, VkImage image, VkImageLayout from, VkI
 } // namespace
 
 RenderCore::RenderCore(const Window& window)
-    : m_surface(m_instance.handle(), window.sdlWindow()), m_device(m_instance.handle(), m_surface.handle()),
+    : m_surface(m_instance.handle(), window.impl().handle), m_device(m_instance.handle(), m_surface.handle()),
       m_allocator(m_instance.handle(), m_device.physical(), m_device.handle()),
       m_frames(m_device.handle(), m_device.queueFamily()) {
     recreateSwapchain(window.pixelSize());

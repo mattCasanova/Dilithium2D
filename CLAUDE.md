@@ -11,10 +11,14 @@ CMakeLists.txt  CMakePresets.json  .clang-format  .clang-tidy (tests/.clang-tidy
 cmake/          Dependencies.cmake  GuardRails.cmake (Warnings, Sanitizers, Lint, Hardening: one call per target)
 engine/
   include/dilithium/   public headers: everything a game may include. No SDL, Vulkan, VMA, glm or JSON types
-    App.hpp            the one header every program starts from
-    core/  math/  gfx/  one folder per area, the same names in src/ and tests/
-  src/                 private: core/, engine/ (frame clock, run flags), platform/ (SDL), gfx/ with renderers/,
-                       vulkan/ and swapchain/. Every .cpp here is the library (globbed)
+    engine/            Engine, CommandLine: what createEngine builds and receives
+    scenes/            Scene, SceneManager, SceneServices: the game's code and how it changes screens
+    gfx/               Renderer (the interface), Color; renderers/DefaultRenderer (the engine's own, pimpl)
+    platform/          Window (pimpl: the window system is in the .cpp)
+    core/  math/       Assert, Log, NonCopyable, Version; Math
+  src/                 private, the same tree: engine/ (EngineImpl, EngineLoop, frame clock, run flags),
+                       scenes/, platform/ (SDL), gfx/renderers/ (RenderCore), gfx/vulkan/, gfx/swapchain/.
+                       Every .cpp here is the library (globbed)
   main/                SdlMain.cpp: the dilithium::main target, kept outside src/ so the library glob skips it
 demos/d01_clear_screen/
 tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)
@@ -24,7 +28,7 @@ shaders/               GLSL, compiled to SPIR-V at build time (from D2)
 
 ## Writing a program (demo or game)
 
-`main.cpp` includes `<dilithium/App.hpp>`, subclasses `dilithium::App`, and defines `dilithium::createApp`. CMake links `dilithium::main` alone: it is SDL's entry point (the four `SDL_App*` callbacks) and brings the engine with it. No program file includes an SDL header; the engine owns SDL's main loop and calls the `App` once per frame.
+A game is scenes plus one function. Each scene subclasses `dilithium::Scene` (constructor and destructor are its setup and shutdown; `update(dt)`, `draw()`, and the optional `resize()` and `resume()`) and takes `SceneServices&` in its constructor: `renderer` to draw with, `scenes` to ask for transitions (`set`, `push`, `pop`, performed at the start of the next frame). The function is `dilithium::createEngine(const CommandLine&)`: build a `Window`, build a `DefaultRenderer` on it (or any other `Renderer`), build the `Engine` from both, register the scenes with `engine->scenes().add<MyScene>(MyId::Menu)`, `start` the first, return the engine. `demos/d01_clear_screen/main.cpp` is the whole pattern in 50 lines. CMake links `dilithium::main` alone: it is SDL's entry point (the four `SDL_App*` callbacks) and brings the engine with it. No program file includes an SDL or Vulkan header; the engine owns the main loop and runs one frame per callback.
 
 ## Rules
 

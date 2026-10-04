@@ -2,6 +2,8 @@
 
 #include <dilithium/gfx/Color.hpp>
 
+#include <cstdint>
+
 namespace dilithium {
 
 /// How one frame went, from `Renderer::drawFrame`.
@@ -33,6 +35,10 @@ public:
 
     /// Draws what the scene recorded and presents it. The engine calls it once per frame; a scene never does.
     virtual FrameOutcome drawFrame() = 0;
+
+    /// How many problems the renderer's own checks have reported so far (Vulkan validation, for the engine's
+    /// renderer). A `--frames` run fails if this is not 0 at the end. A renderer with no such checks reports 0.
+    [[nodiscard]] virtual uint32_t problemsReported() const { return 0; }
 };
 
 } // namespace dilithium
