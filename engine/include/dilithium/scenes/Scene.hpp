@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dilithium/engine/Application.hpp>
+
 namespace dilithium {
 
 /// A scene's answer to `Scene::quitRequested`.
@@ -39,6 +41,12 @@ public:
     /// its own; it asks the scene on top. The default quits at once, so a game with no handler is still quittable.
     /// Return `Handled` to take over: show a prompt, save, then call `services.app.quit()` when ready.
     virtual QuitResponse quitRequested() { return QuitResponse::Quit; }
+
+    /// The app's state changed: the player switched away, hid the game, or came back. Only the scene on top hears
+    /// it, after the engine's app-level observers. A transition asked for here (pushing a pause scene) happens at
+    /// once and is drawn once, so it is on screen while the player is away; the engine then freezes its loop. The
+    /// default does nothing. Nothing pops on return: the player dismisses the pause menu.
+    virtual void appStateChanged(AppState /*state*/) {}
 };
 
 } // namespace dilithium

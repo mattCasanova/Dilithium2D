@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/AppStateTracker.hpp"
 #include "engine/RunOptions.hpp"
 
 #include <dilithium/engine/Application.hpp>
@@ -9,7 +10,9 @@
 #include <dilithium/scenes/SceneManager.hpp>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <vector>
 
 namespace dilithium {
 
@@ -37,6 +40,11 @@ struct Engine::Impl final : Application {
 
     /// `Application::quit`: the run ends at the start of the next frame.
     void quit() override { quitting = true; }
+    [[nodiscard]] AppState state() const override { return appState.state(); }
+
+    /// A window fact changed, or a phone said so: deliver the new state if it is one, then freeze or thaw.
+    void windowFactsChanged(WindowFacts facts);
+    void appStateSet(AppState state);
 
     /// The player asked to quit (close button, Command-Q, the Dock): ask the scene on top; quit unless it took over.
     void quitRequested();
@@ -53,10 +61,16 @@ struct Engine::Impl final : Application {
     SceneManager scenes;
     uint64_t frameNumber = 0; ///< loop ticks so far, presented or not
     bool quitting = false;    ///< `quit()` was called; the next frame ends the run
+    WindowFacts windowFacts;
+    AppStateTracker appState;
+    bool pausesWhenInactive = true;
+    std::vector<std::function<void(AppState)>> appStateObservers;
     FrameCounts counts;
     uint64_t lastFrameNs;
 
 private:
+    void appStateChanged(AppState state);
+    void drawOnce();
     [[nodiscard]] FrameResult finishRun() const;
 };
 

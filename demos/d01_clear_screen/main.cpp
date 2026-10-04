@@ -1,3 +1,6 @@
+#include <dilithium/core/Assert.hpp>
+#include <dilithium/core/Log.hpp>
+#include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/CommandLine.hpp>
 #include <dilithium/engine/Engine.hpp>
 #include <dilithium/gfx/Color.hpp>
@@ -16,6 +19,18 @@ namespace {
 
 enum class SceneId { ClearScreen };
 
+const char* name(dilithium::AppState state) {
+    switch (state) {
+    case dilithium::AppState::Active:
+        return "active";
+    case dilithium::AppState::Inactive:
+        return "inactive";
+    case dilithium::AppState::Background:
+        return "background";
+    }
+    DILITHIUM_UNREACHABLE("unknown AppState");
+}
+
 /// D1: a window that clears to a color whose hue goes once round the color wheel every six seconds, which proves
 /// frames advance.
 class ClearScreenScene final : public dilithium::Scene {
@@ -27,6 +42,9 @@ public:
     }
 
     void draw() override { m_renderer.setClearColor(dilithium::Color::fromHSV(m_hueDegrees, kSaturation, kValue)); }
+
+    /// Logged only: D1 has nothing to pause. The engine freezes its loop by itself while the player is away.
+    void appStateChanged(dilithium::AppState state) override { dilithium::logInfo("app state: {}", name(state)); }
 
 private:
     static constexpr float kDegreesPerTurn = dilithium::math::kDegreesPerTurn;

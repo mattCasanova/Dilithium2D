@@ -1,3 +1,4 @@
+#include "engine/AppStateTracker.hpp"
 #include "engine/EngineImpl.hpp"
 #include "engine/FrameTime.hpp"
 #include "engine/RunOptions.hpp"
@@ -6,6 +7,7 @@
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>
 #include <dilithium/core/Version.hpp>
+#include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/CommandLine.hpp>
 #include <dilithium/engine/Engine.hpp>
 #include <dilithium/gfx/Renderer.hpp>
@@ -17,7 +19,10 @@
 
 #include <cstdint>
 #include <format>
+#include <functional>
 #include <memory>
+#include <optional>
+#include <string_view>
 #include <utility>
 
 namespace dilithium {
@@ -42,6 +47,18 @@ void applyTorture(Window& window, TortureStep step) {
         return;
     }
     DILITHIUM_UNREACHABLE("unknown TortureAction");
+}
+
+std::string_view appStateName(AppState state) {
+    switch (state) {
+    case AppState::Active:
+        return "active";
+    case AppState::Inactive:
+        return "inactive";
+    case AppState::Background:
+        return "background";
+    }
+    DILITHIUM_UNREACHABLE("unknown AppState");
 }
 
 void count(FrameCounts& counts, FrameOutcome outcome) {
@@ -83,6 +100,16 @@ FrameResult Engine::Impl::frame() {
         applyTorture(*window, tortureStep(frameNumber));
     }
 
+    if (appState.frozen(pausesWhenInactive)) {
+        // The player is away: no update, no draw; the last frame stays on screen. The clock is reset on thaw.
+        count(counts, FrameOutcome::Idle);
+        SDL_Delay(kIdleSleepMs);
+        if (options.frames && frameNumber >= *options.frames) {
+            return finishRun();
+        }
+        return FrameResult::Continue;
+    }
+
     const uint64_t now = SDL_GetTicksNS();
     const float dt = frameSeconds(lastFrameNs, now);
     lastFrameNs = now;
@@ -116,6 +143,42 @@ void Engine::Impl::quitRequested() {
     DILITHIUM_UNREACHABLE("unknown QuitResponse");
 }
 
+void Engine::Impl::windowFactsChanged(WindowFacts facts) {
+    windowFacts = facts;
+    if (const std::optional<AppState> changed = appState.update(facts)) {
+        appStateChanged(*changed);
+    }
+}
+
+void Engine::Impl::appStateSet(AppState state) {
+    if (const std::optional<AppState> changed = appState.set(state)) {
+        appStateChanged(*changed);
+    }
+}
+
+/// Observers first (they save), then the scene on top (it may push a pause scene). A transition the scene asked for
+/// is performed and drawn at once, since a frozen loop would not get to it; the thaw resets the clock so the first
+/// frame back has a normal `dt` instead of the whole time away.
+void Engine::Impl::appStateChanged(AppState state) {
+    DILITHIUM_LOG_DEBUG("app state: {}", appStateName(state));
+    for (const auto& observer : appStateObservers) {
+        observer(state);
+    }
+    scenes.current().appStateChanged(state);
+    if (scenes.performTransition()) {
+        drawOnce();
+    }
+    if (!appState.frozen(pausesWhenInactive)) {
+        lastFrameNs = SDL_GetTicksNS();
+    }
+}
+
+/// One draw with no update, so a scene that just arrived (a pause menu) is on screen before the loop freezes.
+void Engine::Impl::drawOnce() {
+    scenes.current().draw();
+    count(counts, renderer->drawFrame());
+}
+
 void Engine::Impl::resized() {
     const PixelSize pixels = window->pixelSize();
     DILITHIUM_LOG_DEBUG("window is {}x{} pixels", pixels.width, pixels.height);
@@ -144,6 +207,14 @@ Engine::~Engine() = default;
 
 SceneManager& Engine::scenes() {
     return m_impl->scenes;
+}
+
+void Engine::addAppStateObserver(std::function<void(AppState)> observer) {
+    m_impl->appStateObservers.push_back(std::move(observer));
+}
+
+void Engine::setPausesWhenInactive(bool pauses) {
+    m_impl->pausesWhenInactive = pauses;
 }
 
 } // namespace dilithium

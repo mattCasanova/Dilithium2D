@@ -1,5 +1,8 @@
 #pragma once
 
+#include <dilithium/engine/Application.hpp>
+
+#include <functional>
 #include <memory>
 
 namespace dilithium {
@@ -27,6 +30,14 @@ public:
 
     /// Register scenes here and `start` the first, before returning from `createEngine`.
     [[nodiscard]] SceneManager& scenes();
+
+    /// App-level code that wants every `AppState` change, whichever scene is on top (a save service). Told before
+    /// the current scene, in the order added.
+    void addAppStateObserver(std::function<void(AppState)> observer);
+
+    /// Whether the loop stands still while the app is visible but without focus. On by default; off for a game
+    /// that must keep running behind another app. It always stands still in the background.
+    void setPausesWhenInactive(bool pauses);
 
 private:
     friend class EngineLoop; ///< the entry point's only way in: one frame, one event

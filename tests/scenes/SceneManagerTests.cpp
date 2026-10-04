@@ -12,6 +12,7 @@
 #include <vector>
 
 using dilithium::Application;
+using dilithium::AppState;
 using dilithium::Color;
 using dilithium::FrameOutcome;
 using dilithium::QuitResponse;
@@ -38,6 +39,7 @@ public:
 class FakeApplication final : public Application {
 public:
     void quit() override { ++quits; }
+    [[nodiscard]] AppState state() const override { return AppState::Active; }
     int quits = 0;
 };
 
@@ -233,6 +235,7 @@ TEST_CASE("the base Scene's quitRequested quits", "[scenes]") {
         void draw() override {}
     } bare;
     CHECK(bare.quitRequested() == QuitResponse::Quit);
+    bare.appStateChanged(AppState::Background); // the default does nothing
 }
 
 #ifndef DILITHIUM_DEBUG
