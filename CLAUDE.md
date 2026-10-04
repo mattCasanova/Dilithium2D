@@ -15,7 +15,7 @@ engine/
     scenes/            Scene, SceneManager, SceneServices: the game's code and how it changes screens
     gfx/               Renderer (the interface), Color; renderers/DefaultRenderer (the engine's own, pimpl)
     platform/          Window (pimpl: the window system is in the .cpp)
-    core/  math/       Assert, Log, NonCopyable, Version; Math, Types (glm aliases), Bezier
+    core/  math/       Assert, Log, NonCopyable, Version; Math, Types (glm aliases), Bezier, Shapes, Intersect
   src/                 private, the same tree: engine/ (EngineImpl, EngineLoop, frame clock, run flags),
                        scenes/, platform/ (SDL), gfx/renderers/ (RenderCore), gfx/vulkan/, gfx/swapchain/.
                        Every .cpp here is the library (globbed)
