@@ -210,14 +210,15 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     return guarded("SDL_AppEvent", [&] {
-        Runtime& runtime = runtimeFrom(appstate);
+        const Runtime& runtime = runtimeFrom(appstate);
         switch (event->type) {
         case SDL_EVENT_QUIT: // the close button, Cmd-Q, Ctrl-C in the terminal, or SIGTERM
             return SDL_APP_SUCCESS;
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: {
             const PixelSize pixels = runtime.window.pixelSize();
+            // Logged only: drawFrame compares the window's pixel size with the swapchain's every frame, which also
+            // covers a resize whose event has not arrived yet.
             DILITHIUM_LOG_DEBUG("window is {}x{} pixels", pixels.width, pixels.height);
-            runtime.renderCore.notifyResized();
             return SDL_APP_CONTINUE;
         }
         case SDL_EVENT_WINDOW_MINIMIZED:

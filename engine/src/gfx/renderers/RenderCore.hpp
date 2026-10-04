@@ -39,9 +39,6 @@ public:
     /// Clears the window to `color` and presents it. D1 only: D2 splits this into begin and end with drawing between.
     FrameOutcome drawFrame(const Window& window, Color color);
 
-    /// The window's pixel size changed: rebuild the swapchain before the next frame.
-    void notifyResized() { m_swapchainStale = true; }
-
     [[nodiscard]] uint32_t validationMessages() const { return m_instance.validationMessages(); }
     [[nodiscard]] uint32_t swapchainBuilds() const { return m_swapchainBuilds; }
 
@@ -57,6 +54,7 @@ private:
     Allocator m_allocator;
     std::unique_ptr<Swapchain> m_swapchain; ///< null while the window has no area
     FramesInFlight m_frames;
+    /// Acquire or present said the swapchain is out of date. A size change needs no flag: drawFrame compares sizes.
     bool m_swapchainStale = false;
     uint32_t m_swapchainBuilds = 0;
 };

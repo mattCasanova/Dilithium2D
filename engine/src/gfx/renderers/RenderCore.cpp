@@ -68,8 +68,13 @@ FrameOutcome RenderCore::drawFrame(const Window& window, Color color) {
     if (window.isMinimized()) {
         return FrameOutcome::Idle;
     }
-    if (!m_swapchain || m_swapchainStale) {
-        recreateSwapchain(window.pixelSize());
+    // A size change the window has already made but whose event has not arrived yet (a resize in this same tick)
+    // would otherwise be drawn at the old size and reported as suboptimal at present. Compare, don't wait.
+    const PixelSize pixels = window.pixelSize();
+    const bool sizeChanged =
+        m_swapchain && (m_swapchain->extent().width != pixels.width || m_swapchain->extent().height != pixels.height);
+    if (!m_swapchain || m_swapchainStale || sizeChanged) {
+        recreateSwapchain(pixels);
         if (!m_swapchain) {
             return FrameOutcome::Idle;
         }

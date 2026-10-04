@@ -8,6 +8,7 @@
 
 #include <SDL3/SDL_vulkan.h>
 
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #include <format>
@@ -171,12 +172,13 @@ Instance::Instance() {
         throw std::runtime_error(std::format("Vulkan instance extensions missing: {}", joined(plan.missing)));
     }
     if (validation && !plan.layerSettings) {
-        logWarning("the validation layer takes no settings ({} missing): synchronization checks are off",
-                   kLayerSettings);
+        logWarning(
+            "the validation layer takes no settings ({} missing): synchronization and best-practices checks are off",
+            kLayerSettings);
     }
     const char* validationState = "off";
     if (validation) {
-        validationState = plan.layerSettings ? "on, with synchronization checks" : "on";
+        validationState = plan.layerSettings ? "on, with synchronization and best-practices checks" : "on";
     }
     logInfo("Vulkan loader {}, validation {}", formatApiVersion(loaderVersion), validationState);
     DILITHIUM_LOG_DEBUG("instance extensions: {}", joined(plan.enable));
@@ -190,21 +192,31 @@ Instance::Instance() {
     // A copy of the messenger's create-info rides on the instance's own, so instance creation and destruction are
     // checked too, before and after the real messenger exists.
     const VkDebugUtilsMessengerCreateInfoEXT messengerInfo = messengerCreateInfo(m_validationLog.get());
-    // Synchronization validation checks that barriers and semaphores really order the GPU's work, which core
-    // validation does not. The layer has it off by default.
+    // Two checks the layer has off by default. Synchronization validation checks that barriers and semaphores really
+    // order the GPU's work, which core validation does not. Best-practices validation warns about legal but poor use
+    // (a wrong memory type, a redundant barrier); its warnings count like any other, so a run must stay silent.
     const VkBool32 enabled = VK_TRUE;
-    const VkLayerSettingEXT syncValidation{
-        .pLayerName = kValidationLayer,
-        .pSettingName = "validate_sync",
-        .type = VK_LAYER_SETTING_TYPE_BOOL32_EXT,
-        .valueCount = 1,
-        .pValues = &enabled,
-    };
+    const std::array<VkLayerSettingEXT, 2> settings{{
+        {
+            .pLayerName = kValidationLayer,
+            .pSettingName = "validate_sync",
+            .type = VK_LAYER_SETTING_TYPE_BOOL32_EXT,
+            .valueCount = 1,
+            .pValues = &enabled,
+        },
+        {
+            .pLayerName = kValidationLayer,
+            .pSettingName = "validate_best_practices",
+            .type = VK_LAYER_SETTING_TYPE_BOOL32_EXT,
+            .valueCount = 1,
+            .pValues = &enabled,
+        },
+    }};
     const VkLayerSettingsCreateInfoEXT layerSettings{
         .sType = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT,
         .pNext = &messengerInfo,
-        .settingCount = 1,
-        .pSettings = &syncValidation,
+        .settingCount = static_cast<uint32_t>(settings.size()),
+        .pSettings = settings.data(),
     };
     const void* chain = nullptr;
     if (validation) {
