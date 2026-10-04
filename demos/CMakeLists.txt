@@ -1,1 +1,2 @@
 add_subdirectory(d01_clear_screen)
+add_subdirectory(d02_triangle)

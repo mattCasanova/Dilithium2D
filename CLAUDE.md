@@ -21,7 +21,7 @@ engine/
                        scenes/, platform/ (SDL), gfx/renderers/ (RenderCore), gfx/vulkan/, gfx/swapchain/.
                        Every .cpp here is the library (globbed)
   main/                SdlMain.cpp: the dilithium::main target, kept outside src/ so the library glob skips it
-demos/d01_clear_screen/
+demos/                 one executable each: d01_clear_screen, d02_triangle
 docs/architecture/      README.md: the hand-drawn layer diagram; generated/: class, package, sequence and include
                        diagrams drawn from the code by tools/diagrams.sh (clang-uml), as Mermaid in Markdown
 tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)
@@ -64,6 +64,7 @@ A game is scenes plus one function. Each scene subclasses `dilithium::Scene` (co
 cmake --preset debug && cmake --build --preset debug && ctest --preset debug
 ./build/debug/demos/d01_clear_screen/d01_clear_screen                         # the window; quit with Cmd-Q
 ./build/debug/demos/d01_clear_screen/d01_clear_screen --frames 600 --torture  # D1's proof: exit 0, no validation output
+./build/debug/demos/d02_triangle/d02_triangle                                 # a turning red-green-blue triangle, red up
 ```
 
 - Tools, pinned, installed once per machine (standalone builds from PyPI; Apple's clang stays the compiler):

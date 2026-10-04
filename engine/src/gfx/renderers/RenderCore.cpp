@@ -58,11 +58,16 @@ RenderCore::RenderCore(const Window& window)
 
 // NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
 RenderCore::~RenderCore() {
-    // The GPU may still be using what the members are about to destroy. A destructor must not throw, so a failure
-    // here is logged rather than sent through VK_CHECK.
+    // The GPU may still be using what the members are about to destroy.
+    waitIdle();
+}
+
+// NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
+void RenderCore::waitIdle() const {
+    // Logged rather than sent through VK_CHECK: this runs from destructors, which must not throw.
     const VkResult idle = vkDeviceWaitIdle(m_device.handle());
     if (idle != VK_SUCCESS) {
-        logError("vkDeviceWaitIdle at shutdown returned {}", describeVkResult(idle));
+        logError("vkDeviceWaitIdle returned {}", describeVkResult(idle));
     }
 }
 

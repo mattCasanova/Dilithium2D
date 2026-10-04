@@ -45,6 +45,11 @@ public:
     /// Closes the frame `beginFrame` opened: ends rendering, submits, presents. A programmer error without one open.
     void endFrame();
 
+    /// Waits until the GPU has finished everything submitted. Anything a submitted frame may still be using (a
+    /// pipeline, a vertex buffer) must wait for this before it is destroyed. Logs a failure rather than throwing,
+    /// so it is safe in a destructor.
+    void waitIdle() const;
+
     /// The open frame's command buffer and the size it draws at. Only between `beginFrame` (`Ready`) and `endFrame`.
     [[nodiscard]] VkCommandBuffer commands() const;
     [[nodiscard]] VkExtent2D extent() const;

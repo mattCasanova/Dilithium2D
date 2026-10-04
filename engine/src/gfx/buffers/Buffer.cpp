@@ -67,6 +67,9 @@ void Buffer::write(std::span<const std::byte> bytes) {
         DILITHIUM_UNREACHABLE("writing to a buffer that is not mapped");
     }
     std::memcpy(m_mapped, bytes.data(), bytes.size());
+    // Host-visible memory need not be coherent; a flush makes the write visible to the GPU. VMA makes it a no-op
+    // where the memory is coherent, as it is on MoltenVK.
+    VK_CHECK(vmaFlushAllocation(m_allocator, m_allocation, 0, bytes.size()));
 }
 
 void Buffer::destroy() {
