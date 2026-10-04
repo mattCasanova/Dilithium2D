@@ -8,6 +8,8 @@ target_link_libraries(dilithium_tests PRIVATE
     Vulkan::Headers)
 # Tests reach the engine's private headers too, so pure helpers can stay out of the public API.
 target_include_directories(dilithium_tests PRIVATE ${PROJECT_SOURCE_DIR}/engine/src)
+# And the engine's generated shader headers (built with the engine, which the tests link first).
+target_include_directories(dilithium_tests PRIVATE ${PROJECT_BINARY_DIR}/engine)
 target_compile_definitions(dilithium_tests PRIVATE DILITHIUM_EXPECTED_VERSION="${PROJECT_VERSION}")
 
 dilithium_apply_guard_rails(dilithium_tests)

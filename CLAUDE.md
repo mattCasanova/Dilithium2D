@@ -9,6 +9,7 @@ Plans live outside the repo, in `~/workspace/Dilithium2D/` (`roadmap.md`, one pl
 ```
 CMakeLists.txt  CMakePresets.json  .clang-format  .clang-tidy (tests/.clang-tidy drops the magic-number rule)
 cmake/          Dependencies.cmake  GuardRails.cmake (Warnings, Sanitizers, Lint, Hardening: one call per target)
+                Shaders.cmake (dilithium_add_shaders: GLSL to SPIR-V to an embedded header)  SpirvToHeader.cmake
 engine/
   include/dilithium/   public headers: everything a game may include. No SDL, Vulkan, VMA, glm or JSON types
     engine/            Engine, CommandLine: what createEngine builds and receives
@@ -23,7 +24,8 @@ engine/
 demos/d01_clear_screen/
 tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)
   headers/             compiles each public header alone with no third-party include path: a leak fails the build
-shaders/               GLSL, compiled to SPIR-V at build time (from D2)
+shaders/               GLSL (#version 450); compiled by glslc at build time and embedded as `dilithium::shaders::k<Name><Stage>`
+                       (see cmake/Shaders.cmake); a game adds its own with the same CMake call
 ```
 
 ## Writing a program (demo or game)
@@ -46,6 +48,7 @@ A game is scenes plus one function. Each scene subclasses `dilithium::Scene` (co
 - **No magic numbers.** A number whose meaning is not obvious where it is used gets a name; plain arithmetic (`x / 2`, `count - 1`) needs none. Tests are exempt: an expected value reads best inline.
 - **A constant lives with the code that owns it.** One `.cpp`: `constexpr` in its anonymous namespace. One class: a `static constexpr` member. Several files: `inline constexpr` in the owning area's header. No project-wide constants file (every system would include it, and one change would rebuild everything). Never `#define`, never `static const` in a header.
 - **A header includes only what it needs and forward declares the rest.** A type used only through a pointer, a reference, or a declared function's signature gets `class Window;`, and the `.cpp` includes the header. A member held by value, a base class, inline code and templates need the include. Never forward declare `std` or third-party types (undefined behavior; a library may turn a class into an alias). Don't turn a value member into a pointer to save an include; where a header must hide its members, use a private `Impl`.
+- **Shaders are embedded, never read at run time.** `dilithium_add_shaders(<target> NAMESPACE <ns> FILES <glsl...>)` compiles each with glslc (`-Werror`, Vulkan 1.3) into `<build>/shaders/<name>_<stage>.hpp`, holding `inline constexpr std::array<uint32_t, N> k<Name><Stage>`; include it as `"shaders/<name>_<stage>.hpp"`. A GLSL error fails the build; a shader edit rebuilds only its header and what includes it. A game calls the same function on its own shaders; an engine shader a game never uses never reaches its binary.
 - **Numeric types.** `float` for all math (positions, angles, time, colors, matrices); `double` only where a clock or accumulator needs the range, converted back once. `-Wdouble-promotion` catches a float silently widening (`1.0` for `1.0f`, the `double` overload of `std::sin`). Signed `int` for our own counts and indices (unsigned wraps at zero: `size - 1`, `a - b`); `uint32_t` stays inside the Vulkan wrappers, `size_t` at the standard library's edge (`std::ssize` where a signed count is wanted), and `-Wsign-conversion` makes every crossing explicit. Vectors and matrices: glm with intrinsics on, decided at D2.
 - **Linted.** clang-tidy runs on every debug build of our targets, with every finding an error, same as a warning. `.clang-tidy` lists each check that is off with its reason beside it; a finding that is wrong in one place gets `// NOLINT(check-name): reason` on that line, never a wider exemption. The checker reads the debug configuration, so an include used only inside `#ifndef DILITHIUM_DEBUG` goes inside that block.
 - Strict warnings as errors, sanitizers, clang-tidy and library hardening apply to our targets only (`dilithium_apply_guard_rails`), never to a game that links the engine.

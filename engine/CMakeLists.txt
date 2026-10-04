@@ -26,6 +26,11 @@ target_link_libraries(dilithium
 
 dilithium_apply_guard_rails(dilithium)
 
+# The engine's own shaders, compiled to SPIR-V and embedded (see cmake/Shaders.cmake). From D2.
+dilithium_add_shaders(dilithium NAMESPACE dilithium::shaders FILES
+    ${PROJECT_SOURCE_DIR}/shaders/color.vert
+    ${PROJECT_SOURCE_DIR}/shaders/color.frag)
+
 # The entry point: SDL's main() drives the game's App through the four SDL_App* callbacks in main/SdlMain.cpp. An
 # OBJECT library, so its object file is always linked in, and a target of its own, so the unit tests (Catch2's
 # main) and tools with their own main() can link the engine without it. A game links dilithium::main alone: it
