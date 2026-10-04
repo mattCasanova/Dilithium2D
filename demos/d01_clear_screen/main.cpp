@@ -1,7 +1,7 @@
 #include <dilithium/App.hpp>
 #include <dilithium/gfx/Color.hpp>
+#include <dilithium/math/Math.hpp>
 
-#include <cmath>
 #include <memory>
 
 namespace {
@@ -13,7 +13,7 @@ public:
     [[nodiscard]] dilithium::AppConfig config() const override { return {.title = "D1 Clear Screen"}; }
 
     void onUpdate(float dt) override {
-        m_hueDegrees = std::fmod(m_hueDegrees + (dt * kDegreesPerSecond), kDegreesPerTurn);
+        m_hueDegrees = dilithium::math::wrap(m_hueDegrees + (dt * kDegreesPerSecond), 0.0f, kDegreesPerTurn);
     }
 
     [[nodiscard]] dilithium::Color clearColor() const override {
@@ -21,7 +21,7 @@ public:
     }
 
 private:
-    static constexpr float kDegreesPerTurn = 360.0f;
+    static constexpr float kDegreesPerTurn = dilithium::math::kDegreesPerTurn;
     static constexpr float kSecondsPerTurn = 6.0f;
     static constexpr float kDegreesPerSecond = kDegreesPerTurn / kSecondsPerTurn;
     static constexpr float kSaturation = 0.6f; ///< soft, not neon

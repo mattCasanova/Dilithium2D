@@ -1,5 +1,6 @@
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/gfx/Color.hpp>
+#include <dilithium/math/Math.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -7,21 +8,11 @@
 namespace dilithium {
 namespace {
 
-constexpr float kDegreesPerTurn = 360.0f;
-constexpr float kDegreesPerSector = 60.0f; ///< the hue wheel is six sectors of 60 degrees
+constexpr int kSectorCount = 6; ///< the hue wheel: red, yellow, green, cyan, blue, magenta
+constexpr float kDegreesPerSector = math::kDegreesPerTurn / kSectorCount;
 
 /// One sixth of the hue wheel. Within a sector one channel is at full chroma, one at none, and one ramps between.
 enum class Sector { RedToYellow, YellowToGreen, GreenToCyan, CyanToBlue, BlueToMagenta, MagentaToRed };
-
-/// Wraps any finite angle into [0, 360).
-float wrapDegrees(float degrees) {
-    float wrapped = std::fmod(degrees, kDegreesPerTurn);
-    if (wrapped < 0.0f) {
-        wrapped += kDegreesPerTurn;
-    }
-    // A tiny negative input rounds up to exactly 360 after the add.
-    return wrapped >= kDegreesPerTurn ? 0.0f : wrapped;
-}
 
 } // namespace
 
@@ -30,7 +21,7 @@ Color Color::fromHSV(float hueDegrees, float saturation, float value, float alph
         DILITHIUM_UNREACHABLE("Color::fromHSV given a non-finite input");
     }
 
-    const float hue = wrapDegrees(hueDegrees);
+    const float hue = math::wrap(hueDegrees, 0.0f, math::kDegreesPerTurn);
     const float s = std::clamp(saturation, 0.0f, 1.0f);
     const float v = std::clamp(value, 0.0f, 1.0f);
     const float a = std::clamp(alpha, 0.0f, 1.0f);
