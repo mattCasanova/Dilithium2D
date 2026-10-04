@@ -54,6 +54,10 @@ public:
     /// guarantees it.
     [[nodiscard]] uint32_t frameIndex() const { return m_frames.index(); }
     [[nodiscard]] VmaAllocator allocator() const { return m_allocator.handle(); }
+    [[nodiscard]] VkDevice device() const { return m_device.handle(); }
+
+    /// The swapchain's color format: what a pipeline that draws into it must be built for. It has not changed on
+    /// MoltenVK; the renderer compares it each frame rather than assuming.
     [[nodiscard]] VkFormat colorFormat() const;
 
     [[nodiscard]] uint32_t validationMessages() const { return m_instance.validationMessages(); }

@@ -1,6 +1,7 @@
 #include "gfx/buffers/Buffer.hpp"
 #include "gfx/renderers/ColorVertex.hpp"
 #include "gfx/renderers/RenderCore.hpp"
+#include "gfx/shaders/ColorPipeline.hpp"
 #include "gfx/swapchain/FramesInFlight.hpp"
 
 #include <dilithium/core/Assert.hpp>
@@ -36,11 +37,24 @@ std::array<Buffer, kFramesInFlight> makeVertexBuffers(VmaAllocator allocator) {
 
 struct DefaultRenderer::Impl {
     explicit Impl(const Window& newWindow)
-        : window(newWindow), core(newWindow), vertexBuffers(makeVertexBuffers(core.allocator())) {}
+        : window(newWindow), core(newWindow), vertexBuffers(makeVertexBuffers(core.allocator())),
+          colorPipeline(std::make_unique<ColorPipeline>(core.device(), core.colorFormat())) {}
+
+    /// A swapchain rebuild may in theory change the color format (it does not on MoltenVK): then the pipeline must
+    /// match the new one. Checked each frame, logged when it happens.
+    void matchPipelineToSwapchain() {
+        if (colorPipeline->colorFormat() == core.colorFormat()) {
+            return;
+        }
+        logInfo("swapchain color format changed from {} to {}; rebuilding the color pipeline",
+                static_cast<int>(colorPipeline->colorFormat()), static_cast<int>(core.colorFormat()));
+        colorPipeline = std::make_unique<ColorPipeline>(core.device(), core.colorFormat());
+    }
 
     const Window& window;
     RenderCore core;
     std::array<Buffer, kFramesInFlight> vertexBuffers; ///< one per frame slot, indexed by `core.frameIndex()`
+    std::unique_ptr<ColorPipeline> colorPipeline;      ///< rebuilt only if the swapchain's color format changes
     Color clearColor;                   ///< what the current frame starts from; black until a scene says otherwise
     std::vector<ColorVertex> triangles; ///< what the scene asked to draw this frame, three vertices each
 };
@@ -69,6 +83,7 @@ FrameOutcome DefaultRenderer::drawFrame() {
 
     switch (m_impl->core.beginFrame(m_impl->window, m_impl->clearColor)) {
     case FrameBegin::Ready:
+        m_impl->matchPipelineToSwapchain();
         // The triangles are drawn here from Phase 5; until then the frame is the clear alone.
         m_impl->core.endFrame();
         dropRecording();
