@@ -2,6 +2,7 @@
 #include <dilithium/engine/Application.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
+#include <dilithium/math/Types.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
 #include <dilithium/scenes/SceneServices.hpp>
@@ -20,6 +21,7 @@ using dilithium::Renderer;
 using dilithium::Scene;
 using dilithium::SceneManager;
 using dilithium::SceneServices;
+using dilithium::Vec2;
 
 namespace {
 
@@ -29,10 +31,15 @@ namespace {
 class FakeRenderer final : public Renderer {
 public:
     void setClearColor(Color color) override { clearColor = color; }
+    void drawTriangle(Vec2 /*a*/, Vec2 /*b*/, Vec2 /*c*/, Color /*colorA*/, Color /*colorB*/,
+                      Color /*colorC*/) override {
+        ++triangles;
+    }
     FrameOutcome drawFrame() override { return FrameOutcome::Presented; }
 
     std::vector<std::string> log;
     Color clearColor;
+    int triangles = 0;
 };
 
 /// Counts quits instead of quitting.

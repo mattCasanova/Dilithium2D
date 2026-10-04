@@ -2,6 +2,7 @@
 
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
+#include <dilithium/math/Types.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -26,6 +27,7 @@ public:
     DefaultRenderer& operator=(DefaultRenderer&&) = delete;
 
     void setClearColor(Color color) override;
+    void drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) override;
     FrameOutcome drawFrame() override;
 
     /// Validation messages so far: errors plus warnings, 0 with validation off.

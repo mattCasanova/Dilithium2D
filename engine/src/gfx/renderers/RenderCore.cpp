@@ -5,9 +5,9 @@
 #include "gfx/vulkan/VkCheck.hpp"
 #include "platform/WindowImpl.hpp"
 
+#include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>
 #include <dilithium/gfx/Color.hpp>
-#include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/platform/Window.hpp>
 
 #include <cstdint>
@@ -66,9 +66,12 @@ RenderCore::~RenderCore() {
     }
 }
 
-FrameOutcome RenderCore::drawFrame(const Window& window, Color color) {
+FrameBegin RenderCore::beginFrame(const Window& window, Color clearColor) {
+    if (m_frameOpen) {
+        DILITHIUM_UNREACHABLE("beginFrame while a frame is open: endFrame was not called");
+    }
     if (window.isMinimized()) {
-        return FrameOutcome::Idle;
+        return FrameBegin::Idle;
     }
     // A size change the window has already made but whose event has not arrived yet (a resize in this same tick)
     // would otherwise be drawn at the old size and reported as suboptimal at present. Compare, don't wait.
@@ -78,7 +81,7 @@ FrameOutcome RenderCore::drawFrame(const Window& window, Color color) {
     if (!m_swapchain || m_swapchainStale || sizeChanged) {
         recreateSwapchain(pixels);
         if (!m_swapchain) {
-            return FrameOutcome::Idle;
+            return FrameBegin::Idle;
         }
     }
 
@@ -92,7 +95,7 @@ FrameOutcome RenderCore::drawFrame(const Window& window, Color color) {
     if (acquired == VK_ERROR_OUT_OF_DATE_KHR) {
         // Nothing was acquired: the semaphore stays unsignaled and the fence is still signaled. Rebuild, try again.
         m_swapchainStale = true;
-        return FrameOutcome::Skipped;
+        return FrameBegin::Skipped;
     }
     if (acquired == VK_SUBOPTIMAL_KHR) {
         // The image WAS acquired and its semaphore will be signaled, so this frame must still be submitted to consume
@@ -104,11 +107,36 @@ FrameOutcome RenderCore::drawFrame(const Window& window, Color color) {
     // Only now: an early return above must leave the fence signaled, or the next wait on it never returns.
     VK_CHECK(vkResetFences(device, 1, &frame.inFlight));
 
-    recordClear(frame, imageIndex, color);
-    submit(frame, imageIndex);
-    present(imageIndex);
+    beginCommands(frame, imageIndex, clearColor);
+    m_frameOpen = true;
+    m_frameImageIndex = imageIndex;
+    return FrameBegin::Ready;
+}
+
+void RenderCore::endFrame() {
+    if (!m_frameOpen) {
+        DILITHIUM_UNREACHABLE("endFrame without a frame open");
+    }
+    const FrameSlot& frame = m_frames.current();
+    endCommands(frame, m_frameImageIndex);
+    submit(frame, m_frameImageIndex);
+    present(m_frameImageIndex);
     m_frames.advance();
-    return FrameOutcome::Presented;
+    m_frameOpen = false;
+}
+
+VkCommandBuffer RenderCore::commands() const {
+    if (!m_frameOpen) {
+        DILITHIUM_UNREACHABLE("commands() outside an open frame");
+    }
+    return m_frames.current().commands;
+}
+
+VkExtent2D RenderCore::extent() const {
+    if (!m_frameOpen) {
+        DILITHIUM_UNREACHABLE("extent() outside an open frame");
+    }
+    return m_swapchain->extent();
 }
 
 void RenderCore::recreateSwapchain(PixelSize windowPixels) {
@@ -130,7 +158,7 @@ void RenderCore::recreateSwapchain(PixelSize windowPixels) {
     ++m_swapchainBuilds;
 }
 
-void RenderCore::recordClear(const FrameSlot& frame, uint32_t imageIndex, Color color) const {
+void RenderCore::beginCommands(const FrameSlot& frame, uint32_t imageIndex, Color clearColor) const {
     VK_CHECK(vkResetCommandPool(m_device.handle(), frame.pool, 0));
     const VkCommandBufferBeginInfo begin{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -152,7 +180,7 @@ void RenderCore::recordClear(const FrameSlot& frame, uint32_t imageIndex, Color 
         .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .clearValue = {.color = {.float32 = {color.r, color.g, color.b, color.a}}},
+        .clearValue = {.color = {.float32 = {clearColor.r, clearColor.g, clearColor.b, clearColor.a}}},
     };
     const VkRenderingInfo rendering{
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
@@ -162,8 +190,12 @@ void RenderCore::recordClear(const FrameSlot& frame, uint32_t imageIndex, Color 
         .pColorAttachments = &attachment,
     };
     vkCmdBeginRendering(frame.commands, &rendering);
+}
+
+void RenderCore::endCommands(const FrameSlot& frame, uint32_t imageIndex) const {
     vkCmdEndRendering(frame.commands);
 
+    const VkImage image = m_swapchain->image(imageIndex);
     // The destination stage is the one the "rendering finished" signal covers (see submit), so the transition to
     // PRESENT_SRC is done before that semaphore tells the present to go.
     transition(frame.commands, image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dilithium/gfx/Color.hpp>
+#include <dilithium/math/Types.hpp>
 
 #include <cstdint>
 
@@ -28,8 +29,12 @@ public:
 
     // --- what a scene calls, from draw()
 
-    /// The color the frame starts from. D2 adds drawing on top of it.
+    /// The color the frame starts from.
     virtual void setClearColor(Color color) = 0;
+
+    /// One solid triangle in clip space (-1..1 each way, +Y up), a color per corner, blended across. The first
+    /// drawing call, kept later as debug drawing; `submit(objects)` joins it in D4.
+    virtual void drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) = 0;
 
     // --- what the engine calls
 
