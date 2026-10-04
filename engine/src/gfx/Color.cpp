@@ -3,7 +3,9 @@
 #include <dilithium/math/Math.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
 
 namespace dilithium {
 namespace {
@@ -46,6 +48,14 @@ Color Color::fromHSV(float hueDegrees, float saturation, float value, float alph
         return {chroma + m, m, x + m, a};
     }
     DILITHIUM_UNREACHABLE("hue sector outside the wheel after wrapping");
+}
+
+std::array<uint8_t, 4> Color::toRGBA8() const {
+    const auto toByte = [](float component) {
+        constexpr float kMax = 255.0f;
+        return static_cast<uint8_t>(std::lround(std::clamp(component, 0.0f, 1.0f) * kMax));
+    };
+    return {toByte(r), toByte(g), toByte(b), toByte(a)};
 }
 
 } // namespace dilithium
