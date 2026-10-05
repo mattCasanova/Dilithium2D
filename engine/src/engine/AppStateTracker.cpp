@@ -11,16 +11,16 @@ std::optional<AppState> AppStateTracker::update(WindowFacts facts) {
     return set(appStateFrom(facts));
 }
 
-std::optional<AppState> AppStateTracker::set(AppState state) {
-    if (state == m_state) {
+std::optional<AppState> AppStateTracker::set(AppState next) {
+    if (next == state) {
         return std::nullopt;
     }
-    m_state = state;
+    state = next;
     return state;
 }
 
-bool AppStateTracker::frozen(bool pausesWhenInactive) const {
-    switch (m_state) {
+bool AppStateTracker::isFrozen(bool pausesWhenInactive) const {
+    switch (state) {
     case AppState::Active:
         return false;
     case AppState::Inactive:

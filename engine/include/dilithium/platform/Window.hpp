@@ -24,7 +24,7 @@ struct PixelSize {
 
 /// The program's one window: resizable, full pixel density, ready for a renderer to draw into. LiquidMetal2D's
 /// `parentView`. The game builds it and hands it to the `Engine`, which owns it. Every size that reaches the GPU
-/// comes from `pixelSize()`, never the size in points. The window system behind it is in the `.cpp` only.
+/// comes from `getPixelSize()`, never the size in points. The window system behind it is in the `.cpp` only.
 class Window {
 public:
     /// Throws `std::runtime_error` with the window system's message if the window cannot be made.
@@ -36,7 +36,7 @@ public:
     Window(Window&&) = delete;
     Window& operator=(Window&&) = delete;
 
-    [[nodiscard]] PixelSize pixelSize() const;
+    [[nodiscard]] PixelSize getPixelSize() const;
     [[nodiscard]] bool isMinimized() const;
 
     /// Each asks the window system and returns at once; the size or state changes a little later, through events.
@@ -48,10 +48,10 @@ public:
     /// The window system's handle, for the engine's own platform code (the Vulkan surface seam). Defined in a
     /// private header, so a game sees only an incomplete type here.
     struct Impl;
-    [[nodiscard]] const Impl& impl() const { return *m_impl; }
+    [[nodiscard]] const Impl& getImpl() const { return *impl; }
 
 private:
-    std::unique_ptr<Impl> m_impl;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace dilithium

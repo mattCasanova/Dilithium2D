@@ -9,7 +9,7 @@ function(dilithium_set_warnings target)
             -Wall
             -Wextra
             -Wpedantic
-            -Wshadow
+            -Wshadow-all
             -Wconversion
             -Wsign-conversion
             -Wnon-virtual-dtor

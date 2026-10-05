@@ -153,7 +153,7 @@ Instance::Instance() {
     std::vector<VkExtensionProperties> layerOffered; // what the validation layer itself adds
     if (validation) {
         layerOffered = validationLayerExtensions();
-        m_validationLog = std::make_unique<ValidationLog>();
+        validationLog = std::make_unique<ValidationLog>();
     }
 
     const std::span<const char* const> windowExtensions = windowInstanceExtensions();
@@ -185,7 +185,7 @@ Instance::Instance() {
     };
     // A copy of the messenger's create-info rides on the instance's own, so instance creation and destruction are
     // checked too, before and after the real messenger exists.
-    const VkDebugUtilsMessengerCreateInfoEXT messengerInfo = messengerCreateInfo(m_validationLog.get());
+    const VkDebugUtilsMessengerCreateInfoEXT messengerInfo = messengerCreateInfo(validationLog.get());
     // Two checks the layer has off by default. Synchronization validation checks that barriers and semaphores really
     // order the GPU's work, which core validation does not. Best-practices validation warns about legal but poor use
     // (a wrong memory type, a redundant barrier); its warnings count like any other, so a run must stay silent.
@@ -228,31 +228,31 @@ Instance::Instance() {
         .enabledExtensionCount = static_cast<uint32_t>(plan.enable.size()),
         .ppEnabledExtensionNames = plan.enable.data(),
     };
-    VK_CHECK(vkCreateInstance(&info, nullptr, &m_instance));
+    VK_CHECK(vkCreateInstance(&info, nullptr, &instance));
 
     if (!validation) {
         return;
     }
     // The instance exists now, and a throw from here on would skip the destructor: destroy it by hand on the way out.
     try {
-        const Messenger messenger = createMessenger(m_instance, messengerInfo);
-        m_messenger = messenger.handle;
-        m_destroyMessenger = messenger.destroy;
+        const Messenger created = createMessenger(instance, messengerInfo);
+        messenger = created.handle;
+        destroyMessenger = created.destroy;
     } catch (...) {
-        vkDestroyInstance(m_instance, nullptr);
+        vkDestroyInstance(instance, nullptr);
         throw;
     }
 }
 
 // NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
 Instance::~Instance() {
-    if (m_messenger != VK_NULL_HANDLE) {
-        m_destroyMessenger(m_instance, m_messenger, nullptr);
+    if (messenger != VK_NULL_HANDLE) {
+        destroyMessenger(instance, messenger, nullptr);
     }
-    vkDestroyInstance(m_instance, nullptr);
-    if (m_validationLog) {
+    vkDestroyInstance(instance, nullptr);
+    if (validationLog) {
         // Reported after vkDestroyInstance, so it counts shutdown too.
-        const ValidationLog& log = *m_validationLog;
+        const ValidationLog& log = *validationLog;
         if (log.errors + log.warnings == 0) {
             logInfo("validation reported nothing");
         } else {

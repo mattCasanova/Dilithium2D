@@ -89,8 +89,8 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface) {
 
     std::vector<Candidate> candidates;
     std::vector<DeviceVerdict> verdicts;
-    for (VkPhysicalDevice physical : physicalDevices) {
-        candidates.push_back(describe(physical, surface));
+    for (VkPhysicalDevice candidate : physicalDevices) {
+        candidates.push_back(describe(candidate, surface));
         verdicts.push_back(scoreDevice(candidates.back().facts));
     }
     for (std::size_t index = 0; index < candidates.size(); ++index) {
@@ -108,19 +108,19 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface) {
     const Candidate& chosen = candidates[*best];
     const auto* usable = std::get_if<UsableDevice>(&verdicts[*best]);
     DILITHIUM_ASSERT(usable != nullptr, "pickDevice chose an unusable device");
-    m_physical = chosen.physical;
-    m_queueFamily = usable->queueFamily;
+    physical = chosen.physical;
+    queueFamily = usable->queueFamily;
 
     const auto offered = vkEnumerate<VkExtensionProperties>(
         "vkEnumerateDeviceExtensionProperties", [this](uint32_t* count, VkExtensionProperties* items) {
-            return vkEnumerateDeviceExtensionProperties(m_physical, nullptr, count, items);
+            return vkEnumerateDeviceExtensionProperties(physical, nullptr, count, items);
         });
     const std::vector<const char*> extensions = planDeviceExtensions(offered);
 
     const float priority = 1.0f;
     const VkDeviceQueueCreateInfo queueInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = m_queueFamily,
+        .queueFamilyIndex = queueFamily,
         .queueCount = 1,
         .pQueuePriorities = &priority,
     };
@@ -138,13 +138,13 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface) {
         .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
         .ppEnabledExtensionNames = extensions.data(),
     };
-    VK_CHECK(vkCreateDevice(m_physical, &info, nullptr, &m_device));
-    vkGetDeviceQueue(m_device, m_queueFamily, 0, &m_queue);
-    logInfo("using GPU {}: {}, queue family {}", *best, chosen.facts.name, m_queueFamily);
+    VK_CHECK(vkCreateDevice(physical, &info, nullptr, &device));
+    vkGetDeviceQueue(device, queueFamily, 0, &queue);
+    logInfo("using GPU {}: {}, queue family {}", *best, chosen.facts.name, queueFamily);
 }
 
 Device::~Device() {
-    vkDestroyDevice(m_device, nullptr);
+    vkDestroyDevice(device, nullptr);
 }
 
 } // namespace dilithium

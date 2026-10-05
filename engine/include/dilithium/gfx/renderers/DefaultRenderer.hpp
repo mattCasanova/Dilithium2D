@@ -31,14 +31,14 @@ public:
     FrameOutcome drawFrame() override;
 
     /// Validation messages so far: errors plus warnings, 0 with validation off.
-    [[nodiscard]] uint32_t problemsReported() const override;
+    [[nodiscard]] uint32_t getProblemsReported() const override;
 
     /// How many times the swapchain was built, including the first; a resize costs one.
-    [[nodiscard]] uint32_t swapchainBuilds() const;
+    [[nodiscard]] uint32_t getSwapchainBuilds() const;
 
 private:
     struct Impl;
-    std::unique_ptr<Impl> m_impl;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace dilithium

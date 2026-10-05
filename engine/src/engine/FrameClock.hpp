@@ -21,7 +21,7 @@ public:
     void reset();
 
 private:
-    std::chrono::steady_clock::time_point m_last;
+    std::chrono::steady_clock::time_point last;
 };
 
 } // namespace dilithium

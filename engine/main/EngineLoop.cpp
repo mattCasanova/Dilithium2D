@@ -12,7 +12,7 @@
 namespace dilithium {
 
 SDL_AppResult EngineLoop::iterate(Engine& engine) {
-    switch (engine.m_impl->frame()) {
+    switch (engine.impl->frame()) {
     case FrameResult::Continue:
         return SDL_APP_CONTINUE;
     case FrameResult::Finished:
@@ -24,7 +24,7 @@ SDL_AppResult EngineLoop::iterate(Engine& engine) {
 }
 
 SDL_AppResult EngineLoop::event(Engine& engine, const SDL_Event& event) {
-    Engine::Impl& impl = *engine.m_impl;
+    Engine::Impl& impl = *engine.impl;
     switch (event.type) {
     case SDL_EVENT_QUIT:                   // Command-Q, the menu's Quit, the Dock's Quit, a logout
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED: // the close button

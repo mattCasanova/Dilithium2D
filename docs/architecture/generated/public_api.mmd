@@ -16,10 +16,10 @@ classDiagram
     class C_0003433841011590959626["CommandLine"]
     class C_0003433841011590959626 {
         +CommandLine(int argc, const char *const * argv) void
-        +all() [const] std::span&lt;const std::string_view&gt;
+        +getAll() [const] std::span&lt;const std::string_view&gt;
+        +getValue(std::string_view flag) [const] std::optional&lt;std::string_view&gt;
         +has(std::string_view flag) [const] bool
-        +value(std::string_view flag) [const] std::optional&lt;std::string_view&gt;
-        -m_args : std::vector&lt;std::string_view&gt;
+        -args : std::vector&lt;std::string_view&gt;
     }
     class C_0002322712453429534017["AppState"]
     class C_0002322712453429534017 {
@@ -37,8 +37,8 @@ classDiagram
         +~Application() [default,constexpr] void
         +operator=(const Application &) Application &
         +operator=(Application &&) Application &
+        +getState() [const] AppState*
         +quit() void*
-        +state() [const] AppState*
     }
     class C_0012504818906105801797["Engine"]
     class C_0012504818906105801797 {
@@ -49,9 +49,9 @@ classDiagram
         +operator=(const Engine &) Engine &
         +operator=(Engine &&) Engine &
         +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void
-        +scenes() SceneManager &
+        +getScenes() SceneManager &
         +setPausesWhenInactive(bool pauses) void
-        -m_impl : std::unique_ptr&lt;Impl&gt;
+        -impl : std::unique_ptr&lt;Impl&gt;
     }
     class C_0017246818890119119619["SceneId&lt;Id&gt;"]
     class C_0017246818890119119619 {
@@ -97,8 +97,8 @@ classDiagram
         +add<std::derived_from SceneType,SceneId Id>(Id id) void
         +add<SceneId Id>(Id id, const Builder & builder) void
         -build(SceneKey key) std::unique_ptr&lt;Scene&gt;
-        +current() Scene &
-        +depth() [const] int
+        +getCurrent() Scene &
+        +getDepth() [const] int
         -key<SceneId Id>(Id id) SceneKey$
         +performTransition() bool
         +pop() void
@@ -109,11 +109,11 @@ classDiagram
         +set<SceneId Id>(Id id) void
         -start(SceneKey key) void
         +start<SceneId Id>(Id id) void
-        -m_builders : std::unordered_map&lt;SceneKey,Builder&gt;
-        -m_pending : Request
-        -m_pendingKey : SceneKey
-        -m_services : SceneServices
-        -m_stack : std::vector&lt;std::unique_ptr&lt;Scene&gt;&gt;
+        -builders : std::unordered_map&lt;SceneKey,Builder&gt;
+        -pending : Request
+        -pendingKey : SceneKey
+        -services : SceneServices
+        -stack : std::vector&lt;std::unique_ptr&lt;Scene&gt;&gt;
     }
     class C_0006182999335698346784["SceneManager::Request"]
     class C_0006182999335698346784 {
@@ -147,13 +147,13 @@ classDiagram
         +~Window() void
         +operator=(const Window &) Window &
         +operator=(Window &&) Window &
-        +impl() [const] const Impl &
+        +getImpl() [const] const Impl &
+        +getPixelSize() [const] PixelSize
         +isMinimized() [const] bool
         +minimize() void
-        +pixelSize() [const] PixelSize
         +resize(int width, int height) void
         +restore() void
-        -m_impl : std::unique_ptr&lt;Impl&gt;
+        -impl : std::unique_ptr&lt;Impl&gt;
     }
     class C_0012289527777118496709["Circle"]
     class C_0012289527777118496709 {
@@ -162,8 +162,8 @@ classDiagram
     }
     class C_0008957317046561685532["AABB"]
     class C_0008957317046561685532 {
-        +halfHeight() [const] float
-        +halfWidth() [const] float
+        +getHalfHeight() [const] float
+        +getHalfWidth() [const] float
         +max() [const] Vec2
         +min() [const] Vec2
         +center : Vec2
@@ -185,10 +185,10 @@ classDiagram
         +operator=(DefaultRenderer &&) DefaultRenderer &
         +drawFrame() FrameOutcome
         +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void
-        +problemsReported() [const] uint32_t
+        +getProblemsReported() [const] uint32_t
+        +getSwapchainBuilds() [const] uint32_t
         +setClearColor(Color color) void
-        +swapchainBuilds() [const] uint32_t
-        -m_impl : std::unique_ptr&lt;Impl&gt;
+        -impl : std::unique_ptr&lt;Impl&gt;
     }
     class C_0014853951067043476245["DefaultRenderer::Impl"]
     class C_0014853951067043476245 {
@@ -223,7 +223,7 @@ classDiagram
         +operator=(Renderer &&) Renderer &
         +drawFrame() FrameOutcome*
         +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
-        +problemsReported() [const] uint32_t
+        +getProblemsReported() [const] uint32_t
         +setClearColor(Color color) void*
     }
     C_0012504818906105801797 ()-- C_0010140022438352470747 : 
@@ -240,10 +240,10 @@ classDiagram
     C_0012015077915189623278 --> C_0012078689987532246651 : +app
     C_0004769106082399727328 ..> C_0002210481607728283061 : 
     C_0004769106082399727328 ..> C_0012078689987532246651 : 
-    C_0004769106082399727328 --> C_0012015077915189623278 : -m_builders
-    C_0004769106082399727328 o-- C_0007999178659969704793 : -m_stack
-    C_0004769106082399727328 o-- C_0012015077915189623278 : -m_services
-    C_0004769106082399727328 o-- C_0006182999335698346784 : -m_pending
+    C_0004769106082399727328 --> C_0012015077915189623278 : -builders
+    C_0004769106082399727328 o-- C_0007999178659969704793 : -stack
+    C_0004769106082399727328 o-- C_0012015077915189623278 : -services
+    C_0004769106082399727328 o-- C_0006182999335698346784 : -pending
     C_0004769106082399727328 ()-- C_0006182999335698346784 : 
     C_0006970481197969800549 ()-- C_0008073970071378886621 : 
     C_0006970481197969800549 ..> C_0004412478778605507385 : 

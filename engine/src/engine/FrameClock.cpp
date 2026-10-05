@@ -13,17 +13,17 @@ float frameSeconds(std::chrono::nanoseconds elapsed) {
     return static_cast<float>(std::min(seconds, static_cast<double>(kMaxFrameSeconds)));
 }
 
-FrameClock::FrameClock() : m_last(std::chrono::steady_clock::now()) {}
+FrameClock::FrameClock() : last(std::chrono::steady_clock::now()) {}
 
 float FrameClock::tick() {
     const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-    const float seconds = frameSeconds(now - m_last);
-    m_last = now;
+    const float seconds = frameSeconds(now - last);
+    last = now;
     return seconds;
 }
 
 void FrameClock::reset() {
-    m_last = std::chrono::steady_clock::now();
+    last = std::chrono::steady_clock::now();
 }
 
 } // namespace dilithium

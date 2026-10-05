@@ -6,10 +6,10 @@
 
 namespace dilithium {
 
-FramesInFlight::FramesInFlight(VkDevice device, uint32_t queueFamily) : m_device(device) {
+FramesInFlight::FramesInFlight(VkDevice newDevice, uint32_t queueFamily) : device(newDevice) {
     // A throw part-way would skip the destructor, so clean up by hand on the way out.
     try {
-        for (FrameSlot& slot : m_slots) {
+        for (FrameSlot& slot : slots) {
             const VkCommandPoolCreateInfo poolInfo{
                 .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                 .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, // its buffers live one frame
@@ -45,10 +45,10 @@ FramesInFlight::~FramesInFlight() {
 
 void FramesInFlight::destroy() {
     // Destroying a pool frees its command buffers. Each call accepts VK_NULL_HANDLE, for a slot that was never made.
-    for (FrameSlot& slot : m_slots) {
-        vkDestroySemaphore(m_device, slot.imageAvailable, nullptr);
-        vkDestroyFence(m_device, slot.inFlight, nullptr);
-        vkDestroyCommandPool(m_device, slot.pool, nullptr);
+    for (FrameSlot& slot : slots) {
+        vkDestroySemaphore(device, slot.imageAvailable, nullptr);
+        vkDestroyFence(device, slot.inFlight, nullptr);
+        vkDestroyCommandPool(device, slot.pool, nullptr);
         slot = FrameSlot{};
     }
 }

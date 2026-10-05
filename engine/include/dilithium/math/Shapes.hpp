@@ -17,10 +17,10 @@ struct AABB {
     float width = 0.0f;
     float height = 0.0f;
 
-    [[nodiscard]] float halfWidth() const { return width / 2.0f; }
-    [[nodiscard]] float halfHeight() const { return height / 2.0f; }
-    [[nodiscard]] Vec2 min() const { return {center.x - halfWidth(), center.y - halfHeight()}; }
-    [[nodiscard]] Vec2 max() const { return {center.x + halfWidth(), center.y + halfHeight()}; }
+    [[nodiscard]] float getHalfWidth() const { return width / 2.0f; }
+    [[nodiscard]] float getHalfHeight() const { return height / 2.0f; }
+    [[nodiscard]] Vec2 min() const { return {center.x - getHalfWidth(), center.y - getHalfHeight()}; }
+    [[nodiscard]] Vec2 max() const { return {center.x + getHalfWidth(), center.y + getHalfHeight()}; }
 };
 
 /// A straight line between two points, both included.

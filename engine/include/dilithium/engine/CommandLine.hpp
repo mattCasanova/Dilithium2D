@@ -17,13 +17,13 @@ public:
     [[nodiscard]] bool has(std::string_view flag) const;
 
     /// The argument after `flag` (as in `--level 3`), or nothing if the flag is absent or last.
-    [[nodiscard]] std::optional<std::string_view> value(std::string_view flag) const;
+    [[nodiscard]] std::optional<std::string_view> getValue(std::string_view flag) const;
 
     /// Every argument, the program name first, as in `argv`.
-    [[nodiscard]] std::span<const std::string_view> all() const { return m_args; }
+    [[nodiscard]] std::span<const std::string_view> getAll() const { return args; }
 
 private:
-    std::vector<std::string_view> m_args;
+    std::vector<std::string_view> args;
 };
 
 } // namespace dilithium

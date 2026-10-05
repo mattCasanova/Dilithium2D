@@ -21,16 +21,16 @@ public:
     Device(Device&&) = delete;
     Device& operator=(Device&&) = delete;
 
-    [[nodiscard]] VkPhysicalDevice physical() const { return m_physical; }
-    [[nodiscard]] VkDevice handle() const { return m_device; }
-    [[nodiscard]] VkQueue queue() const { return m_queue; }
-    [[nodiscard]] uint32_t queueFamily() const { return m_queueFamily; }
+    [[nodiscard]] VkPhysicalDevice getPhysical() const { return physical; }
+    [[nodiscard]] VkDevice handle() const { return device; }
+    [[nodiscard]] VkQueue getQueue() const { return queue; }
+    [[nodiscard]] uint32_t getQueueFamily() const { return queueFamily; }
 
 private:
-    VkPhysicalDevice m_physical = VK_NULL_HANDLE;
-    uint32_t m_queueFamily = 0;
-    VkDevice m_device = VK_NULL_HANDLE;
-    VkQueue m_queue = VK_NULL_HANDLE;
+    VkPhysicalDevice physical = VK_NULL_HANDLE;
+    uint32_t queueFamily = 0;
+    VkDevice device = VK_NULL_HANDLE;
+    VkQueue queue = VK_NULL_HANDLE;
 };
 
 } // namespace dilithium

@@ -18,7 +18,7 @@ TEST_CASE("the state follows the window facts: hidden or minimized wins, then fo
 
 TEST_CASE("a tracker starts active and reports a change once", "[appstate]") {
     AppStateTracker tracker;
-    CHECK(tracker.state() == AppState::Active);
+    CHECK(tracker.getState() == AppState::Active);
     CHECK_FALSE(tracker.update({.focused = true}).has_value()); // no change: not delivered
     CHECK(tracker.update({.focused = false}) == AppState::Inactive);
     CHECK_FALSE(tracker.update({.focused = false}).has_value());
@@ -30,19 +30,19 @@ TEST_CASE("a phone sets the state directly", "[appstate]") {
     AppStateTracker tracker;
     CHECK(tracker.set(AppState::Background) == AppState::Background);
     CHECK_FALSE(tracker.set(AppState::Background).has_value());
-    CHECK(tracker.state() == AppState::Background);
+    CHECK(tracker.getState() == AppState::Background);
 }
 
 TEST_CASE("frozen in the background always, and while inactive only if asked", "[appstate]") {
     AppStateTracker tracker;
-    CHECK_FALSE(tracker.frozen(true));
-    CHECK_FALSE(tracker.frozen(false));
+    CHECK_FALSE(tracker.isFrozen(true));
+    CHECK_FALSE(tracker.isFrozen(false));
 
     REQUIRE(tracker.set(AppState::Inactive).has_value());
-    CHECK(tracker.frozen(true));
-    CHECK_FALSE(tracker.frozen(false));
+    CHECK(tracker.isFrozen(true));
+    CHECK_FALSE(tracker.isFrozen(false));
 
     REQUIRE(tracker.set(AppState::Background).has_value());
-    CHECK(tracker.frozen(true));
-    CHECK(tracker.frozen(false));
+    CHECK(tracker.isFrozen(true));
+    CHECK(tracker.isFrozen(false));
 }

@@ -11,7 +11,7 @@ namespace dilithium {
 /// is being created; the pipeline keeps its own copy of the code. Move-only.
 class ShaderModule {
 public:
-    ShaderModule(VkDevice device, std::span<const uint32_t> spirv);
+    ShaderModule(VkDevice newDevice, std::span<const uint32_t> spirv);
     ~ShaderModule();
 
     ShaderModule(const ShaderModule&) = delete;
@@ -19,13 +19,13 @@ public:
     ShaderModule(ShaderModule&& other) noexcept;
     ShaderModule& operator=(ShaderModule&& other) noexcept;
 
-    [[nodiscard]] VkShaderModule handle() const { return m_module; }
+    [[nodiscard]] VkShaderModule handle() const { return module; }
 
 private:
     void destroy();
 
-    VkDevice m_device = VK_NULL_HANDLE;
-    VkShaderModule m_module = VK_NULL_HANDLE;
+    VkDevice device = VK_NULL_HANDLE;
+    VkShaderModule module = VK_NULL_HANDLE;
 };
 
 } // namespace dilithium

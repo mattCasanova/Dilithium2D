@@ -43,7 +43,7 @@ public:
 
     /// How many problems the renderer's own checks have reported so far (Vulkan validation, for the engine's
     /// renderer). A `--frames` run fails if this is not 0 at the end. A renderer with no such checks reports 0.
-    [[nodiscard]] virtual uint32_t problemsReported() const { return 0; }
+    [[nodiscard]] virtual uint32_t getProblemsReported() const { return 0; }
 };
 
 } // namespace dilithium

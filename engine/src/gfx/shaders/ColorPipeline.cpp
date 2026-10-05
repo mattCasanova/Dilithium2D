@@ -86,10 +86,11 @@ VkPipelineShaderStageCreateInfo stage(VkShaderStageFlagBits kind, const ShaderMo
 
 } // namespace
 
-ColorPipeline::ColorPipeline(VkDevice device, VkFormat colorFormat) : m_device(device), m_colorFormat(colorFormat) {
+ColorPipeline::ColorPipeline(VkDevice newDevice, VkFormat newColorFormat)
+    : device(newDevice), colorFormat(newColorFormat) {
     // Nothing to bind yet: no descriptors, no push constants. D3's texture and D5's camera add to this.
     const VkPipelineLayoutCreateInfo layoutInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
-    VK_CHECK(vkCreatePipelineLayout(device, &layoutInfo, nullptr, &m_layout));
+    VK_CHECK(vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout));
 
     const ShaderModule vertex(device, shaders::kColorVert);
     const ShaderModule fragment(device, shaders::kColorFrag);
@@ -101,7 +102,7 @@ ColorPipeline::ColorPipeline(VkDevice device, VkFormat colorFormat) : m_device(d
     const VkPipelineRenderingCreateInfo rendering{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
         .colorAttachmentCount = 1,
-        .pColorAttachmentFormats = &m_colorFormat,
+        .pColorAttachmentFormats = &colorFormat,
     };
     const VkGraphicsPipelineCreateInfo info{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -115,19 +116,19 @@ ColorPipeline::ColorPipeline(VkDevice device, VkFormat colorFormat) : m_device(d
         .pMultisampleState = &kMultisample,
         .pColorBlendState = &kBlend,
         .pDynamicState = &kDynamic,
-        .layout = m_layout,
+        .layout = layout,
         .renderPass = VK_NULL_HANDLE,
     };
-    const VkResult created = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr, &m_pipeline);
+    const VkResult created = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr, &pipeline);
     if (created != VK_SUCCESS) {
-        vkDestroyPipelineLayout(device, m_layout, nullptr); // the destructor will not run
+        vkDestroyPipelineLayout(device, layout, nullptr); // the destructor will not run
         detail::checkVk(created, "vkCreateGraphicsPipelines");
     }
 }
 
 ColorPipeline::~ColorPipeline() {
-    vkDestroyPipeline(m_device, m_pipeline, nullptr);
-    vkDestroyPipelineLayout(m_device, m_layout, nullptr);
+    vkDestroyPipeline(device, pipeline, nullptr);
+    vkDestroyPipelineLayout(device, layout, nullptr);
 }
 
 } // namespace dilithium

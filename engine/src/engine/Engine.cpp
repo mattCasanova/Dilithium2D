@@ -61,7 +61,7 @@ void count(FrameCounts& counts, FrameOutcome outcome) {
 
 Engine::Impl::Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> newRenderer,
                    const CommandLine& commandLine)
-    : options(parseRunOptions(commandLine.all())), window(std::move(newWindow)), renderer(std::move(newRenderer)),
+    : options(parseRunOptions(commandLine.getAll())), window(std::move(newWindow)), renderer(std::move(newRenderer)),
       scenes(*renderer, *this) {
     if (!window || !renderer) {
         DILITHIUM_UNREACHABLE("Engine needs a window and a renderer");
@@ -76,7 +76,7 @@ FrameResult Engine::Impl::frame() {
         return FrameResult::Finished;
     }
     ++frameNumber;
-    if (appState.frozen(pausesWhenInactive)) {
+    if (appState.isFrozen(pausesWhenInactive)) {
         // The player is away: no update, no draw; the last frame stays on screen. The clock is reset on thaw.
         count(counts, FrameOutcome::Idle);
         std::this_thread::sleep_for(kIdleSleep);
@@ -89,7 +89,7 @@ FrameResult Engine::Impl::frame() {
     const float dt = clock.tick();
 
     scenes.performTransition();
-    Scene& scene = scenes.current();
+    Scene& scene = scenes.getCurrent();
     scene.update(dt);
     scene.draw();
 
@@ -106,7 +106,7 @@ FrameResult Engine::Impl::frame() {
 }
 
 void Engine::Impl::quitRequested() {
-    switch (scenes.current().quitRequested()) {
+    switch (scenes.getCurrent().quitRequested()) {
     case QuitResponse::Quit:
         quit();
         return;
@@ -138,25 +138,25 @@ void Engine::Impl::appStateChanged(AppState state) {
     for (const auto& observer : appStateObservers) {
         observer(state);
     }
-    scenes.current().appStateChanged(state);
+    scenes.getCurrent().appStateChanged(state);
     if (scenes.performTransition()) {
         drawOnce();
     }
-    if (!appState.frozen(pausesWhenInactive)) {
+    if (!appState.isFrozen(pausesWhenInactive)) {
         clock.reset();
     }
 }
 
 /// One draw with no update, so a scene that just arrived (a pause menu) is on screen before the loop freezes.
 void Engine::Impl::drawOnce() {
-    scenes.current().draw();
+    scenes.getCurrent().draw();
     count(counts, renderer->drawFrame());
 }
 
 void Engine::Impl::resized() {
-    const PixelSize pixels = window->pixelSize();
+    const PixelSize pixels = window->getPixelSize();
     DILITHIUM_LOG_DEBUG("window is {}x{} pixels", pixels.width, pixels.height);
-    scenes.current().resize();
+    scenes.getCurrent().resize();
 }
 
 /// The end of a `--frames` run: a summary line, and failure if the renderer's checks said anything, so a run cannot
@@ -164,7 +164,7 @@ void Engine::Impl::resized() {
 FrameResult Engine::Impl::finishRun() const {
     logInfo("ran {} frames: {} presented, {} skipped, {} idle", frameNumber, counts.presented, counts.skipped,
             counts.idle);
-    const uint32_t problems = renderer->problemsReported();
+    const uint32_t problems = renderer->getProblemsReported();
     if (problems > 0) {
         logError("the renderer reported {} problems during the run", problems);
         return FrameResult::Failed;
@@ -173,22 +173,22 @@ FrameResult Engine::Impl::finishRun() const {
 }
 
 Engine::Engine(std::unique_ptr<Window> window, std::unique_ptr<Renderer> renderer, const CommandLine& commandLine)
-    : m_impl(std::make_unique<Impl>(std::move(window), std::move(renderer), commandLine)) {
+    : impl(std::make_unique<Impl>(std::move(window), std::move(renderer), commandLine)) {
     logInfo("Dilithium2D {}", version());
 }
 
 Engine::~Engine() = default;
 
-SceneManager& Engine::scenes() {
-    return m_impl->scenes;
+SceneManager& Engine::getScenes() {
+    return impl->scenes;
 }
 
 void Engine::addAppStateObserver(std::function<void(AppState)> observer) {
-    m_impl->appStateObservers.push_back(std::move(observer));
+    impl->appStateObservers.push_back(std::move(observer));
 }
 
 void Engine::setPausesWhenInactive(bool pauses) {
-    m_impl->pausesWhenInactive = pauses;
+    impl->pausesWhenInactive = pauses;
 }
 
 } // namespace dilithium

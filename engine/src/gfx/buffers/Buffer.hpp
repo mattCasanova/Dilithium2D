@@ -28,18 +28,19 @@ public:
     /// Copies `bytes` to the start of the mapped memory. More than the buffer holds is a programmer error.
     void write(std::span<const std::byte> bytes);
 
-    [[nodiscard]] VkBuffer handle() const { return m_buffer; }
-    [[nodiscard]] VkDeviceSize size() const { return m_size; }
+    [[nodiscard]] VkBuffer handle() const { return buffer; }
+    [[nodiscard]] VkDeviceSize getSize() const { return size; }
 
 private:
-    Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, VkDeviceSize size, void* mapped);
+    Buffer(VmaAllocator newAllocator, VkBuffer newBuffer, VmaAllocation newAllocation, VkDeviceSize newSize,
+           void* newMapped);
     void destroy();
 
-    VmaAllocator m_allocator = VK_NULL_HANDLE;
-    VkBuffer m_buffer = VK_NULL_HANDLE;
-    VmaAllocation m_allocation = VK_NULL_HANDLE;
-    VkDeviceSize m_size = 0;
-    void* m_mapped = nullptr; ///< where the CPU writes; valid for the buffer's whole life
+    VmaAllocator allocator = VK_NULL_HANDLE;
+    VkBuffer buffer = VK_NULL_HANDLE;
+    VmaAllocation allocation = VK_NULL_HANDLE;
+    VkDeviceSize size = 0;
+    void* mapped = nullptr; ///< where the CPU writes; valid for the buffer's whole life
 };
 
 } // namespace dilithium

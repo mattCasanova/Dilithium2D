@@ -13,24 +13,24 @@
 
 namespace dilithium {
 
-Window::Window(const WindowConfig& config) : m_impl(std::make_unique<Impl>()) {
-    m_impl->handle = SDL_CreateWindow(config.title.c_str(), config.width, config.height,
-                                      SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
-    if (m_impl->handle == nullptr) {
+Window::Window(const WindowConfig& config) : impl(std::make_unique<Impl>()) {
+    impl->handle = SDL_CreateWindow(config.title.c_str(), config.width, config.height,
+                                    SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+    if (impl->handle == nullptr) {
         throw std::runtime_error(std::format("SDL_CreateWindow failed: {}", SDL_GetError()));
     }
-    const PixelSize pixels = pixelSize();
+    const PixelSize pixels = getPixelSize();
     logInfo("window '{}': {}x{} pixels", config.title, pixels.width, pixels.height);
 }
 
 Window::~Window() {
-    SDL_DestroyWindow(m_impl->handle);
+    SDL_DestroyWindow(impl->handle);
 }
 
-PixelSize Window::pixelSize() const {
+PixelSize Window::getPixelSize() const {
     int width = 0;
     int height = 0;
-    if (!SDL_GetWindowSizeInPixels(m_impl->handle, &width, &height)) {
+    if (!SDL_GetWindowSizeInPixels(impl->handle, &width, &height)) {
         DILITHIUM_UNREACHABLE(std::format("SDL_GetWindowSizeInPixels failed on a live window: {}", SDL_GetError()));
     }
     DILITHIUM_ASSERT(width >= 0 && height >= 0, "SDL reported a negative window size");
@@ -38,23 +38,23 @@ PixelSize Window::pixelSize() const {
 }
 
 bool Window::isMinimized() const {
-    return (SDL_GetWindowFlags(m_impl->handle) & SDL_WINDOW_MINIMIZED) != 0;
+    return (SDL_GetWindowFlags(impl->handle) & SDL_WINDOW_MINIMIZED) != 0;
 }
 
 void Window::resize(int width, int height) {
-    if (!SDL_SetWindowSize(m_impl->handle, width, height)) {
+    if (!SDL_SetWindowSize(impl->handle, width, height)) {
         logWarning("SDL_SetWindowSize({}, {}) refused: {}", width, height, SDL_GetError());
     }
 }
 
 void Window::minimize() {
-    if (!SDL_MinimizeWindow(m_impl->handle)) {
+    if (!SDL_MinimizeWindow(impl->handle)) {
         logWarning("SDL_MinimizeWindow refused: {}", SDL_GetError());
     }
 }
 
 void Window::restore() {
-    if (!SDL_RestoreWindow(m_impl->handle)) {
+    if (!SDL_RestoreWindow(impl->handle)) {
         logWarning("SDL_RestoreWindow refused: {}", SDL_GetError());
     }
 }

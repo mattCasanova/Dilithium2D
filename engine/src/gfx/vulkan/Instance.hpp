@@ -29,18 +29,18 @@ public:
     Instance(Instance&&) = delete;
     Instance& operator=(Instance&&) = delete;
 
-    [[nodiscard]] VkInstance handle() const { return m_instance; }
+    [[nodiscard]] VkInstance handle() const { return instance; }
 
     /// Errors plus warnings the validation layer has reported so far; 0 with validation off.
-    [[nodiscard]] uint32_t validationMessages() const {
-        return m_validationLog ? m_validationLog->errors + m_validationLog->warnings : 0;
+    [[nodiscard]] uint32_t getValidationMessages() const {
+        return validationLog ? validationLog->errors + validationLog->warnings : 0;
     }
 
 private:
-    std::unique_ptr<ValidationLog> m_validationLog; ///< null when validation is off; outlives both handles
-    VkInstance m_instance = VK_NULL_HANDLE;
-    VkDebugUtilsMessengerEXT m_messenger = VK_NULL_HANDLE;
-    PFN_vkDestroyDebugUtilsMessengerEXT m_destroyMessenger = nullptr;
+    std::unique_ptr<ValidationLog> validationLog; ///< null when validation is off; outlives both handles
+    VkInstance instance = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
+    PFN_vkDestroyDebugUtilsMessengerEXT destroyMessenger = nullptr;
 };
 
 } // namespace dilithium

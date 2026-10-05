@@ -23,16 +23,16 @@ enum class SceneId { Triangle };
 /// is rewritten every frame without the GPU reading a half-written one.
 class TriangleScene final : public dilithium::Scene {
 public:
-    explicit TriangleScene(dilithium::SceneServices& services) : m_renderer(services.renderer) {}
+    explicit TriangleScene(dilithium::SceneServices& services) : renderer(services.renderer) {}
 
     void update(float dt) override {
-        m_angle = dilithium::math::wrap(m_angle + (dt * kRadiansPerSecond), 0.0f, dilithium::math::kTwoPi);
+        angle = dilithium::math::wrap(angle + (dt * kRadiansPerSecond), 0.0f, dilithium::math::kTwoPi);
     }
 
     void draw() override {
-        m_renderer.setClearColor(kBackground);
-        m_renderer.drawTriangle(corner(0), corner(1), corner(2), dilithium::colors::kRed, dilithium::colors::kGreen,
-                                dilithium::colors::kBlue);
+        renderer.setClearColor(kBackground);
+        renderer.drawTriangle(corner(0), corner(1), corner(2), dilithium::colors::kRed, dilithium::colors::kGreen,
+                              dilithium::colors::kBlue);
     }
 
 private:
@@ -44,13 +44,13 @@ private:
 
     /// The corners sit on a circle, a third of a turn apart, the first straight up before any turning.
     [[nodiscard]] dilithium::Vec2 corner(int index) const {
-        const float angle = m_angle + dilithium::math::kHalfPi + (static_cast<float>(index) * kThirdTurn);
-        return {kRadius * std::cos(angle), kRadius * std::sin(angle)};
+        const float at = angle + dilithium::math::kHalfPi + (static_cast<float>(index) * kThirdTurn);
+        return {kRadius * std::cos(at), kRadius * std::sin(at)};
     }
     static constexpr float kThirdTurn = dilithium::math::kTwoPi / kCorners;
 
-    dilithium::Renderer& m_renderer;
-    float m_angle = 0.0f;
+    dilithium::Renderer& renderer;
+    float angle = 0.0f;
 };
 
 } // namespace
@@ -59,7 +59,7 @@ std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& co
     auto window = std::make_unique<Window>(WindowConfig{.title = "D2 Triangle"});
     auto renderer = std::make_unique<DefaultRenderer>(*window);
     auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);
-    engine->scenes().add<TriangleScene>(SceneId::Triangle);
-    engine->scenes().start(SceneId::Triangle);
+    engine->getScenes().add<TriangleScene>(SceneId::Triangle);
+    engine->getScenes().start(SceneId::Triangle);
     return engine;
 }

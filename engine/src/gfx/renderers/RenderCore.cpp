@@ -49,10 +49,10 @@ void transition(VkCommandBuffer commands, VkImage image, VkImageLayout from, VkI
 } // namespace
 
 RenderCore::RenderCore(const Window& window)
-    : m_surface(m_instance.handle(), window), m_device(m_instance.handle(), m_surface.handle()),
-      m_allocator(m_instance.handle(), m_device.physical(), m_device.handle()),
-      m_frames(m_device.handle(), m_device.queueFamily()) {
-    recreateSwapchain(window.pixelSize());
+    : surface(instance.handle(), window), device(instance.handle(), surface.handle()),
+      allocator(instance.handle(), device.getPhysical(), device.handle()),
+      frames(device.handle(), device.getQueueFamily()) {
+    recreateSwapchain(window.getPixelSize());
 }
 
 // NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
@@ -64,14 +64,14 @@ RenderCore::~RenderCore() {
 // NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
 void RenderCore::waitIdle() const {
     // Logged rather than sent through VK_CHECK: this runs from destructors, which must not throw.
-    const VkResult idle = vkDeviceWaitIdle(m_device.handle());
+    const VkResult idle = vkDeviceWaitIdle(device.handle());
     if (idle != VK_SUCCESS) {
         logError("vkDeviceWaitIdle returned {}", describeVkResult(idle));
     }
 }
 
 FrameBegin RenderCore::beginFrame(const Window& window, Color clearColor) {
-    if (m_frameOpen) {
+    if (frameOpen) {
         DILITHIUM_UNREACHABLE("beginFrame while a frame is open: endFrame was not called");
     }
     if (window.isMinimized()) {
@@ -79,105 +79,105 @@ FrameBegin RenderCore::beginFrame(const Window& window, Color clearColor) {
     }
     // A size change the window has already made but whose event has not arrived yet (a resize in this same tick)
     // would otherwise be drawn at the old size and reported as suboptimal at present. Compare, don't wait.
-    const PixelSize pixels = window.pixelSize();
+    const PixelSize pixels = window.getPixelSize();
     const bool sizeChanged =
-        m_swapchain && (m_swapchain->extent().width != pixels.width || m_swapchain->extent().height != pixels.height);
-    if (!m_swapchain || m_swapchainStale || sizeChanged) {
+        swapchain && (swapchain->getExtent().width != pixels.width || swapchain->getExtent().height != pixels.height);
+    if (!swapchain || swapchainStale || sizeChanged) {
         recreateSwapchain(pixels);
-        if (!m_swapchain) {
+        if (!swapchain) {
             return FrameBegin::Idle;
         }
     }
 
-    const FrameSlot& frame = m_frames.current();
-    const VkDevice device = m_device.handle();
-    VK_CHECK(vkWaitForFences(device, 1, &frame.inFlight, VK_TRUE, kNoTimeout));
+    const FrameSlot& frame = frames.getCurrent();
+    const VkDevice logical = device.handle();
+    VK_CHECK(vkWaitForFences(logical, 1, &frame.inFlight, VK_TRUE, kNoTimeout));
 
     uint32_t imageIndex = 0;
-    const VkResult acquired = vkAcquireNextImageKHR(device, m_swapchain->handle(), kNoTimeout, frame.imageAvailable,
+    const VkResult acquired = vkAcquireNextImageKHR(logical, swapchain->handle(), kNoTimeout, frame.imageAvailable,
                                                     VK_NULL_HANDLE, &imageIndex);
     if (acquired == VK_ERROR_OUT_OF_DATE_KHR) {
         // Nothing was acquired: the semaphore stays unsignaled and the fence is still signaled. Rebuild, try again.
-        m_swapchainStale = true;
+        swapchainStale = true;
         return FrameBegin::Skipped;
     }
     if (acquired == VK_SUBOPTIMAL_KHR) {
         // The image WAS acquired and its semaphore will be signaled, so this frame must still be submitted to consume
         // it. Rebuild afterwards.
-        m_swapchainStale = true;
+        swapchainStale = true;
     } else {
         detail::checkVk(acquired, "vkAcquireNextImageKHR");
     }
     // Only now: an early return above must leave the fence signaled, or the next wait on it never returns.
-    VK_CHECK(vkResetFences(device, 1, &frame.inFlight));
+    VK_CHECK(vkResetFences(logical, 1, &frame.inFlight));
 
     beginCommands(frame, imageIndex, clearColor);
-    m_frameOpen = true;
-    m_frameImageIndex = imageIndex;
+    frameOpen = true;
+    frameImageIndex = imageIndex;
     return FrameBegin::Ready;
 }
 
 void RenderCore::endFrame() {
-    if (!m_frameOpen) {
+    if (!frameOpen) {
         DILITHIUM_UNREACHABLE("endFrame without a frame open");
     }
-    const FrameSlot& frame = m_frames.current();
-    endCommands(frame, m_frameImageIndex);
-    submit(frame, m_frameImageIndex);
-    present(m_frameImageIndex);
-    m_frames.advance();
-    m_frameOpen = false;
+    const FrameSlot& frame = frames.getCurrent();
+    endCommands(frame, frameImageIndex);
+    submit(frame, frameImageIndex);
+    present(frameImageIndex);
+    frames.advance();
+    frameOpen = false;
 }
 
-VkFormat RenderCore::colorFormat() const {
-    if (!m_swapchain) {
-        DILITHIUM_UNREACHABLE("colorFormat() with no swapchain");
+VkFormat RenderCore::getColorFormat() const {
+    if (!swapchain) {
+        DILITHIUM_UNREACHABLE("getColorFormat() with no swapchain");
     }
-    return m_swapchain->format();
+    return swapchain->getFormat();
 }
 
-VkCommandBuffer RenderCore::commands() const {
-    if (!m_frameOpen) {
-        DILITHIUM_UNREACHABLE("commands() outside an open frame");
+VkCommandBuffer RenderCore::getCommands() const {
+    if (!frameOpen) {
+        DILITHIUM_UNREACHABLE("getCommands() outside an open frame");
     }
-    return m_frames.current().commands;
+    return frames.getCurrent().commands;
 }
 
-VkExtent2D RenderCore::extent() const {
-    if (!m_frameOpen) {
-        DILITHIUM_UNREACHABLE("extent() outside an open frame");
+VkExtent2D RenderCore::getExtent() const {
+    if (!frameOpen) {
+        DILITHIUM_UNREACHABLE("getExtent() outside an open frame");
     }
-    return m_swapchain->extent();
+    return swapchain->getExtent();
 }
 
 void RenderCore::recreateSwapchain(PixelSize windowPixels) {
     // Nothing may still be drawing into, or waiting on, what the old swapchain owns.
-    VK_CHECK(vkDeviceWaitIdle(m_device.handle()));
-    m_swapchainStale = false;
+    VK_CHECK(vkDeviceWaitIdle(device.handle()));
+    swapchainStale = false;
 
     VkSurfaceCapabilitiesKHR capabilities{};
-    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.physical(), m_surface.handle(), &capabilities));
+    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.getPhysical(), surface.handle(), &capabilities));
     const VkExtent2D extent = chooseExtent(capabilities, {windowPixels.width, windowPixels.height});
     if (extent.width == 0 || extent.height == 0) {
-        m_swapchain.reset(); // no swapchain until the window has area again
+        swapchain.reset(); // no swapchain until the window has area again
         return;
     }
-    const VkSwapchainKHR old = m_swapchain ? m_swapchain->handle() : VK_NULL_HANDLE;
+    const VkSwapchainKHR old = swapchain ? swapchain->handle() : VK_NULL_HANDLE;
     // The new swapchain is built from the old one, which assigning then destroys: after the new one exists.
-    m_swapchain = std::make_unique<Swapchain>(m_device.physical(), m_device.handle(), m_surface.handle(), capabilities,
-                                              extent, old);
-    ++m_swapchainBuilds;
+    swapchain =
+        std::make_unique<Swapchain>(device.getPhysical(), device.handle(), surface.handle(), capabilities, extent, old);
+    ++swapchainBuilds;
 }
 
 void RenderCore::beginCommands(const FrameSlot& frame, uint32_t imageIndex, Color clearColor) const {
-    VK_CHECK(vkResetCommandPool(m_device.handle(), frame.pool, 0));
+    VK_CHECK(vkResetCommandPool(device.handle(), frame.pool, 0));
     const VkCommandBufferBeginInfo begin{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
     VK_CHECK(vkBeginCommandBuffer(frame.commands, &begin));
 
-    const VkImage image = m_swapchain->image(imageIndex);
+    const VkImage image = swapchain->getImage(imageIndex);
     // UNDEFINED, not the old layout: the whole image is about to be cleared, so nothing in it needs keeping. The
     // source stage is the one the acquire semaphore's wait blocks, so the transition runs only after the display
     // engine has handed the image over.
@@ -187,7 +187,7 @@ void RenderCore::beginCommands(const FrameSlot& frame, uint32_t imageIndex, Colo
 
     const VkRenderingAttachmentInfo attachment{
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-        .imageView = m_swapchain->view(imageIndex),
+        .imageView = swapchain->getView(imageIndex),
         .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -195,7 +195,7 @@ void RenderCore::beginCommands(const FrameSlot& frame, uint32_t imageIndex, Colo
     };
     const VkRenderingInfo rendering{
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .renderArea = {{0, 0}, m_swapchain->extent()},
+        .renderArea = {{0, 0}, swapchain->getExtent()},
         .layerCount = 1,
         .colorAttachmentCount = 1,
         .pColorAttachments = &attachment,
@@ -206,7 +206,7 @@ void RenderCore::beginCommands(const FrameSlot& frame, uint32_t imageIndex, Colo
 void RenderCore::endCommands(const FrameSlot& frame, uint32_t imageIndex) const {
     vkCmdEndRendering(frame.commands);
 
-    const VkImage image = m_swapchain->image(imageIndex);
+    const VkImage image = swapchain->getImage(imageIndex);
     // The destination stage is the one the "rendering finished" signal covers (see submit), so the transition to
     // PRESENT_SRC is done before that semaphore tells the present to go.
     transition(frame.commands, image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
@@ -228,7 +228,7 @@ void RenderCore::submit(const FrameSlot& frame, uint32_t imageIndex) const {
     };
     const VkSemaphoreSubmitInfo signalRenderFinished{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-        .semaphore = m_swapchain->renderFinished(imageIndex),
+        .semaphore = swapchain->getRenderFinished(imageIndex),
         .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
     };
     const VkSubmitInfo2 info{
@@ -240,23 +240,23 @@ void RenderCore::submit(const FrameSlot& frame, uint32_t imageIndex) const {
         .signalSemaphoreInfoCount = 1,
         .pSignalSemaphoreInfos = &signalRenderFinished,
     };
-    VK_CHECK(vkQueueSubmit2(m_device.queue(), 1, &info, frame.inFlight));
+    VK_CHECK(vkQueueSubmit2(device.getQueue(), 1, &info, frame.inFlight));
 }
 
 void RenderCore::present(uint32_t imageIndex) {
-    const VkSemaphore renderFinished = m_swapchain->renderFinished(imageIndex);
-    const VkSwapchainKHR swapchain = m_swapchain->handle();
+    const VkSemaphore renderFinished = swapchain->getRenderFinished(imageIndex);
+    const VkSwapchainKHR handle = swapchain->handle();
     const VkPresentInfoKHR info{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &renderFinished,
         .swapchainCount = 1,
-        .pSwapchains = &swapchain,
+        .pSwapchains = &handle,
         .pImageIndices = &imageIndex,
     };
-    const VkResult presented = vkQueuePresentKHR(m_device.queue(), &info);
+    const VkResult presented = vkQueuePresentKHR(device.getQueue(), &info);
     if (presented == VK_ERROR_OUT_OF_DATE_KHR || presented == VK_SUBOPTIMAL_KHR) {
-        m_swapchainStale = true; // the frame was still submitted; rebuild before the next one
+        swapchainStale = true; // the frame was still submitted; rebuild before the next one
         return;
     }
     detail::checkVk(presented, "vkQueuePresentKHR");

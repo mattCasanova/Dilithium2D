@@ -17,10 +17,10 @@ public:
     Allocator(Allocator&&) = delete;
     Allocator& operator=(Allocator&&) = delete;
 
-    [[nodiscard]] VmaAllocator handle() const { return m_allocator; }
+    [[nodiscard]] VmaAllocator handle() const { return allocator; }
 
 private:
-    VmaAllocator m_allocator = VK_NULL_HANDLE;
+    VmaAllocator allocator = VK_NULL_HANDLE;
 };
 
 } // namespace dilithium

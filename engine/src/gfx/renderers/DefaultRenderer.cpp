@@ -38,8 +38,8 @@ std::array<Buffer, kFramesInFlight> makeVertexBuffers(VmaAllocator allocator) {
 
 struct DefaultRenderer::Impl {
     explicit Impl(const Window& newWindow)
-        : window(newWindow), core(newWindow), vertexBuffers(makeVertexBuffers(core.allocator())),
-          colorPipeline(std::make_unique<ColorPipeline>(core.device(), core.colorFormat())) {}
+        : window(newWindow), core(newWindow), vertexBuffers(makeVertexBuffers(core.getAllocator())),
+          colorPipeline(std::make_unique<ColorPipeline>(core.getDevice(), core.getColorFormat())) {}
 
     /// Draws this frame's recorded triangles: the vertices go into this slot's buffer (the GPU finished with it,
     /// the slot's fence said so in beginFrame), then one draw.
@@ -50,11 +50,11 @@ struct DefaultRenderer::Impl {
         if (triangles.size() > kMaxColorVertices) {
             DILITHIUM_UNREACHABLE("more triangle vertices in one frame than the vertex buffer holds");
         }
-        Buffer& buffer = vertexBuffers.at(core.frameIndex());
+        Buffer& buffer = vertexBuffers.at(core.getFrameIndex());
         buffer.write(std::as_bytes(std::span(triangles)));
 
-        const VkCommandBuffer commands = core.commands();
-        const VkExtent2D extent = core.extent();
+        const VkCommandBuffer commands = core.getCommands();
+        const VkExtent2D extent = core.getExtent();
         // A negative height flips Vulkan's +Y-down clip space, so +Y is up as in LiquidMetal2D (D2's D-3). Core
         // since Vulkan 1.1; the origin moves to the bottom-left to compensate.
         const VkViewport viewport{
@@ -79,52 +79,52 @@ struct DefaultRenderer::Impl {
     /// A swapchain rebuild may in theory change the color format (it does not on MoltenVK): then the pipeline must
     /// match the new one. Checked each frame, logged when it happens.
     void matchPipelineToSwapchain() {
-        if (colorPipeline->colorFormat() == core.colorFormat()) {
+        if (colorPipeline->getColorFormat() == core.getColorFormat()) {
             return;
         }
         logInfo("swapchain color format changed from {} to {}; rebuilding the color pipeline",
-                static_cast<int>(colorPipeline->colorFormat()), static_cast<int>(core.colorFormat()));
-        colorPipeline = std::make_unique<ColorPipeline>(core.device(), core.colorFormat());
+                static_cast<int>(colorPipeline->getColorFormat()), static_cast<int>(core.getColorFormat()));
+        colorPipeline = std::make_unique<ColorPipeline>(core.getDevice(), core.getColorFormat());
     }
 
     const Window& window;
     RenderCore core;
-    std::array<Buffer, kFramesInFlight> vertexBuffers; ///< one per frame slot, indexed by `core.frameIndex()`
+    std::array<Buffer, kFramesInFlight> vertexBuffers; ///< one per frame slot, indexed by `core.getFrameIndex()`
     std::unique_ptr<ColorPipeline> colorPipeline;      ///< rebuilt only if the swapchain's color format changes
     Color clearColor;                   ///< what the current frame starts from; black until a scene says otherwise
     std::vector<ColorVertex> triangles; ///< what the scene asked to draw this frame, three vertices each
 };
 
-DefaultRenderer::DefaultRenderer(const Window& window) : m_impl(std::make_unique<Impl>(window)) {}
+DefaultRenderer::DefaultRenderer(const Window& window) : impl(std::make_unique<Impl>(window)) {}
 
 // NOLINTNEXTLINE(bugprone-exception-escape): it logs; std::format's bad_alloc at shutdown may end the program, rightly
 DefaultRenderer::~DefaultRenderer() {
     // The pipeline and the vertex buffers are destroyed before RenderCore is (reverse declaration order), and the
     // last frame submitted may still be using them: wait for the GPU first. Validation caught this one.
-    m_impl->core.waitIdle();
-    logInfo("renderer: {} swapchain builds", m_impl->core.swapchainBuilds());
+    impl->core.waitIdle();
+    logInfo("renderer: {} swapchain builds", impl->core.getSwapchainBuilds());
 }
 
 void DefaultRenderer::setClearColor(Color color) {
-    m_impl->clearColor = color;
+    impl->clearColor = color;
 }
 
 void DefaultRenderer::drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) {
-    m_impl->triangles.push_back({a, colorA});
-    m_impl->triangles.push_back({b, colorB});
-    m_impl->triangles.push_back({c, colorC});
+    impl->triangles.push_back({a, colorA});
+    impl->triangles.push_back({b, colorB});
+    impl->triangles.push_back({c, colorC});
 }
 
 FrameOutcome DefaultRenderer::drawFrame() {
     // Whatever happens, the recorded list belongs to this frame alone.
-    std::vector<ColorVertex>& triangles = m_impl->triangles;
+    std::vector<ColorVertex>& triangles = impl->triangles;
     const auto dropRecording = [&triangles] { triangles.clear(); };
 
-    switch (m_impl->core.beginFrame(m_impl->window, m_impl->clearColor)) {
+    switch (impl->core.beginFrame(impl->window, impl->clearColor)) {
     case FrameBegin::Ready:
-        m_impl->matchPipelineToSwapchain();
-        m_impl->drawTriangles();
-        m_impl->core.endFrame();
+        impl->matchPipelineToSwapchain();
+        impl->drawTriangles();
+        impl->core.endFrame();
         dropRecording();
         return FrameOutcome::Presented;
     case FrameBegin::Skipped:
@@ -137,12 +137,12 @@ FrameOutcome DefaultRenderer::drawFrame() {
     DILITHIUM_UNREACHABLE("unknown FrameBegin");
 }
 
-uint32_t DefaultRenderer::problemsReported() const {
-    return m_impl->core.validationMessages();
+uint32_t DefaultRenderer::getProblemsReported() const {
+    return impl->core.getValidationMessages();
 }
 
-uint32_t DefaultRenderer::swapchainBuilds() const {
-    return m_impl->core.swapchainBuilds();
+uint32_t DefaultRenderer::getSwapchainBuilds() const {
+    return impl->core.getSwapchainBuilds();
 }
 
 } // namespace dilithium

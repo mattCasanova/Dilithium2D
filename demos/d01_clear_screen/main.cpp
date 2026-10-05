@@ -35,13 +35,13 @@ const char* name(dilithium::AppState state) {
 /// frames advance.
 class ClearScreenScene final : public dilithium::Scene {
 public:
-    explicit ClearScreenScene(dilithium::SceneServices& services) : m_renderer(services.renderer) {}
+    explicit ClearScreenScene(dilithium::SceneServices& services) : renderer(services.renderer) {}
 
     void update(float dt) override {
-        m_hueDegrees = dilithium::math::wrap(m_hueDegrees + (dt * kDegreesPerSecond), 0.0f, kDegreesPerTurn);
+        hueDegrees = dilithium::math::wrap(hueDegrees + (dt * kDegreesPerSecond), 0.0f, kDegreesPerTurn);
     }
 
-    void draw() override { m_renderer.setClearColor(dilithium::Color::fromHSV(m_hueDegrees, kSaturation, kValue)); }
+    void draw() override { renderer.setClearColor(dilithium::Color::fromHSV(hueDegrees, kSaturation, kValue)); }
 
     /// Logged only: D1 has nothing to pause. The engine freezes its loop by itself while the player is away.
     void appStateChanged(dilithium::AppState state) override { dilithium::logInfo("app state: {}", name(state)); }
@@ -53,8 +53,8 @@ private:
     static constexpr float kSaturation = 0.6f; ///< soft, not neon
     static constexpr float kValue = 0.9f;      ///< bright, not white
 
-    dilithium::Renderer& m_renderer;
-    float m_hueDegrees = 0.0f;
+    dilithium::Renderer& renderer;
+    float hueDegrees = 0.0f;
 };
 
 } // namespace
@@ -63,7 +63,7 @@ std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& co
     auto window = std::make_unique<Window>(WindowConfig{.title = "D1 Clear Screen"});
     auto renderer = std::make_unique<DefaultRenderer>(*window);
     auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);
-    engine->scenes().add<ClearScreenScene>(SceneId::ClearScreen);
-    engine->scenes().start(SceneId::ClearScreen);
+    engine->getScenes().add<ClearScreenScene>(SceneId::ClearScreen);
+    engine->getScenes().start(SceneId::ClearScreen);
     return engine;
 }

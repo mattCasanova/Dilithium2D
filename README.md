@@ -53,19 +53,19 @@ enum class SceneId { Menu };
 
 class MenuScene final : public dilithium::Scene {
 public:
-    explicit MenuScene(dilithium::SceneServices& services) : m_renderer(services.renderer) {}
+    explicit MenuScene(dilithium::SceneServices& services) : renderer(services.renderer) {}
     void update(float dt) override {}
-    void draw() override { m_renderer.setClearColor({.r = 0.1f, .g = 0.4f, .b = 0.8f}); }
+    void draw() override { renderer.setClearColor({.r = 0.1f, .g = 0.4f, .b = 0.8f}); }
 private:
-    dilithium::Renderer& m_renderer;
+    dilithium::Renderer& renderer;
 };
 
 std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& commandLine) {
     auto window = std::make_unique<Window>(WindowConfig{.title = "My Game"});
     auto renderer = std::make_unique<DefaultRenderer>(*window);
     auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);
-    engine->scenes().add<MenuScene>(SceneId::Menu);
-    engine->scenes().start(SceneId::Menu);
+    engine->getScenes().add<MenuScene>(SceneId::Menu);
+    engine->getScenes().start(SceneId::Menu);
     return engine;
 }
 ```

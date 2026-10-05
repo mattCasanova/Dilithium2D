@@ -47,7 +47,7 @@ public:
 class FakeApplication final : public Application {
 public:
     void quit() override { ++quits; }
-    [[nodiscard]] AppState state() const override { return AppState::Active; }
+    [[nodiscard]] AppState getState() const override { return AppState::Active; }
     int quits = 0;
 };
 
@@ -65,7 +65,7 @@ enum class SceneId { A, B, C };
 template <char Name>
 class FakeScene final : public Scene {
 public:
-    explicit FakeScene(SceneServices& services) : m_services(services) { note("built"); }
+    explicit FakeScene(SceneServices& given) : services(given) { note("built"); }
     // NOLINTNEXTLINE(bugprone-exception-escape): it logs; a bad_alloc here ends the test, which is right
     ~FakeScene() override { note("destroyed"); }
 
@@ -76,36 +76,36 @@ public:
 
     void update(float /*dt*/) override {
         note("update");
-        if (m_request != nullptr) {
-            m_request(m_services.scenes);
-            m_request = nullptr;
+        if (request != nullptr) {
+            request(services.scenes);
+            request = nullptr;
         }
     }
     void draw() override {
         note("draw");
-        m_services.renderer.setClearColor(Color{.r = 1.0f});
+        services.renderer.setClearColor(Color{.r = 1.0f});
     }
     void resize() override { note("resize"); }
     void resume() override { note("resume"); }
     QuitResponse quitRequested() override {
         note("quit requested");
-        if (!m_handlesQuit) {
+        if (!handlesQuit) {
             return QuitResponse::Quit; // the base class's default answer, spelled out
         }
-        m_services.app.quit(); // a real scene would prompt first and call this later
+        services.app.quit(); // a real scene would prompt first and call this later
         return QuitResponse::Handled;
     }
-    void handleQuit() { m_handlesQuit = true; }
+    void handleQuit() { handlesQuit = true; }
 
     /// The scene's own transition requests, so a test can ask for one from inside `update` as a game would.
-    void onNextUpdate(void (*request)(SceneManager&)) { m_request = request; }
+    void onNextUpdate(void (*next)(SceneManager&)) { request = next; }
 
 private:
-    void note(const char* step) { fakeRendererOf(m_services).log.push_back(std::string{Name} + " " + step); }
+    void note(const char* step) { fakeRendererOf(services).log.push_back(std::string{Name} + " " + step); }
 
-    SceneServices& m_services;
-    void (*m_request)(SceneManager&) = nullptr;
-    bool m_handlesQuit = false;
+    SceneServices& services;
+    void (*request)(SceneManager&) = nullptr;
+    bool handlesQuit = false;
 };
 
 using SceneA = FakeScene<'A'>;
@@ -128,8 +128,8 @@ struct Fixture {
     /// One engine frame: the pending transition, then update and draw of whoever is on top.
     void frame() {
         scenes.performTransition();
-        scenes.current().update(0.016f);
-        scenes.current().draw();
+        scenes.getCurrent().update(0.016f);
+        scenes.getCurrent().draw();
     }
 
     std::vector<std::string>& log() { return renderer.log; }
@@ -145,7 +145,7 @@ TEST_CASE("start builds the first scene at once; the next frame updates and draw
     f.frame();
     CHECK(f.log() == Log{"A built", "A update", "A draw"});
     CHECK(f.renderer.clearColor == Color{.r = 1.0f});
-    CHECK(f.scenes.depth() == 1);
+    CHECK(f.scenes.getDepth() == 1);
 }
 
 TEST_CASE("set waits for the next frame, and builds the new scene before destroying the old", "[scenes]") {
@@ -154,7 +154,7 @@ TEST_CASE("set waits for the next frame, and builds the new scene before destroy
     CHECK(f.log() == Log{"A built"}); // nothing yet
     f.frame();
     CHECK(f.log() == Log{"A built", "B built", "A destroyed", "B update", "B draw"});
-    CHECK(f.scenes.depth() == 1);
+    CHECK(f.scenes.getDepth() == 1);
 }
 
 TEST_CASE("push keeps the covered scene alive but not updated; pop resumes and resizes it", "[scenes]") {
@@ -162,13 +162,13 @@ TEST_CASE("push keeps the covered scene alive but not updated; pop resumes and r
     f.scenes.push(SceneId::B);
     f.frame();
     CHECK(f.log() == Log{"A built", "B built", "B update", "B draw"});
-    CHECK(f.scenes.depth() == 2);
+    CHECK(f.scenes.getDepth() == 2);
 
     f.log().clear();
     f.scenes.pop();
     f.frame();
     CHECK(f.log() == Log{"B destroyed", "A resume", "A resize", "A update", "A draw"});
-    CHECK(f.scenes.depth() == 1);
+    CHECK(f.scenes.getDepth() == 1);
 }
 
 TEST_CASE("set from a pushed scene destroys the whole stack, top down, after building the new one", "[scenes]") {
@@ -180,7 +180,7 @@ TEST_CASE("set from a pushed scene destroys the whole stack, top down, after bui
     f.scenes.set(SceneId::C);
     f.frame();
     CHECK(f.log() == Log{"C built", "B destroyed", "A destroyed", "C update", "C draw"});
-    CHECK(f.scenes.depth() == 1);
+    CHECK(f.scenes.getDepth() == 1);
 }
 
 TEST_CASE("a second request in one frame replaces the first", "[scenes]") {
@@ -217,18 +217,18 @@ TEST_CASE("the stack is destroyed top down with the manager", "[scenes]") {
 TEST_CASE("a scene can ask for a transition from its own update", "[scenes]") {
     // The request is recorded during update and performed at the start of the next frame, never mid-update.
     Fixture f;
-    auto& a = dynamic_cast<SceneA&>(f.scenes.current());
+    auto& a = dynamic_cast<SceneA&>(f.scenes.getCurrent());
     a.onNextUpdate([](SceneManager& scenes) { scenes.push(SceneId::B); });
     f.frame();
     CHECK(f.log() == Log{"A built", "A update", "A draw"}); // A finished its frame intact
     f.frame();
     CHECK(f.log().back() == "B draw");
-    CHECK(f.scenes.depth() == 2);
+    CHECK(f.scenes.getDepth() == 2);
 }
 
 TEST_CASE("a scene answers a quit request: Quit by default, or Handled and it quits itself later", "[scenes]") {
     Fixture f;
-    auto& a = dynamic_cast<SceneA&>(f.scenes.current());
+    auto& a = dynamic_cast<SceneA&>(f.scenes.getCurrent());
     CHECK(a.quitRequested() == QuitResponse::Quit);
     CHECK(f.app.quits == 0);
 
@@ -253,7 +253,7 @@ TEST_CASE("a builder lambda registers a scene with arguments of its own", "[scen
         return std::make_unique<Numbered>(services, level);
     });
     scenes.start(Id::Level);
-    CHECK(dynamic_cast<Numbered&>(scenes.current()).number == level);
+    CHECK(dynamic_cast<Numbered&>(scenes.getCurrent()).number == level);
 }
 
 TEST_CASE("the base Scene's quitRequested quits", "[scenes]") {
@@ -275,7 +275,7 @@ TEST_CASE("programmer errors stop at the request, in release as logic_error", "[
     scenes.add<SceneA>(SceneId::A);
 
     CHECK_THROWS_AS(scenes.add<SceneB>(SceneId::A), std::logic_error); // registered twice
-    CHECK_THROWS_AS(scenes.current(), std::logic_error);               // no scene yet
+    CHECK_THROWS_AS(scenes.getCurrent(), std::logic_error);            // no scene yet
     CHECK_THROWS_AS(scenes.set(SceneId::A), std::logic_error);         // before start
     CHECK_THROWS_AS(scenes.start(SceneId::B), std::logic_error);       // never registered
     scenes.start(SceneId::A);

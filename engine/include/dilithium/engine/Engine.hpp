@@ -29,7 +29,7 @@ public:
     Engine& operator=(Engine&&) = delete;
 
     /// Register scenes here and `start` the first, before returning from `createEngine`.
-    [[nodiscard]] SceneManager& scenes();
+    [[nodiscard]] SceneManager& getScenes();
 
     /// App-level code that wants every `AppState` change, whichever scene is on top (a save service). Told before
     /// the current scene, in the order added.
@@ -43,7 +43,7 @@ private:
     friend class EngineLoop; ///< the entry point's only way in: one frame, one event
 
     struct Impl;
-    std::unique_ptr<Impl> m_impl;
+    std::unique_ptr<Impl> impl;
 };
 
 /// Defined by the game, once per executable: build a `Window`, a `Renderer` and the `Engine`, register scenes, start

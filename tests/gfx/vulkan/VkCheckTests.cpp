@@ -62,7 +62,7 @@ TEST_CASE("VK_CHECK throws VulkanError with the result in release", "[vkcheck]")
         VK_CHECK(VK_ERROR_OUT_OF_HOST_MEMORY);
         FAIL("VK_CHECK did not throw");
     } catch (const dilithium::VulkanError& error) {
-        CHECK(error.result() == VK_ERROR_OUT_OF_HOST_MEMORY);
+        CHECK(error.getResult() == VK_ERROR_OUT_OF_HOST_MEMORY);
     }
 }
 

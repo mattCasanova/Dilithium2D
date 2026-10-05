@@ -29,7 +29,7 @@ public:
     virtual void quit() = 0;
 
     /// The app's state as of the latest change the window system reported.
-    [[nodiscard]] virtual AppState state() const = 0;
+    [[nodiscard]] virtual AppState getState() const = 0;
 };
 
 } // namespace dilithium

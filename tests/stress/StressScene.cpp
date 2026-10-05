@@ -49,26 +49,26 @@ dilithium::Vec2 corner(float angle, int index) {
 
 } // namespace
 
-StressScene::StressScene(dilithium::SceneServices& services, dilithium::Window& window)
-    : m_renderer(services.renderer), m_window(window) {}
+StressScene::StressScene(dilithium::SceneServices& services, dilithium::Window& stressed)
+    : renderer(services.renderer), window(stressed) {}
 
 void StressScene::update(float dt) {
-    ++m_frame;
-    apply(m_window, stepFor(m_frame));
-    m_hueDegrees =
-        dilithium::math::wrap(m_hueDegrees + (dt * kHueDegreesPerSecond), 0.0f, dilithium::math::kDegreesPerTurn);
-    m_angle = dilithium::math::wrap(m_angle + (dt * kRadiansPerSecond), 0.0f, dilithium::math::kTwoPi);
+    ++frame;
+    apply(window, stepFor(frame));
+    hueDegrees =
+        dilithium::math::wrap(hueDegrees + (dt * kHueDegreesPerSecond), 0.0f, dilithium::math::kDegreesPerTurn);
+    angle = dilithium::math::wrap(angle + (dt * kRadiansPerSecond), 0.0f, dilithium::math::kTwoPi);
 }
 
 void StressScene::draw() {
-    m_renderer.setClearColor(dilithium::Color::fromHSV(m_hueDegrees, kSaturation, kValue));
-    m_renderer.drawTriangle(corner(m_angle, 0), corner(m_angle, 1), corner(m_angle, 2), dilithium::colors::kRed,
-                            dilithium::colors::kGreen, dilithium::colors::kBlue);
+    renderer.setClearColor(dilithium::Color::fromHSV(hueDegrees, kSaturation, kValue));
+    renderer.drawTriangle(corner(angle, 0), corner(angle, 1), corner(angle, 2), dilithium::colors::kRed,
+                          dilithium::colors::kGreen, dilithium::colors::kBlue);
 }
 
 void StressScene::appStateChanged(dilithium::AppState state) {
     if (state == dilithium::AppState::Background) {
-        m_window.restore();
+        window.restore();
     }
 }
 

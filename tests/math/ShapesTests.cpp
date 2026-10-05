@@ -16,8 +16,8 @@ TEST_CASE("shapes default to nothing: zero size at the origin", "[shapes]") {
 
 TEST_CASE("a box's corners come from its center and size", "[shapes]") {
     const AABB box{.center = {10.0f, 20.0f}, .width = 4.0f, .height = 6.0f};
-    CHECK(box.halfWidth() == 2.0f);
-    CHECK(box.halfHeight() == 3.0f);
+    CHECK(box.getHalfWidth() == 2.0f);
+    CHECK(box.getHalfHeight() == 3.0f);
     CHECK(box.min() == Vec2{8.0f, 17.0f});
     CHECK(box.max() == Vec2{12.0f, 23.0f});
 }

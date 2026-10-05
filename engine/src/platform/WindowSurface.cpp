@@ -24,7 +24,7 @@ std::span<const char* const> windowInstanceExtensions() {
 
 VkSurfaceKHR createWindowSurface(const Window& window, VkInstance instance) {
     VkSurfaceKHR surface{};
-    if (!SDL_Vulkan_CreateSurface(window.impl().handle, instance, nullptr, &surface)) {
+    if (!SDL_Vulkan_CreateSurface(window.getImpl().handle, instance, nullptr, &surface)) {
         throw std::runtime_error(std::format("SDL_Vulkan_CreateSurface failed: {}", SDL_GetError()));
     }
     return surface;

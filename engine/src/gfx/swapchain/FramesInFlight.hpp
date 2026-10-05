@@ -22,7 +22,7 @@ struct FrameSlot {
 /// builds it in place.
 class FramesInFlight {
 public:
-    FramesInFlight(VkDevice device, uint32_t queueFamily);
+    FramesInFlight(VkDevice newDevice, uint32_t queueFamily);
     ~FramesInFlight();
 
     FramesInFlight(const FramesInFlight&) = delete;
@@ -30,16 +30,16 @@ public:
     FramesInFlight(FramesInFlight&&) = delete;
     FramesInFlight& operator=(FramesInFlight&&) = delete;
 
-    [[nodiscard]] const FrameSlot& current() const { return m_slots[m_index]; }
-    [[nodiscard]] uint32_t index() const { return m_index; }
-    void advance() { m_index = (m_index + 1) % kFramesInFlight; }
+    [[nodiscard]] const FrameSlot& getCurrent() const { return slots[index]; }
+    [[nodiscard]] uint32_t getIndex() const { return index; }
+    void advance() { index = (index + 1) % kFramesInFlight; }
 
 private:
     void destroy();
 
-    VkDevice m_device;
-    std::array<FrameSlot, kFramesInFlight> m_slots{};
-    uint32_t m_index = 0;
+    VkDevice device;
+    std::array<FrameSlot, kFramesInFlight> slots{};
+    uint32_t index = 0;
 };
 
 } // namespace dilithium

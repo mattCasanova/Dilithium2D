@@ -41,7 +41,7 @@ struct Engine::Impl final : Application {
 
     /// `Application::quit`: the run ends at the start of the next frame.
     void quit() override { quitting = true; }
-    [[nodiscard]] AppState state() const override { return appState.state(); }
+    [[nodiscard]] AppState getState() const override { return appState.getState(); }
 
     /// A window fact changed, or a phone said so: deliver the new state if it is one, then freeze or thaw.
     void windowFactsChanged(WindowFacts facts);

@@ -20,7 +20,7 @@ struct PixelSize;
 
 /// What `RenderCore::beginFrame` found.
 enum class FrameBegin {
-    Ready,   ///< the frame is open: record into `commands()`, then call `endFrame()`
+    Ready,   ///< the frame is open: record into `getCommands()`, then call `endFrame()`
     Skipped, ///< the swapchain went out of date; it is rebuilt at the start of the next frame, so call again now
     Idle,    ///< the window is minimized or has no area; nothing paced the frame, so the caller should sleep
 };
@@ -39,7 +39,7 @@ public:
     RenderCore& operator=(RenderCore&&) = delete;
 
     /// Opens a frame: waits for its slot, acquires an image, and begins rendering into it, cleared to `clearColor`.
-    /// On `Ready`, record draws into `commands()` and call `endFrame()`; on anything else, do not.
+    /// On `Ready`, record draws into `getCommands()` and call `endFrame()`; on anything else, do not.
     [[nodiscard]] FrameBegin beginFrame(const Window& window, Color clearColor);
 
     /// Closes the frame `beginFrame` opened: ends rendering, submits, presents. A programmer error without one open.
@@ -51,22 +51,22 @@ public:
     void waitIdle() const;
 
     /// The open frame's command buffer and the size it draws at. Only between `beginFrame` (`Ready`) and `endFrame`.
-    [[nodiscard]] VkCommandBuffer commands() const;
-    [[nodiscard]] VkExtent2D extent() const;
+    [[nodiscard]] VkCommandBuffer getCommands() const;
+    [[nodiscard]] VkExtent2D getExtent() const;
 
     /// Which frame slot the next (or open) frame uses: 0 or 1. A renderer keeps per-slot buffers under this index,
     /// so the CPU never writes a buffer the GPU may still be reading; the slot's fence, waited on in `beginFrame`,
     /// guarantees it.
-    [[nodiscard]] uint32_t frameIndex() const { return m_frames.index(); }
-    [[nodiscard]] VmaAllocator allocator() const { return m_allocator.handle(); }
-    [[nodiscard]] VkDevice device() const { return m_device.handle(); }
+    [[nodiscard]] uint32_t getFrameIndex() const { return frames.getIndex(); }
+    [[nodiscard]] VmaAllocator getAllocator() const { return allocator.handle(); }
+    [[nodiscard]] VkDevice getDevice() const { return device.handle(); }
 
     /// The swapchain's color format: what a pipeline that draws into it must be built for. It has not changed on
     /// MoltenVK; the renderer compares it each frame rather than assuming.
-    [[nodiscard]] VkFormat colorFormat() const;
+    [[nodiscard]] VkFormat getColorFormat() const;
 
-    [[nodiscard]] uint32_t validationMessages() const { return m_instance.validationMessages(); }
-    [[nodiscard]] uint32_t swapchainBuilds() const { return m_swapchainBuilds; }
+    [[nodiscard]] uint32_t getValidationMessages() const { return instance.getValidationMessages(); }
+    [[nodiscard]] uint32_t getSwapchainBuilds() const { return swapchainBuilds; }
 
 private:
     void recreateSwapchain(PixelSize windowPixels);
@@ -75,17 +75,17 @@ private:
     void submit(const FrameSlot& frame, uint32_t imageIndex) const;
     void present(uint32_t imageIndex);
 
-    Instance m_instance;
-    Surface m_surface;
-    Device m_device;
-    Allocator m_allocator;
-    std::unique_ptr<Swapchain> m_swapchain; ///< null while the window has no area
-    FramesInFlight m_frames;
+    Instance instance;
+    Surface surface;
+    Device device;
+    Allocator allocator;
+    std::unique_ptr<Swapchain> swapchain; ///< null while the window has no area
+    FramesInFlight frames;
     /// Acquire or present said the swapchain is out of date. A size change needs no flag: drawFrame compares sizes.
-    bool m_swapchainStale = false;
-    uint32_t m_swapchainBuilds = 0;
-    bool m_frameOpen = false;       ///< between a Ready beginFrame and its endFrame
-    uint32_t m_frameImageIndex = 0; ///< the swapchain image the open frame draws into
+    bool swapchainStale = false;
+    uint32_t swapchainBuilds = 0;
+    bool frameOpen = false;       ///< between a Ready beginFrame and its endFrame
+    uint32_t frameImageIndex = 0; ///< the swapchain image the open frame draws into
 };
 
 } // namespace dilithium

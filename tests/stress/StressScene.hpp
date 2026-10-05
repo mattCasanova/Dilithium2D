@@ -16,7 +16,7 @@ namespace stress {
 /// through 600 frames of it, those paths hold.
 class StressScene final : public dilithium::Scene {
 public:
-    StressScene(dilithium::SceneServices& services, dilithium::Window& window);
+    StressScene(dilithium::SceneServices& services, dilithium::Window& stressed);
 
     void update(float dt) override;
     void draw() override;
@@ -26,11 +26,11 @@ public:
     void appStateChanged(dilithium::AppState state) override;
 
 private:
-    dilithium::Renderer& m_renderer;
-    dilithium::Window& m_window;
-    int m_frame = 0;
-    float m_hueDegrees = 0.0f;
-    float m_angle = 0.0f;
+    dilithium::Renderer& renderer;
+    dilithium::Window& window;
+    int frame = 0;
+    float hueDegrees = 0.0f;
+    float angle = 0.0f;
 };
 
 } // namespace stress

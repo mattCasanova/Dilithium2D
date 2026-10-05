@@ -24,9 +24,9 @@ std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& co
     Window& stressWindow = *window; // the engine owns it and outlives every scene
     auto renderer = std::make_unique<DefaultRenderer>(*window);
     auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);
-    engine->scenes().add(SceneId::Stress, [&stressWindow](SceneServices& services) -> std::unique_ptr<Scene> {
+    engine->getScenes().add(SceneId::Stress, [&stressWindow](SceneServices& services) -> std::unique_ptr<Scene> {
         return std::make_unique<stress::StressScene>(services, stressWindow);
     });
-    engine->scenes().start(SceneId::Stress);
+    engine->getScenes().start(SceneId::Stress);
     return engine;
 }

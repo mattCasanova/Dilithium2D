@@ -10,7 +10,7 @@ namespace dilithium {
 /// movable: `DefaultRenderer` holds it in place and rebuilds it by assignment of a new one.
 class ColorPipeline {
 public:
-    ColorPipeline(VkDevice device, VkFormat colorFormat);
+    ColorPipeline(VkDevice newDevice, VkFormat newColorFormat);
     ~ColorPipeline();
 
     ColorPipeline(const ColorPipeline&) = delete;
@@ -18,15 +18,15 @@ public:
     ColorPipeline(ColorPipeline&&) = delete;
     ColorPipeline& operator=(ColorPipeline&&) = delete;
 
-    [[nodiscard]] VkPipeline handle() const { return m_pipeline; }
-    [[nodiscard]] VkPipelineLayout layout() const { return m_layout; }
-    [[nodiscard]] VkFormat colorFormat() const { return m_colorFormat; }
+    [[nodiscard]] VkPipeline handle() const { return pipeline; }
+    [[nodiscard]] VkPipelineLayout getLayout() const { return layout; }
+    [[nodiscard]] VkFormat getColorFormat() const { return colorFormat; }
 
 private:
-    VkDevice m_device;
-    VkFormat m_colorFormat;
-    VkPipelineLayout m_layout = VK_NULL_HANDLE;
-    VkPipeline m_pipeline = VK_NULL_HANDLE;
+    VkDevice device;
+    VkFormat colorFormat;
+    VkPipelineLayout layout = VK_NULL_HANDLE;
+    VkPipeline pipeline = VK_NULL_HANDLE;
 };
 
 } // namespace dilithium

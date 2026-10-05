@@ -14,12 +14,12 @@ namespace dilithium {
 /// Thrown by `VK_CHECK` in release builds (debug builds abort at the failing line instead).
 class VulkanError : public std::runtime_error {
 public:
-    VulkanError(const std::string& message, VkResult result) : std::runtime_error(message), m_result(result) {}
+    VulkanError(const std::string& message, VkResult newResult) : std::runtime_error(message), result(newResult) {}
 
-    [[nodiscard]] VkResult result() const { return m_result; }
+    [[nodiscard]] VkResult getResult() const { return result; }
 
 private:
-    VkResult m_result;
+    VkResult result;
 };
 
 /// "VK_ERROR_DEVICE_LOST (-4)". A value newer than this engine's list still prints, as "VkResult (1000299000)".

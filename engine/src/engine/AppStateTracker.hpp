@@ -27,19 +27,19 @@ struct WindowFacts {
 /// window is usually not yet focused when the engine is built, and the focus event follows a moment later.
 class AppStateTracker {
 public:
-    [[nodiscard]] AppState state() const { return m_state; }
+    [[nodiscard]] AppState getState() const { return state; }
 
     /// A window fact changed. Returns the new state if it differs from the current one.
     [[nodiscard]] std::optional<AppState> update(WindowFacts facts);
 
     /// A phone said so directly. Returns the new state if it differs from the current one.
-    [[nodiscard]] std::optional<AppState> set(AppState state);
+    [[nodiscard]] std::optional<AppState> set(AppState next);
 
     /// Whether the loop should stand still: always in the background, and while inactive when `pausesWhenInactive`.
-    [[nodiscard]] bool frozen(bool pausesWhenInactive) const;
+    [[nodiscard]] bool isFrozen(bool pausesWhenInactive) const;
 
 private:
-    AppState m_state = AppState::Active;
+    AppState state = AppState::Active;
 };
 
 } // namespace dilithium

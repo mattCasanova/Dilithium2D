@@ -4,11 +4,11 @@
 
 namespace dilithium {
 
-Surface::Surface(VkInstance instance, const Window& window)
-    : m_instance(instance), m_surface(createWindowSurface(window, instance)) {}
+Surface::Surface(VkInstance newInstance, const Window& window)
+    : instance(newInstance), surface(createWindowSurface(window, newInstance)) {}
 
 Surface::~Surface() {
-    destroyWindowSurface(m_instance, m_surface);
+    destroyWindowSurface(instance, surface);
 }
 
 } // namespace dilithium

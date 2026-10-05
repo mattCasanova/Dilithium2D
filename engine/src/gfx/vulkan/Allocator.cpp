@@ -11,11 +11,11 @@ Allocator::Allocator(VkInstance instance, VkPhysicalDevice physical, VkDevice de
         .instance = instance,
         .vulkanApiVersion = VK_API_VERSION_1_3,
     };
-    VK_CHECK(vmaCreateAllocator(&info, &m_allocator));
+    VK_CHECK(vmaCreateAllocator(&info, &allocator));
 }
 
 Allocator::~Allocator() {
-    vmaDestroyAllocator(m_allocator);
+    vmaDestroyAllocator(allocator);
 }
 
 } // namespace dilithium

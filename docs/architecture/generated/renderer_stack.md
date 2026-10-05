@@ -25,7 +25,7 @@ classDiagram
         +operator=(Renderer &&) Renderer &
         +drawFrame() FrameOutcome*
         +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
-        +problemsReported() [const] uint32_t
+        +getProblemsReported() [const] uint32_t
         +setClearColor(Color color) void*
     }
     class C_0014652720749054439479["DefaultRenderer"]
@@ -38,10 +38,10 @@ classDiagram
         +operator=(DefaultRenderer &&) DefaultRenderer &
         +drawFrame() FrameOutcome
         +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void
-        +problemsReported() [const] uint32_t
+        +getProblemsReported() [const] uint32_t
+        +getSwapchainBuilds() [const] uint32_t
         +setClearColor(Color color) void
-        +swapchainBuilds() [const] uint32_t
-        -m_impl : std::unique_ptr&lt;Impl&gt;
+        -impl : std::unique_ptr&lt;Impl&gt;
     }
     class C_0003444073062530109576["Color"]
     class C_0003444073062530109576 {
@@ -67,26 +67,26 @@ classDiagram
     }
     class C_0015272475129929318899["Swapchain"]
     class C_0015272475129929318899 {
-        +Swapchain(VkPhysicalDevice physical, VkDevice device, VkSurfaceKHR surface, const VkSurfaceCapabilitiesKHR & capabilities, VkExtent2D extent, VkSwapchainKHR oldSwapchain) void
+        +Swapchain(VkPhysicalDevice physical, VkDevice newDevice, VkSurfaceKHR surface, const VkSurfaceCapabilitiesKHR & capabilities, VkExtent2D newExtent, VkSwapchainKHR oldSwapchain) void
         +Swapchain(const Swapchain &) void
         +Swapchain(Swapchain &&) void
         +~Swapchain() void
         +operator=(const Swapchain &) Swapchain &
         +operator=(Swapchain &&) Swapchain &
         -destroy() void
-        +extent() [const] VkExtent2D
-        +format() [const] VkFormat
+        +getExtent() [const] VkExtent2D
+        +getFormat() [const] VkFormat
+        +getRenderFinished(uint32_t index) [const] VkSemaphore
         +handle() [const] VkSwapchainKHR
         +image(uint32_t index) [const] VkImage
-        +renderFinished(uint32_t index) [const] VkSemaphore
         +view(uint32_t index) [const] VkImageView
-        -m_device : VkDevice
-        -m_extent : VkExtent2D
-        -m_format : VkFormat
-        -m_images : std::vector&lt;VkImage&gt;
-        -m_renderFinished : std::vector&lt;VkSemaphore&gt;
-        -m_swapchain : VkSwapchainKHR
-        -m_views : std::vector&lt;VkImageView&gt;
+        -device : VkDevice
+        -extent : VkExtent2D
+        -format : VkFormat
+        -images : std::vector&lt;VkImage&gt;
+        -renderFinished : std::vector&lt;VkSemaphore&gt;
+        -swapchain : VkSwapchainKHR
+        -views : std::vector&lt;VkImageView&gt;
     }
     class C_0016878377217761267911["FrameSlot"]
     class C_0016878377217761267911 {
@@ -97,19 +97,19 @@ classDiagram
     }
     class C_0003143616909599567436["FramesInFlight"]
     class C_0003143616909599567436 {
-        +FramesInFlight(VkDevice device, uint32_t queueFamily) void
+        +FramesInFlight(VkDevice newDevice, uint32_t queueFamily) void
         +FramesInFlight(const FramesInFlight &) void
         +FramesInFlight(FramesInFlight &&) void
         +~FramesInFlight() void
         +operator=(const FramesInFlight &) FramesInFlight &
         +operator=(FramesInFlight &&) FramesInFlight &
         +advance() void
-        +current() [const] const FrameSlot &
         -destroy() void
-        +index() [const] uint32_t
-        -m_device : VkDevice
-        -m_index : uint32_t
-        -m_slots : std::array&lt;FrameSlot,kFramesInFlight&gt;
+        +getCurrent() [const] const FrameSlot &
+        +getIndex() [const] uint32_t
+        -device : VkDevice
+        -index : uint32_t
+        -slots : std::array&lt;FrameSlot,kFramesInFlight&gt;
     }
     class C_0006970481197969800549["Window"]
     class C_0006970481197969800549 {
@@ -122,14 +122,14 @@ classDiagram
         +~Device() void
         +operator=(const Device &) Device &
         +operator=(Device &&) Device &
+        +getPhysical() [const] VkPhysicalDevice
+        +getQueue() [const] VkQueue
+        +getQueueFamily() [const] uint32_t
         +handle() [const] VkDevice
-        +physical() [const] VkPhysicalDevice
-        +queue() [const] VkQueue
-        +queueFamily() [const] uint32_t
-        -m_device : VkDevice
-        -m_physical : VkPhysicalDevice
-        -m_queue : VkQueue
-        -m_queueFamily : uint32_t
+        -device : VkDevice
+        -physical : VkPhysicalDevice
+        -queue : VkQueue
+        -queueFamily : uint32_t
     }
     class C_0015493281469269219470["Candidate"]
     class C_0015493281469269219470 {
@@ -146,19 +146,19 @@ classDiagram
         +operator=(const Allocator &) Allocator &
         +operator=(Allocator &&) Allocator &
         +handle() [const] VmaAllocator
-        -m_allocator : VmaAllocator
+        -allocator : VmaAllocator
     }
     class C_0007048077546363564696["Surface"]
     class C_0007048077546363564696 {
-        +Surface(VkInstance instance, const Window & window) void
+        +Surface(VkInstance newInstance, const Window & window) void
         +Surface(const Surface &) void
         +Surface(Surface &&) void
         +~Surface() void
         +operator=(const Surface &) Surface &
         +operator=(Surface &&) Surface &
         +handle() [const] VkSurfaceKHR
-        -m_instance : VkInstance
-        -m_surface : VkSurfaceKHR
+        -instance : VkInstance
+        -surface : VkSurfaceKHR
     }
     class C_0018315471079781186750["ValidationLog"]
     class C_0018315471079781186750 {
@@ -173,12 +173,12 @@ classDiagram
         +~Instance() void
         +operator=(const Instance &) Instance &
         +operator=(Instance &&) Instance &
+        +getValidationMessages() [const] uint32_t
         +handle() [const] VkInstance
-        +validationMessages() [const] uint32_t
-        -m_destroyMessenger : PFN_vkDestroyDebugUtilsMessengerEXT
-        -m_instance : VkInstance
-        -m_messenger : VkDebugUtilsMessengerEXT
-        -m_validationLog : std::unique_ptr&lt;ValidationLog&gt;
+        -destroyMessenger : PFN_vkDestroyDebugUtilsMessengerEXT
+        -instance : VkInstance
+        -messenger : VkDebugUtilsMessengerEXT
+        -validationLog : std::unique_ptr&lt;ValidationLog&gt;
     }
     class C_0009201676013889486697["QueueFamilyFacts"]
     class C_0009201676013889486697 {
@@ -220,9 +220,9 @@ classDiagram
     }
     class C_0007341703959787438624["VulkanError"]
     class C_0007341703959787438624 {
-        +VulkanError(const std::string & message, VkResult result) void
-        +result() [const] VkResult
-        -m_result : VkResult
+        +VulkanError(const std::string & message, VkResult newResult) void
+        +getResult() [const] VkResult
+        -result : VkResult
     }
     class C_0008621709385678303156["StageAccess"]
     class C_0008621709385678303156 {
@@ -247,32 +247,32 @@ classDiagram
         +~RenderCore() void
         +operator=(const RenderCore &) RenderCore &
         +operator=(RenderCore &&) RenderCore &
-        +allocator() [const] VmaAllocator
         -beginCommands(const FrameSlot & frame, uint32_t imageIndex, Color clearColor) [const] void
         +beginFrame(const Window & window, Color clearColor) FrameBegin
-        +colorFormat() [const] VkFormat
-        +commands() [const] VkCommandBuffer
-        +device() [const] VkDevice
         -endCommands(const FrameSlot & frame, uint32_t imageIndex) [const] void
         +endFrame() void
-        +extent() [const] VkExtent2D
-        +frameIndex() [const] uint32_t
+        +getAllocator() [const] VmaAllocator
+        +getColorFormat() [const] VkFormat
+        +getCommands() [const] VkCommandBuffer
+        +getDevice() [const] VkDevice
+        +getExtent() [const] VkExtent2D
+        +getFrameIndex() [const] uint32_t
+        +getSwapchainBuilds() [const] uint32_t
+        +getValidationMessages() [const] uint32_t
         -present(uint32_t imageIndex) void
         -recreateSwapchain(PixelSize windowPixels) void
         -submit(const FrameSlot & frame, uint32_t imageIndex) [const] void
-        +swapchainBuilds() [const] uint32_t
-        +validationMessages() [const] uint32_t
         +waitIdle() [const] void
-        -m_allocator : Allocator
-        -m_device : Device
-        -m_frameImageIndex : uint32_t
-        -m_frameOpen : bool
-        -m_frames : FramesInFlight
-        -m_instance : Instance
-        -m_surface : Surface
-        -m_swapchain : std::unique_ptr&lt;Swapchain&gt;
-        -m_swapchainBuilds : uint32_t
-        -m_swapchainStale : bool
+        -allocator : Allocator
+        -device : Device
+        -frameImageIndex : uint32_t
+        -frameOpen : bool
+        -frames : FramesInFlight
+        -instance : Instance
+        -surface : Surface
+        -swapchain : std::unique_ptr&lt;Swapchain&gt;
+        -swapchainBuilds : uint32_t
+        -swapchainStale : bool
     }
     class C_0014853951067043476245["DefaultRenderer::Impl"]
     class C_0014853951067043476245 {
@@ -296,40 +296,40 @@ classDiagram
         +Buffer() [default] void
         +Buffer(const Buffer &) void
         +Buffer(Buffer && other) void
-        -Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, VkDeviceSize size, void * mapped) void
+        -Buffer(VmaAllocator newAllocator, VkBuffer newBuffer, VmaAllocation newAllocation, VkDeviceSize newSize, void * newMapped) void
         +~Buffer() void
         +operator=(const Buffer &) Buffer &
         +operator=(Buffer && other) Buffer &
         -destroy() void
+        +getSize() [const] VkDeviceSize
         +handle() [const] VkBuffer
         +hostVisible(VmaAllocator allocator, VkDeviceSize size, VkBufferUsageFlags usage) Buffer$
-        +size() [const] VkDeviceSize
         +write(std::span&lt;const std::byte&gt; bytes) void
-        -m_allocation : VmaAllocation
-        -m_allocator : VmaAllocator
-        -m_buffer : VkBuffer
-        -m_mapped : void *
-        -m_size : VkDeviceSize
+        -allocation : VmaAllocation
+        -allocator : VmaAllocator
+        -buffer : VkBuffer
+        -mapped : void *
+        -size : VkDeviceSize
     }
     class C_0007589477182283922701["ColorPipeline"]
     class C_0007589477182283922701 {
-        +ColorPipeline(VkDevice device, VkFormat colorFormat) void
+        +ColorPipeline(VkDevice newDevice, VkFormat newColorFormat) void
         +ColorPipeline(const ColorPipeline &) void
         +ColorPipeline(ColorPipeline &&) void
         +~ColorPipeline() void
         +operator=(const ColorPipeline &) ColorPipeline &
         +operator=(ColorPipeline &&) ColorPipeline &
-        +colorFormat() [const] VkFormat
+        +getColorFormat() [const] VkFormat
+        +getLayout() [const] VkPipelineLayout
         +handle() [const] VkPipeline
-        +layout() [const] VkPipelineLayout
-        -m_colorFormat : VkFormat
-        -m_device : VkDevice
-        -m_layout : VkPipelineLayout
-        -m_pipeline : VkPipeline
+        -colorFormat : VkFormat
+        -device : VkDevice
+        -layout : VkPipelineLayout
+        -pipeline : VkPipeline
     }
     class C_0011564019457344354336["ShaderModule"]
     class C_0011564019457344354336 {
-        +ShaderModule(VkDevice device, std::span&lt;const uint32_t&gt; spirv) void
+        +ShaderModule(VkDevice newDevice, std::span&lt;const uint32_t&gt; spirv) void
         +ShaderModule(const ShaderModule &) void
         +ShaderModule(ShaderModule && other) void
         +~ShaderModule() void
@@ -337,8 +337,8 @@ classDiagram
         +operator=(ShaderModule && other) ShaderModule &
         -destroy() void
         +handle() [const] VkShaderModule
-        -m_device : VkDevice
-        -m_module : VkShaderModule
+        -device : VkDevice
+        -module : VkShaderModule
     }
     C_0002210481607728283061 ..> C_0003444073062530109576 : 
     C_0002210481607728283061 ..> C_0014381799943743737761 : 
@@ -346,19 +346,19 @@ classDiagram
     C_0014652720749054439479 ..> C_0003444073062530109576 : 
     C_0014652720749054439479 ..> C_0014381799943743737761 : 
     C_0002210481607728283061 <|-- C_0014652720749054439479 : 
-    C_0003143616909599567436 o-- C_0016878377217761267911 : -m_slots
+    C_0003143616909599567436 o-- C_0016878377217761267911 : -slots
     C_0015493281469269219470 o-- C_0003254716505130528958 : +facts
-    C_0011991404688252634186 o-- C_0018315471079781186750 : -m_validationLog
+    C_0011991404688252634186 o-- C_0018315471079781186750 : -validationLog
     C_0003254716505130528958 o-- C_0009201676013889486697 : +queueFamilies
     C_0006496936420723946626 ..> C_0003444073062530109576 : 
     C_0006496936420723946626 ..> C_0001255871619784322814 : 
     C_0006496936420723946626 ..> C_0016878377217761267911 : 
-    C_0006496936420723946626 o-- C_0011991404688252634186 : -m_instance
-    C_0006496936420723946626 o-- C_0007048077546363564696 : -m_surface
-    C_0006496936420723946626 o-- C_0009549682339495671617 : -m_device
-    C_0006496936420723946626 o-- C_0011954012887602940861 : -m_allocator
-    C_0006496936420723946626 o-- C_0015272475129929318899 : -m_swapchain
-    C_0006496936420723946626 o-- C_0003143616909599567436 : -m_frames
+    C_0006496936420723946626 o-- C_0011991404688252634186 : -instance
+    C_0006496936420723946626 o-- C_0007048077546363564696 : -surface
+    C_0006496936420723946626 o-- C_0009549682339495671617 : -device
+    C_0006496936420723946626 o-- C_0011954012887602940861 : -allocator
+    C_0006496936420723946626 o-- C_0015272475129929318899 : -swapchain
+    C_0006496936420723946626 o-- C_0003143616909599567436 : -frames
     C_0014652720749054439479 ()-- C_0014853951067043476245 : 
     C_0014853951067043476245 --> C_0006970481197969800549 : +window
     C_0014853951067043476245 o-- C_0006496936420723946626 : +core

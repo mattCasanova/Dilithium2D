@@ -45,8 +45,7 @@ public:
     /// Registers `SceneType`, built with `SceneType(SceneServices&)` whenever `id` is started, set or pushed.
     template <std::derived_from<Scene> SceneType, SceneId Id>
     void add(Id id) {
-        add(key(id),
-            [](SceneServices& services) -> std::unique_ptr<Scene> { return std::make_unique<SceneType>(services); });
+        add(key(id), [](SceneServices& given) -> std::unique_ptr<Scene> { return std::make_unique<SceneType>(given); });
     }
 
     /// Registers `builder` to build the scene whenever `id` is started, set or pushed: for a scene with constructor
@@ -85,10 +84,10 @@ public:
     bool performTransition();
 
     /// The scene on top. A programmer error if `start` was never called.
-    [[nodiscard]] Scene& current();
+    [[nodiscard]] Scene& getCurrent();
 
     /// How many scenes are alive: the current one plus those under it.
-    [[nodiscard]] int depth() const { return static_cast<int>(m_stack.size()); }
+    [[nodiscard]] int getDepth() const { return static_cast<int>(stack.size()); }
 
 private:
     using SceneKey = std::int64_t; ///< a game enum's value, whatever its underlying type
@@ -106,11 +105,11 @@ private:
     void request(Request request, SceneKey key);
     [[nodiscard]] std::unique_ptr<Scene> build(SceneKey key);
 
-    std::unordered_map<SceneKey, Builder> m_builders;
-    std::vector<std::unique_ptr<Scene>> m_stack; ///< the current scene is last
-    SceneServices m_services;
-    Request m_pending = Request::None;
-    SceneKey m_pendingKey = 0;
+    std::unordered_map<SceneKey, Builder> builders;
+    std::vector<std::unique_ptr<Scene>> stack; ///< the current scene is last
+    SceneServices services;
+    Request pending = Request::None;
+    SceneKey pendingKey = 0;
 };
 
 } // namespace dilithium

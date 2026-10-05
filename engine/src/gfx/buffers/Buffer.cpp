@@ -34,51 +34,51 @@ Buffer Buffer::hostVisible(VmaAllocator allocator, VkDeviceSize size, VkBufferUs
     return Buffer{allocator, buffer, allocation, size, result.pMappedData};
 }
 
-Buffer::Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, VkDeviceSize size, void* mapped)
-    : m_allocator(allocator), m_buffer(buffer), m_allocation(allocation), m_size(size), m_mapped(mapped) {}
+Buffer::Buffer(VmaAllocator newAllocator, VkBuffer newBuffer, VmaAllocation newAllocation, VkDeviceSize newSize,
+               void* newMapped)
+    : allocator(newAllocator), buffer(newBuffer), allocation(newAllocation), size(newSize), mapped(newMapped) {}
 
 Buffer::~Buffer() {
     destroy();
 }
 
 Buffer::Buffer(Buffer&& other) noexcept
-    : m_allocator(std::exchange(other.m_allocator, VK_NULL_HANDLE)),
-      m_buffer(std::exchange(other.m_buffer, VK_NULL_HANDLE)),
-      m_allocation(std::exchange(other.m_allocation, VK_NULL_HANDLE)), m_size(std::exchange(other.m_size, 0)),
-      m_mapped(std::exchange(other.m_mapped, nullptr)) {}
+    : allocator(std::exchange(other.allocator, VK_NULL_HANDLE)), buffer(std::exchange(other.buffer, VK_NULL_HANDLE)),
+      allocation(std::exchange(other.allocation, VK_NULL_HANDLE)), size(std::exchange(other.size, 0)),
+      mapped(std::exchange(other.mapped, nullptr)) {}
 
 Buffer& Buffer::operator=(Buffer&& other) noexcept {
     if (this != &other) {
         destroy();
-        m_allocator = std::exchange(other.m_allocator, VK_NULL_HANDLE);
-        m_buffer = std::exchange(other.m_buffer, VK_NULL_HANDLE);
-        m_allocation = std::exchange(other.m_allocation, VK_NULL_HANDLE);
-        m_size = std::exchange(other.m_size, 0);
-        m_mapped = std::exchange(other.m_mapped, nullptr);
+        allocator = std::exchange(other.allocator, VK_NULL_HANDLE);
+        buffer = std::exchange(other.buffer, VK_NULL_HANDLE);
+        allocation = std::exchange(other.allocation, VK_NULL_HANDLE);
+        size = std::exchange(other.size, 0);
+        mapped = std::exchange(other.mapped, nullptr);
     }
     return *this;
 }
 
 void Buffer::write(std::span<const std::byte> bytes) {
-    if (bytes.size() > m_size) {
+    if (bytes.size() > size) {
         DILITHIUM_UNREACHABLE("writing more bytes than the buffer holds");
     }
-    if (m_mapped == nullptr) {
+    if (mapped == nullptr) {
         DILITHIUM_UNREACHABLE("writing to a buffer that is not mapped");
     }
-    std::memcpy(m_mapped, bytes.data(), bytes.size());
+    std::memcpy(mapped, bytes.data(), bytes.size());
     // Host-visible memory need not be coherent; a flush makes the write visible to the GPU. VMA makes it a no-op
     // where the memory is coherent, as it is on MoltenVK.
-    VK_CHECK(vmaFlushAllocation(m_allocator, m_allocation, 0, bytes.size()));
+    VK_CHECK(vmaFlushAllocation(allocator, allocation, 0, bytes.size()));
 }
 
 void Buffer::destroy() {
-    if (m_buffer != VK_NULL_HANDLE) {
+    if (buffer != VK_NULL_HANDLE) {
         // Unmaps too: the MAPPED flag's mapping belongs to the allocation.
-        vmaDestroyBuffer(m_allocator, m_buffer, m_allocation);
-        m_buffer = VK_NULL_HANDLE;
-        m_allocation = VK_NULL_HANDLE;
-        m_mapped = nullptr;
+        vmaDestroyBuffer(allocator, buffer, allocation);
+        buffer = VK_NULL_HANDLE;
+        allocation = VK_NULL_HANDLE;
+        mapped = nullptr;
     }
 }
 
