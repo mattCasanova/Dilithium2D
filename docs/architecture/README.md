@@ -36,7 +36,7 @@ flowchart TB
         Swapchain["gfx/swapchain/: Swapchain, FramesInFlight"]
         Shaders["gfx/shaders/: ShaderModule, ColorPipeline"]
         Buffers["gfx/buffers/: Buffer (VMA)"]
-        WindowImpl["platform/: WindowImpl (SDL_Window)"]
+        WindowImpl["platform/: WindowImpl (SDL_Window), WindowSurface (where the window meets Vulkan)"]
     end
 
     createEngine --> Window & DefaultRenderer & Engine
@@ -52,7 +52,7 @@ flowchart TB
     DefaultRenderer --> RenderCore
     DefaultRenderer --> Shaders & Buffers
     RenderCore --> Vulkan & Swapchain
-    RenderCore --> WindowImpl
+    Vulkan -- "extensions, surface" --> WindowImpl
     Window --> WindowImpl
 ```
 
@@ -60,6 +60,8 @@ Rules the layering rests on (`CLAUDE.md` has the full list):
 
 - A game includes only `engine/include`. Nothing there names SDL, Vulkan or VMA; glm is the one public dependency,
   for the math types. `tests/headers/` compiles each public header alone to prove it.
+- SDL stays in `platform/` and `main/`, Vulkan and VMA in `gfx/`. Graphics asks the window for its instance
+  extensions and its surface (`platform/WindowSurface`); `tools/check-layers.sh` greps for both on every `ctest`.
 - The engine never shows UI and never quits on its own: it asks the scene (`quitRequested`), tells it
   (`appStateChanged`), and the game decides.
 - Members are declared in creation order, so teardown is the reverse with no code for it: scenes, then the

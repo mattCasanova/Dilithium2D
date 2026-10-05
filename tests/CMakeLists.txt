@@ -22,3 +22,6 @@ catch_discover_tests(dilithium_tests)
 add_subdirectory(headers)
 # The stress run: a program that drives the window through resizes and minimizes while drawing.
 add_subdirectory(stress)
+
+# Layering the compiler cannot check: SDL headers in platform/ and main/ only, Vulkan and VMA headers in gfx/ only.
+add_test(NAME layers.third_party_includes COMMAND ${PROJECT_SOURCE_DIR}/tools/check-layers.sh)

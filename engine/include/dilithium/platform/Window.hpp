@@ -45,8 +45,8 @@ public:
     void minimize();
     void restore();
 
-    /// The window system's handle, for the engine's own renderer. Defined in a private header, so a game sees only
-    /// an incomplete type here.
+    /// The window system's handle, for the engine's own platform code (the Vulkan surface seam). Defined in a
+    /// private header, so a game sees only an incomplete type here.
     struct Impl;
     [[nodiscard]] const Impl& impl() const { return *m_impl; }
 

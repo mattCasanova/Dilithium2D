@@ -19,8 +19,8 @@ struct ValidationLog {
 /// RenderCore builds it in place.
 class Instance {
 public:
-    /// Throws `std::runtime_error` when the loader is older than 1.3, an extension SDL needs is missing, or (with
-    /// validation on) the validation layer is not installed.
+    /// Throws `std::runtime_error` when the loader is older than 1.3, an extension the window needs is missing, or
+    /// (with validation on) the validation layer is not installed.
     Instance();
     ~Instance();
 

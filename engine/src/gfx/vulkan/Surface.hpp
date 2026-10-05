@@ -2,16 +2,16 @@
 
 #include <vulkan/vulkan.h>
 
-struct SDL_Window;
-
 namespace dilithium {
 
-/// The window's Vulkan surface, made by SDL. Destroyed before the instance. Not copyable or movable: RenderCore builds
-/// it in place.
+class Window;
+
+/// The window's Vulkan surface, made by the window through `platform/WindowSurface`. Destroyed before the instance.
+/// Not copyable or movable: RenderCore builds it in place.
 class Surface {
 public:
-    /// Throws `std::runtime_error` with SDL's message if SDL cannot make the surface.
-    Surface(VkInstance instance, SDL_Window* window);
+    /// Throws `std::runtime_error` with the window system's message if it cannot make the surface.
+    Surface(VkInstance instance, const Window& window);
     ~Surface();
 
     Surface(const Surface&) = delete;

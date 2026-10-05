@@ -28,11 +28,11 @@ struct InstanceExtensionPlan {
     std::vector<std::string> missing;    ///< required but not offered: instance creation must fail
 };
 
-/// SDL's surface extensions (required); `VK_KHR_portability_enumeration` whenever the loader offers it (MoltenVK
+/// The window's surface extensions (required); `VK_KHR_portability_enumeration` whenever the loader offers it (MoltenVK
 /// shows no GPU without it). With validation on: `VK_EXT_debug_utils` (required) and `VK_EXT_layer_settings` when
 /// offered, both looked for in what the loader offers and in what the validation layer itself offers. No name appears
 /// twice.
-InstanceExtensionPlan planInstanceExtensions(std::span<const char* const> sdlRequired,
+InstanceExtensionPlan planInstanceExtensions(std::span<const char* const> windowRequired,
                                              std::span<const VkExtensionProperties> offered,
                                              std::span<const VkExtensionProperties> layerOffered, bool validation);
 

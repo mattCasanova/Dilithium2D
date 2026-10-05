@@ -111,6 +111,9 @@ classDiagram
         -m_index : uint32_t
         -m_slots : std::array&lt;FrameSlot,kFramesInFlight&gt;
     }
+    class C_0006970481197969800549["Window"]
+    class C_0006970481197969800549 {
+    }
     class C_0009549682339495671617["Device"]
     class C_0009549682339495671617 {
         +Device(VkInstance instance, VkSurfaceKHR surface) void
@@ -147,7 +150,7 @@ classDiagram
     }
     class C_0007048077546363564696["Surface"]
     class C_0007048077546363564696 {
-        +Surface(VkInstance instance, SDL_Window * window) void
+        +Surface(VkInstance instance, const Window & window) void
         +Surface(const Surface &) void
         +Surface(Surface &&) void
         +~Surface() void
@@ -225,9 +228,6 @@ classDiagram
     class C_0008621709385678303156 {
         +access : VkAccessFlags2
         +stage : VkPipelineStageFlags2
-    }
-    class C_0006970481197969800549["Window"]
-    class C_0006970481197969800549 {
     }
     class C_0013342733560284370218["PixelSize"]
     class C_0013342733560284370218 {

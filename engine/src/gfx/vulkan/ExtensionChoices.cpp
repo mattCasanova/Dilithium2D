@@ -29,11 +29,11 @@ bool hasLayer(std::span<const VkLayerProperties> offered, std::string_view name)
         offered, [name](const VkLayerProperties& layer) { return std::string_view(layer.layerName) == name; });
 }
 
-InstanceExtensionPlan planInstanceExtensions(std::span<const char* const> sdlRequired,
+InstanceExtensionPlan planInstanceExtensions(std::span<const char* const> windowRequired,
                                              std::span<const VkExtensionProperties> offered,
                                              std::span<const VkExtensionProperties> layerOffered, bool validation) {
     InstanceExtensionPlan plan;
-    for (const char* name : sdlRequired) {
+    for (const char* name : windowRequired) {
         if (!hasExtension(offered, name)) {
             plan.missing.emplace_back(name);
         }

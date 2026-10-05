@@ -3,10 +3,9 @@
 #include "gfx/vulkan/DeviceChoices.hpp"
 #include "gfx/vulkan/ExtensionChoices.hpp"
 #include "gfx/vulkan/VkCheck.hpp"
+#include "platform/WindowSurface.hpp"
 
 #include <dilithium/core/Log.hpp>
-
-#include <SDL3/SDL_vulkan.h>
 
 #include <array>
 #include <cstdint>
@@ -157,17 +156,12 @@ Instance::Instance() {
         m_validationLog = std::make_unique<ValidationLog>();
     }
 
-    Uint32 sdlCount = 0;
-    const char* const* sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlCount);
-    if (sdlExtensions == nullptr) {
-        throw std::runtime_error(std::format("SDL_Vulkan_GetInstanceExtensions failed: {}", SDL_GetError()));
-    }
+    const std::span<const char* const> windowExtensions = windowInstanceExtensions();
     const auto offered = vkEnumerate<VkExtensionProperties>(
         "vkEnumerateInstanceExtensionProperties", [](uint32_t* count, VkExtensionProperties* items) {
             return vkEnumerateInstanceExtensionProperties(nullptr, count, items);
         });
-    const InstanceExtensionPlan plan =
-        planInstanceExtensions(std::span(sdlExtensions, sdlCount), offered, layerOffered, validation);
+    const InstanceExtensionPlan plan = planInstanceExtensions(windowExtensions, offered, layerOffered, validation);
     if (!plan.missing.empty()) {
         throw std::runtime_error(std::format("Vulkan instance extensions missing: {}", joined(plan.missing)));
     }
