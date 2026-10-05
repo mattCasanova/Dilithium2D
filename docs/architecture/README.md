@@ -24,13 +24,13 @@ flowchart TB
         SceneAPI["scenes/: Scene, SceneManager, SceneServices"]
         Renderer["gfx/: Renderer (interface), Color"]
         DefaultRenderer["gfx/renderers/: DefaultRenderer (pimpl)"]
-        Window["platform/: Window (pimpl)"]
+        Window["platform/: Window (pimpl), AppState"]
         Math["math/: Types (glm), Math, Shapes, Intersect, Easing"]
         Utilities["utilities/: Log, Assert, Version, CommandLine"]
     end
 
     subgraph private["engine/src: private"]
-        EngineImpl["engine/: Engine::Impl, AppStateTracker, FrameClock"]
+        EngineImpl["engine/: Engine::Impl, FrameClock"]
         RenderCore["gfx/renderers/: RenderCore (the frame: acquire, record, submit, present)"]
         Vulkan["gfx/vulkan/: Instance, Device, Surface, Allocator, VkCheck"]
         Swapchain["gfx/swapchain/: Swapchain, FramesInFlight"]

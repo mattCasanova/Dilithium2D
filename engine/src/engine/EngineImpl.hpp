@@ -1,13 +1,14 @@
 #pragma once
 
-#include "engine/AppStateTracker.hpp"
 #include "engine/FrameClock.hpp"
 
 #include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/Engine.hpp>
 #include <dilithium/gfx/Renderer.hpp>
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -26,6 +27,19 @@ enum class FrameResult {
     Failed,   ///< a `--frames` run ended with validation messages: exit 1
 };
 
+/// Whether the loop stands still in `state`: always in the background, and while inactive when `pausesWhenInactive`.
+inline bool freezesLoop(AppState state, bool pausesWhenInactive) {
+    switch (state) {
+    case AppState::Active:
+        return false;
+    case AppState::Inactive:
+        return pausesWhenInactive;
+    case AppState::Background:
+        return true;
+    }
+    DILITHIUM_UNREACHABLE("unknown AppState");
+}
+
 /// How a run's frames went, for the summary a `--frames` run ends with.
 struct FrameCounts {
     uint64_t presented = 0;
@@ -41,11 +55,13 @@ struct Engine::Impl final : Application {
 
     /// `Application::quit`: the run ends at the start of the next frame.
     void quit() override { quitting = true; }
-    [[nodiscard]] AppState getState() const override { return appState.getState(); }
+    [[nodiscard]] AppState getState() const override { return lastState; }
 
-    /// A window fact changed, or a phone said so: deliver the new state if it is one, then freeze or thaw.
-    void windowFactsChanged(WindowFacts facts);
-    void appStateSet(AppState state);
+    /// Something about the window changed (focus, minimized, hidden): ask it which state that is.
+    void windowStateChanged();
+    /// A state was reported, by the window or by a phone's lifecycle: delivered to the game only when it differs
+    /// from the last one delivered, then freeze or thaw.
+    void appStateReported(AppState state);
 
     /// The player asked to quit (close button, Command-Q, the Dock): ask the scene on top; quit unless it took over.
     void quitRequested();
@@ -60,16 +76,20 @@ struct Engine::Impl final : Application {
     std::unique_ptr<Window> window;
     std::unique_ptr<Renderer> renderer;
     SceneManager scenes;
-    uint64_t frameNumber = 0; ///< loop ticks so far, presented or not
-    bool quitting = false;    ///< `quit()` was called; the next frame ends the run
-    WindowFacts windowFacts;
-    AppStateTracker appState;
+    uint64_t frameNumber = 0;              ///< loop ticks so far, presented or not
+    bool quitting = false;                 ///< `quit()` was called; the next frame ends the run
+    AppState lastState = AppState::Active; ///< what the game was last told; a window is rarely focused yet when the
+                                           ///< engine is built, and the focus event follows a moment later
     bool pausesWhenInactive = true;
     std::vector<std::function<void(AppState)>> appStateObservers;
     FrameCounts counts;
     FrameClock clock;
 
 private:
+    /// Whether the loop stands still right now. A `--frames` run never pauses for lack of focus: it is automated,
+    /// nobody is at the keyboard, and a window launched from a script may never be focused at all. Minimized still
+    /// freezes it.
+    [[nodiscard]] bool isFrozen() const { return freezesLoop(lastState, pausesWhenInactive && !frameLimit); }
     void appStateChanged(AppState state);
     void drawOnce();
     [[nodiscard]] FrameResult finishRun() const;

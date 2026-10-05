@@ -1,10 +1,9 @@
 #include "SdlAdapter.hpp"
 
-#include "engine/AppStateTracker.hpp"
 #include "engine/EngineImpl.hpp"
 
-#include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/Engine.hpp>
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/utilities/Assert.hpp>
 
 #include <SDL3/SDL.h>
@@ -36,49 +35,28 @@ SDL_AppResult SdlAdapter::event(Engine& engine, const SDL_Event& event) {
         impl.resized();
         return SDL_APP_CONTINUE;
 
-    // The facts the app state follows from, on a desktop.
+    // Anything that may change whether the player can see and use the window. The window reads its own flags and
+    // says which state that is; the engine tells the game only when the answer changed.
     case SDL_EVENT_WINDOW_FOCUS_GAINED:
     case SDL_EVENT_WINDOW_FOCUS_LOST:
     case SDL_EVENT_WINDOW_MINIMIZED:
     case SDL_EVENT_WINDOW_RESTORED:
     case SDL_EVENT_WINDOW_HIDDEN:
-    case SDL_EVENT_WINDOW_SHOWN: {
-        WindowFacts facts = impl.windowFacts;
-        switch (event.type) {
-        case SDL_EVENT_WINDOW_FOCUS_GAINED:
-            facts.focused = true;
-            break;
-        case SDL_EVENT_WINDOW_FOCUS_LOST:
-            facts.focused = false;
-            break;
-        case SDL_EVENT_WINDOW_MINIMIZED:
-            facts.minimized = true;
-            break;
-        case SDL_EVENT_WINDOW_RESTORED:
-            facts.minimized = false;
-            break;
-        case SDL_EVENT_WINDOW_HIDDEN:
-            facts.hidden = true;
-            break;
-        default: // SDL_EVENT_WINDOW_SHOWN; the outer switch admits nothing else here
-            facts.hidden = false;
-            break;
-        }
-        impl.windowFactsChanged(facts);
+    case SDL_EVENT_WINDOW_SHOWN:
+        impl.windowStateChanged();
         return SDL_APP_CONTINUE;
-    }
 
     // A phone says so directly, in LiquidMetal2D's order: resign active, enter background; enter foreground,
     // become active. Untested until there is a phone build.
     case SDL_EVENT_WILL_ENTER_BACKGROUND:
     case SDL_EVENT_WILL_ENTER_FOREGROUND:
-        impl.appStateSet(AppState::Inactive);
+        impl.appStateReported(AppState::Inactive);
         return SDL_APP_CONTINUE;
     case SDL_EVENT_DID_ENTER_BACKGROUND:
-        impl.appStateSet(AppState::Background);
+        impl.appStateReported(AppState::Background);
         return SDL_APP_CONTINUE;
     case SDL_EVENT_DID_ENTER_FOREGROUND:
-        impl.appStateSet(AppState::Active);
+        impl.appStateReported(AppState::Active);
         return SDL_APP_CONTINUE;
 
     default:

@@ -1,5 +1,6 @@
 #include "platform/WindowImpl.hpp"
 
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/utilities/Assert.hpp>
 #include <dilithium/utilities/Log.hpp>
@@ -39,6 +40,14 @@ PixelSize Window::getPixelSize() const {
 
 bool Window::isMinimized() const {
     return (SDL_GetWindowFlags(impl->handle) & SDL_WINDOW_MINIMIZED) != 0;
+}
+
+AppState Window::getAppState() const {
+    const SDL_WindowFlags flags = SDL_GetWindowFlags(impl->handle);
+    if ((flags & (SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED)) != 0) {
+        return AppState::Background;
+    }
+    return (flags & SDL_WINDOW_INPUT_FOCUS) != 0 ? AppState::Active : AppState::Inactive;
 }
 
 void Window::resize(int width, int height) {

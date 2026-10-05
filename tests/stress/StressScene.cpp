@@ -2,11 +2,11 @@
 
 #include "StressSchedule.hpp"
 
-#include <dilithium/engine/Application.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/math/Math.hpp>
 #include <dilithium/math/Types.hpp>
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/SceneServices.hpp>
 #include <dilithium/utilities/Assert.hpp>

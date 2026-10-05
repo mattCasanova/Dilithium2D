@@ -1,9 +1,9 @@
-#include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/Engine.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/gfx/renderers/DefaultRenderer.hpp>
 #include <dilithium/math/Math.hpp>
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>

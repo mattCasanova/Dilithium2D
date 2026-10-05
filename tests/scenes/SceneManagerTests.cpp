@@ -2,6 +2,7 @@
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/math/Types.hpp>
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
 #include <dilithium/scenes/SceneServices.hpp>

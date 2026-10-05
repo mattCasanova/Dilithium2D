@@ -7,8 +7,8 @@ Generated from the code by `tools/diagrams.sh` (clang-uml). Do not edit; regener
 title: Public API (engine/include)
 ---
 classDiagram
-    class C_0010140022438352470747["Engine::Impl"]
-    class C_0010140022438352470747 {
+    class C_0008073970071378886621["Window::Impl"]
+    class C_0008073970071378886621 {
     }
     class C_0002322712453429534017["AppState"]
     class C_0002322712453429534017 {
@@ -17,30 +17,34 @@ classDiagram
         Inactive
         Background
     }
-    class C_0012078689987532246651["Application"]
-    class C_0012078689987532246651 {
-        <<abstract>>
-        +Application() [default] void
-        +Application(const Application &) void
-        +Application(Application &&) void
-        +~Application() [default,constexpr] void
-        +operator=(const Application &) Application &
-        +operator=(Application &&) Application &
-        +getState() [const] AppState*
-        +quit() void*
+    class C_0004412478778605507385["WindowConfig"]
+    class C_0004412478778605507385 {
+        +height : int
+        +kDefaultHeight : const int
+        +kDefaultWidth : const int
+        +title : std::string
+        +width : int
     }
-    class C_0012504818906105801797["Engine"]
-    class C_0012504818906105801797 {
-        +Engine(std::unique_ptr&lt;Window&gt; window, std::unique_ptr&lt;Renderer&gt; renderer, const CommandLine & commandLine) void
-        +Engine(const Engine &) void
-        +Engine(Engine &&) void
-        +~Engine() void
-        +operator=(const Engine &) Engine &
-        +operator=(Engine &&) Engine &
-        +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void
-        +create(const CommandLine & commandLine) std::unique_ptr&lt;Engine&gt;$
-        +getScenes() SceneManager &
-        +setPausesWhenInactive(bool pauses) void
+    class C_0013342733560284370218["PixelSize"]
+    class C_0013342733560284370218 {
+        +height : uint32_t
+        +width : uint32_t
+    }
+    class C_0006970481197969800549["Window"]
+    class C_0006970481197969800549 {
+        +Window(const WindowConfig & config) void
+        +Window(const Window &) void
+        +Window(Window &&) void
+        +~Window() void
+        +operator=(const Window &) Window &
+        +operator=(Window &&) Window &
+        +getAppState() [const] AppState
+        +getImpl() [const] const Impl &
+        +getPixelSize() [const] PixelSize
+        +isMinimized() [const] bool
+        +minimize() void
+        +resize(int width, int height) void
+        +restore() void
         -impl : std::unique_ptr&lt;Impl&gt;
     }
     class C_0017246818890119119619["SceneId&lt;Id&gt;"]
@@ -130,38 +134,6 @@ classDiagram
         Warning
         Error
     }
-    class C_0008073970071378886621["Window::Impl"]
-    class C_0008073970071378886621 {
-    }
-    class C_0004412478778605507385["WindowConfig"]
-    class C_0004412478778605507385 {
-        +height : int
-        +kDefaultHeight : const int
-        +kDefaultWidth : const int
-        +title : std::string
-        +width : int
-    }
-    class C_0013342733560284370218["PixelSize"]
-    class C_0013342733560284370218 {
-        +height : uint32_t
-        +width : uint32_t
-    }
-    class C_0006970481197969800549["Window"]
-    class C_0006970481197969800549 {
-        +Window(const WindowConfig & config) void
-        +Window(const Window &) void
-        +Window(Window &&) void
-        +~Window() void
-        +operator=(const Window &) Window &
-        +operator=(Window &&) Window &
-        +getImpl() [const] const Impl &
-        +getPixelSize() [const] PixelSize
-        +isMinimized() [const] bool
-        +minimize() void
-        +resize(int width, int height) void
-        +restore() void
-        -impl : std::unique_ptr&lt;Impl&gt;
-    }
     class C_0012289527777118496709["Circle"]
     class C_0012289527777118496709 {
         +center : Vec2
@@ -181,6 +153,35 @@ classDiagram
     class C_0001973791248981465142 {
         +end : Vec2
         +start : Vec2
+    }
+    class C_0010140022438352470747["Engine::Impl"]
+    class C_0010140022438352470747 {
+    }
+    class C_0012078689987532246651["Application"]
+    class C_0012078689987532246651 {
+        <<abstract>>
+        +Application() [default] void
+        +Application(const Application &) void
+        +Application(Application &&) void
+        +~Application() [default,constexpr] void
+        +operator=(const Application &) Application &
+        +operator=(Application &&) Application &
+        +getState() [const] AppState*
+        +quit() void*
+    }
+    class C_0012504818906105801797["Engine"]
+    class C_0012504818906105801797 {
+        +Engine(std::unique_ptr&lt;Window&gt; window, std::unique_ptr&lt;Renderer&gt; renderer, const CommandLine & commandLine) void
+        +Engine(const Engine &) void
+        +Engine(Engine &&) void
+        +~Engine() void
+        +operator=(const Engine &) Engine &
+        +operator=(Engine &&) Engine &
+        +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void
+        +create(const CommandLine & commandLine) std::unique_ptr&lt;Engine&gt;$
+        +getScenes() SceneManager &
+        +setPausesWhenInactive(bool pauses) void
+        -impl : std::unique_ptr&lt;Impl&gt;
     }
     class C_0014652720749054439479["DefaultRenderer"]
     class C_0014652720749054439479 {
@@ -233,13 +234,10 @@ classDiagram
         +getProblemsReported() [const] uint32_t
         +setClearColor(Color color) void*
     }
-    C_0012504818906105801797 ()-- C_0010140022438352470747 : 
-    C_0012078689987532246651 ..> C_0002322712453429534017 : 
-    C_0012504818906105801797 ..> C_0003433841011590959626 : 
-    C_0012504818906105801797 ..> C_0006970481197969800549 : 
-    C_0012504818906105801797 ..> C_0002210481607728283061 : 
-    C_0012504818906105801797 ..> C_0004769106082399727328 : 
-    C_0012504818906105801797 ..> C_0002322712453429534017 : 
+    C_0006970481197969800549 ()-- C_0008073970071378886621 : 
+    C_0006970481197969800549 ..> C_0004412478778605507385 : 
+    C_0006970481197969800549 ..> C_0013342733560284370218 : 
+    C_0006970481197969800549 ..> C_0002322712453429534017 : 
     C_0007999178659969704793 ..> C_0006986081634680691647 : 
     C_0007999178659969704793 ..> C_0002322712453429534017 : 
     C_0012015077915189623278 --> C_0002210481607728283061 : +renderer
@@ -252,9 +250,13 @@ classDiagram
     C_0004769106082399727328 o-- C_0012015077915189623278 : -services
     C_0004769106082399727328 o-- C_0006182999335698346784 : -pending
     C_0004769106082399727328 ()-- C_0006182999335698346784 : 
-    C_0006970481197969800549 ()-- C_0008073970071378886621 : 
-    C_0006970481197969800549 ..> C_0004412478778605507385 : 
-    C_0006970481197969800549 ..> C_0013342733560284370218 : 
+    C_0012504818906105801797 ()-- C_0010140022438352470747 : 
+    C_0012078689987532246651 ..> C_0002322712453429534017 : 
+    C_0012504818906105801797 ..> C_0003433841011590959626 : 
+    C_0012504818906105801797 ..> C_0006970481197969800549 : 
+    C_0012504818906105801797 ..> C_0002210481607728283061 : 
+    C_0012504818906105801797 ..> C_0004769106082399727328 : 
+    C_0012504818906105801797 ..> C_0002322712453429534017 : 
     C_0014652720749054439479 ..> C_0003444073062530109576 : 
     C_0014652720749054439479 ..> C_0014381799943743737761 : 
     C_0002210481607728283061 <|-- C_0014652720749054439479 : 

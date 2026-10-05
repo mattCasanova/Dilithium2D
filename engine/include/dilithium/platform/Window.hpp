@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dilithium/platform/AppState.hpp>
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -38,6 +40,11 @@ public:
 
     [[nodiscard]] PixelSize getPixelSize() const;
     [[nodiscard]] bool isMinimized() const;
+
+    /// Whether the player can see and use the window right now, read from the window system's own flags: hidden or
+    /// minimized is `Background`; otherwise focus decides between `Active` and `Inactive`. The engine asks after
+    /// every window event and tells the game when the answer changes.
+    [[nodiscard]] AppState getAppState() const;
 
     /// Each asks the window system and returns at once; the size or state changes a little later, through events.
     /// A refusal is logged, not thrown. The stress run under `tests/stress` uses them; a game may too.

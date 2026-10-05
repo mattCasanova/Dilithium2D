@@ -1,10 +1,9 @@
-#include "engine/AppStateTracker.hpp"
 #include "engine/EngineImpl.hpp"
 #include "engine/FrameClock.hpp"
 
-#include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/Engine.hpp>
 #include <dilithium/gfx/Renderer.hpp>
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
@@ -79,7 +78,7 @@ FrameResult Engine::Impl::frame() {
         return FrameResult::Finished;
     }
     ++frameNumber;
-    if (appState.isFrozen(pausesWhenInactive)) {
+    if (isFrozen()) {
         // The player is away: no update, no draw; the last frame stays on screen. The clock is reset on thaw.
         count(counts, FrameOutcome::Idle);
         std::this_thread::sleep_for(kIdleSleep);
@@ -120,17 +119,16 @@ void Engine::Impl::quitRequested() {
     DILITHIUM_UNREACHABLE("unknown QuitResponse");
 }
 
-void Engine::Impl::windowFactsChanged(WindowFacts facts) {
-    windowFacts = facts;
-    if (const std::optional<AppState> changed = appState.update(facts)) {
-        appStateChanged(*changed);
-    }
+void Engine::Impl::windowStateChanged() {
+    appStateReported(window->getAppState());
 }
 
-void Engine::Impl::appStateSet(AppState state) {
-    if (const std::optional<AppState> changed = appState.set(state)) {
-        appStateChanged(*changed);
+void Engine::Impl::appStateReported(AppState state) {
+    if (state == lastState) {
+        return;
     }
+    lastState = state;
+    appStateChanged(state);
 }
 
 /// Observers first (they save), then the scene on top (it may push a pause scene). A transition the scene asked for
@@ -145,7 +143,7 @@ void Engine::Impl::appStateChanged(AppState state) {
     if (scenes.performTransition()) {
         drawOnce();
     }
-    if (!appState.isFrozen(pausesWhenInactive)) {
+    if (!isFrozen()) {
         clock.reset();
     }
 }

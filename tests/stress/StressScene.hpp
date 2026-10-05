@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dilithium/engine/Application.hpp>
+#include <dilithium/platform/AppState.hpp>
 #include <dilithium/scenes/Scene.hpp>
 
 namespace dilithium {
