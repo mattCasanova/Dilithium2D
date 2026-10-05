@@ -29,18 +29,6 @@ namespace {
 /// keeps an idle window from spinning a CPU core while still noticing a restore within a frame or so.
 constexpr std::chrono::milliseconds kIdleSleep{16};
 
-std::string_view appStateName(AppState state) {
-    switch (state) {
-    case AppState::Active:
-        return "active";
-    case AppState::Inactive:
-        return "inactive";
-    case AppState::Background:
-        return "background";
-    }
-    DILITHIUM_UNREACHABLE("unknown AppState");
-}
-
 void count(FrameCounts& counts, FrameOutcome outcome) {
     switch (outcome) {
     case FrameOutcome::Presented:

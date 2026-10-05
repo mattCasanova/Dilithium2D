@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 namespace dilithium {
 
 /// Whether the player can see and use the game, as the window reports it: hidden or minimized is `Background`;
@@ -11,5 +13,8 @@ enum class AppState {
     Inactive,   ///< visible but without focus: Command-Tab to another app, another window on top
     Background, ///< not visible: minimized, hidden, or the phone's home screen. On a phone, save here
 };
+
+/// The state's name for a log line: "active", "inactive", "background".
+[[nodiscard]] std::string_view appStateName(AppState state);
 
 } // namespace dilithium

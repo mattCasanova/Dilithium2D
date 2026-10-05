@@ -70,7 +70,7 @@ std::unique_ptr<dilithium::Engine> dilithium::Engine::create(const CommandLine& 
 }
 ```
 
-Scenes change screens through `services.scenes`: `set` replaces the current scene, `push` covers it (a pause menu), `pop` returns. Each happens at the start of the next frame. In CMake, pull the engine in with `FetchContent` and link `dilithium::main`; it brings SDL's entry point and the engine with it, and your code never sees an SDL or Vulkan header. `demos/d01_clear_screen/main.cpp` is a complete example.
+Scenes change screens through `services.scenes`: `set` replaces the current scene, `push` covers it (a pause menu), `pop` returns. Each happens at the start of the next frame. In CMake, pull the engine in with `FetchContent` and link `dilithium::main`; it brings SDL's entry point and the engine with it, and your code never sees an SDL or Vulkan header. `demos/d01_clear_screen/` is a complete example: `main.cpp` holds `Engine::create`, and the scene has its own files.
 
 ## Architecture
 
