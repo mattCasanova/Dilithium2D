@@ -21,7 +21,7 @@ diagrams:
     glob:
       - src/*/*.cpp
       - src/*/*/*.cpp
-      - main/SdlMain.cpp
+      - main/*.cpp
     using_namespace: dilithium
     include:
       paths: [include]
@@ -57,7 +57,7 @@ diagrams:
     glob:
       - src/*/*.cpp
       - src/*/*/*.cpp
-      - main/SdlMain.cpp
+      - main/*.cpp
     using_namespace: dilithium
     package_type: directory
     include:
@@ -70,14 +70,15 @@ diagrams:
     title: One frame
     relative_to: engine
     glob:
+      - main/EngineLoop.cpp
       - src/engine/*.cpp
       - src/scenes/*.cpp
       - src/gfx/renderers/*.cpp
     using_namespace: dilithium
     include:
-      paths: [include, src]
+      paths: [include, src, main]
     exclude:
-      paths: [include/dilithium/core, src/core]
+      paths: [include/dilithium/core, src/core, main/SdlMain.cpp]
       namespaces: [dilithium::detail]
     combine_free_functions_into_file_participants: true
     from:
@@ -91,7 +92,7 @@ diagrams:
     glob:
       - src/*/*.cpp
       - src/*/*/*.cpp
-      - main/SdlMain.cpp
+      - main/*.cpp
     include:
       paths: [include, src, main]
     generate_system_headers: false

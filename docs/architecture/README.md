@@ -16,6 +16,7 @@ flowchart TB
 
     subgraph entry["engine/main: the SDL entry point (dilithium::main)"]
         SdlMain["SdlMain.cpp: the four SDL_App* callbacks, the exception guard"]
+        EngineLoop["EngineLoop: SDL's events and answers, mapped to the engine's"]
     end
 
     subgraph public["engine/include/dilithium: the public API, no SDL or Vulkan type"]
@@ -29,7 +30,7 @@ flowchart TB
     end
 
     subgraph private["engine/src: private"]
-        EngineImpl["engine/: Engine::Impl, EngineLoop, AppStateTracker, frame clock, run flags"]
+        EngineImpl["engine/: Engine::Impl, AppStateTracker, FrameClock, RunOptions"]
         RenderCore["gfx/renderers/: RenderCore (the frame: acquire, record, submit, present)"]
         Vulkan["gfx/vulkan/: Instance, Device, Surface, Allocator, VkCheck"]
         Swapchain["gfx/swapchain/: Swapchain, FramesInFlight"]
@@ -42,7 +43,8 @@ flowchart TB
     scenes --> SceneAPI
     scenes -. "draw into" .-> Renderer
     SdlMain --> createEngine
-    SdlMain --> EngineImpl
+    SdlMain --> EngineLoop
+    EngineLoop --> EngineImpl
     Engine --> EngineImpl
     EngineImpl --> SceneAPI
     EngineImpl -. "drawFrame()" .-> Renderer

@@ -3,7 +3,7 @@
 // and never includes an SDL header.
 #define SDL_MAIN_USE_CALLBACKS 1 // NOLINT(cppcoreguidelines-macro-usage): SDL_main.h reads it as a macro
 
-#include "engine/EngineLoop.hpp"
+#include "EngineLoop.hpp"
 
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>

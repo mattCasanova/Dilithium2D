@@ -262,6 +262,7 @@ classDiagram
         -submit(const FrameSlot & frame, uint32_t imageIndex) [const] void
         +swapchainBuilds() [const] uint32_t
         +validationMessages() [const] uint32_t
+        +waitIdle() [const] void
         -m_allocator : Allocator
         -m_device : Device
         -m_frameImageIndex : uint32_t
@@ -276,6 +277,7 @@ classDiagram
     class C_0014853951067043476245["DefaultRenderer::Impl"]
     class C_0014853951067043476245 {
         +Impl(const Window & newWindow) void
+        +drawTriangles() void
         +matchPipelineToSwapchain() void
         +clearColor : Color
         +colorPipeline : std::unique_ptr&lt;ColorPipeline&gt;

@@ -1,6 +1,6 @@
 #include "engine/AppStateTracker.hpp"
 #include "engine/EngineImpl.hpp"
-#include "engine/FrameTime.hpp"
+#include "engine/FrameClock.hpp"
 #include "engine/RunOptions.hpp"
 
 #include <dilithium/core/Assert.hpp>
@@ -14,13 +14,13 @@
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
 
-#include <SDL3/SDL.h>
-
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <thread>
 #include <utility>
 
 namespace dilithium {
@@ -28,7 +28,7 @@ namespace {
 
 /// How long to sleep when no frame was presented (minimized, or no area). The present paces every other frame; this
 /// keeps an idle window from spinning a CPU core while still noticing a restore within a frame or so.
-constexpr uint32_t kIdleSleepMs = 16;
+constexpr std::chrono::milliseconds kIdleSleep{16};
 
 std::string_view appStateName(AppState state) {
     switch (state) {
@@ -62,7 +62,7 @@ void count(FrameCounts& counts, FrameOutcome outcome) {
 Engine::Impl::Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> newRenderer,
                    const CommandLine& commandLine)
     : options(parseRunOptions(commandLine.all())), window(std::move(newWindow)), renderer(std::move(newRenderer)),
-      scenes(*renderer, *this), lastFrameNs(SDL_GetTicksNS()) {
+      scenes(*renderer, *this) {
     if (!window || !renderer) {
         DILITHIUM_UNREACHABLE("Engine needs a window and a renderer");
     }
@@ -79,16 +79,14 @@ FrameResult Engine::Impl::frame() {
     if (appState.frozen(pausesWhenInactive)) {
         // The player is away: no update, no draw; the last frame stays on screen. The clock is reset on thaw.
         count(counts, FrameOutcome::Idle);
-        SDL_Delay(kIdleSleepMs);
+        std::this_thread::sleep_for(kIdleSleep);
         if (options.frames && frameNumber >= *options.frames) {
             return finishRun();
         }
         return FrameResult::Continue;
     }
 
-    const uint64_t now = SDL_GetTicksNS();
-    const float dt = frameSeconds(lastFrameNs, now);
-    lastFrameNs = now;
+    const float dt = clock.tick();
 
     scenes.performTransition();
     Scene& scene = scenes.current();
@@ -98,7 +96,7 @@ FrameResult Engine::Impl::frame() {
     const FrameOutcome outcome = renderer->drawFrame();
     count(counts, outcome);
     if (outcome == FrameOutcome::Idle) {
-        SDL_Delay(kIdleSleepMs);
+        std::this_thread::sleep_for(kIdleSleep);
     }
 
     if (options.frames && frameNumber >= *options.frames) {
@@ -145,7 +143,7 @@ void Engine::Impl::appStateChanged(AppState state) {
         drawOnce();
     }
     if (!appState.frozen(pausesWhenInactive)) {
-        lastFrameNs = SDL_GetTicksNS();
+        clock.reset();
     }
 }
 

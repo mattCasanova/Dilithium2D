@@ -7,7 +7,8 @@ namespace dilithium {
 class Engine;
 
 /// The entry point's only way into the engine: one frame, one event, each mapped to SDL's answer. `Engine` names
-/// it a friend; nothing else reaches `Engine::Impl`.
+/// it a friend; nothing else reaches `Engine::Impl`. It lives beside `SdlMain.cpp`, not under `src/`: it is the SDL
+/// side of the engine, and the library itself never names SDL outside `platform/`.
 class EngineLoop {
 public:
     static SDL_AppResult iterate(Engine& engine);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/AppStateTracker.hpp"
+#include "engine/FrameClock.hpp"
 #include "engine/RunOptions.hpp"
 
 #include <dilithium/engine/Application.hpp>
@@ -34,7 +35,7 @@ struct FrameCounts {
 
 /// Everything the engine owns, in creation order, so destruction runs the other way with no code for it: the scenes
 /// first (they use the renderer), then the renderer (it draws into the window), then the window. Shared by
-/// `Engine.cpp` (lifetime) and `EngineLoop.cpp` (frames and events).
+/// `Engine.cpp` (lifetime) and `main/EngineLoop.cpp` (the SDL side: frames and events). Nothing here names SDL.
 struct Engine::Impl final : Application {
     Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> newRenderer, const CommandLine& commandLine);
 
@@ -66,7 +67,7 @@ struct Engine::Impl final : Application {
     bool pausesWhenInactive = true;
     std::vector<std::function<void(AppState)>> appStateObservers;
     FrameCounts counts;
-    uint64_t lastFrameNs;
+    FrameClock clock;
 
 private:
     void appStateChanged(AppState state);

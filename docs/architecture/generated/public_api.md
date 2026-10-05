@@ -100,6 +100,7 @@ classDiagram
         +operator=(SceneManager &&) SceneManager &
         -add(SceneKey key, const Builder & builder) void
         +add<std::derived_from SceneType,SceneId Id>(Id id) void
+        +add<SceneId Id>(Id id, const Builder & builder) void
         -build(SceneKey key) std::unique_ptr&lt;Scene&gt;
         +current() Scene &
         +depth() [const] int
@@ -179,27 +180,6 @@ classDiagram
         +end : Vec2
         +start : Vec2
     }
-    class C_0014381799943743737761["FrameOutcome"]
-    class C_0014381799943743737761 {
-        <<enumeration>>
-        Presented
-        Skipped
-        Idle
-    }
-    class C_0002210481607728283061["Renderer"]
-    class C_0002210481607728283061 {
-        <<abstract>>
-        +Renderer() [default] void
-        +Renderer(const Renderer &) void
-        +Renderer(Renderer &&) void
-        +~Renderer() [default,constexpr] void
-        +operator=(const Renderer &) Renderer &
-        +operator=(Renderer &&) Renderer &
-        +drawFrame() FrameOutcome*
-        +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
-        +problemsReported() [const] uint32_t
-        +setClearColor(Color color) void*
-    }
     class C_0014652720749054439479["DefaultRenderer"]
     class C_0014652720749054439479 {
         +DefaultRenderer(const Window & window) void
@@ -230,6 +210,27 @@ classDiagram
         +kOpaque : const uint8_t
         +r : float
     }
+    class C_0014381799943743737761["FrameOutcome"]
+    class C_0014381799943743737761 {
+        <<enumeration>>
+        Presented
+        Skipped
+        Idle
+    }
+    class C_0002210481607728283061["Renderer"]
+    class C_0002210481607728283061 {
+        <<abstract>>
+        +Renderer() [default] void
+        +Renderer(const Renderer &) void
+        +Renderer(Renderer &&) void
+        +~Renderer() [default,constexpr] void
+        +operator=(const Renderer &) Renderer &
+        +operator=(Renderer &&) Renderer &
+        +drawFrame() FrameOutcome*
+        +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
+        +problemsReported() [const] uint32_t
+        +setClearColor(Color color) void*
+    }
     C_0012504818906105801797 ()-- C_0010140022438352470747 : 
     C_0012078689987532246651 ..> C_0002322712453429534017 : 
     C_0012504818906105801797 ..> C_0006970481197969800549 : 
@@ -252,10 +253,10 @@ classDiagram
     C_0006970481197969800549 ()-- C_0008073970071378886621 : 
     C_0006970481197969800549 ..> C_0004412478778605507385 : 
     C_0006970481197969800549 ..> C_0013342733560284370218 : 
-    C_0002210481607728283061 ..> C_0003444073062530109576 : 
-    C_0002210481607728283061 ..> C_0014381799943743737761 : 
     C_0014652720749054439479 ..> C_0003444073062530109576 : 
     C_0014652720749054439479 ..> C_0014381799943743737761 : 
     C_0002210481607728283061 <|-- C_0014652720749054439479 : 
     C_0014652720749054439479 ()-- C_0014853951067043476245 : 
+    C_0002210481607728283061 ..> C_0003444073062530109576 : 
+    C_0002210481607728283061 ..> C_0014381799943743737761 : 
 ```

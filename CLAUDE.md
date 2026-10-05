@@ -17,14 +17,16 @@ engine/
     gfx/               Renderer (the interface), Color; renderers/DefaultRenderer (the engine's own, pimpl)
     platform/          Window (pimpl: the window system is in the .cpp)
     core/  math/       Assert, Log, NonCopyable, Version; Math, Types (glm aliases), Bezier, Shapes, Intersect, Easing
-  src/                 private, the same tree: engine/ (EngineImpl, EngineLoop, frame clock, run flags),
+  src/                 private, the same tree: engine/ (EngineImpl, AppStateTracker, FrameClock, RunOptions),
                        scenes/, platform/ (SDL), gfx/renderers/ (RenderCore), gfx/vulkan/, gfx/swapchain/.
                        Every .cpp here is the library (globbed)
-  main/                SdlMain.cpp: the dilithium::main target, kept outside src/ so the library glob skips it
+  main/                the dilithium::main target: SdlMain.cpp (the four SDL_App* callbacks) and EngineLoop (SDL's
+                       events and answers mapped to the engine's). Kept outside src/ so the library glob skips it
 demos/                 one executable each: d01_clear_screen, d02_triangle
 docs/architecture/      README.md: the hand-drawn layer diagram; generated/: class, package, sequence and include
                        diagrams drawn from the code by tools/diagrams.sh (clang-uml), as Mermaid in Markdown
-tests/                 Catch2 unit tests, one file per unit, same area folders; every .cpp is a test (globbed)
+tests/                 Catch2 unit tests, one file per unit, same area folders; every *Tests.cpp is a test (globbed)
+  stress/              stress_run: a program that resizes and minimizes the window while drawing; the engine's proof
   headers/             compiles each public header alone with no third-party include path: a leak fails the build
 shaders/               GLSL (#version 450); compiled by glslc at build time and embedded as `dilithium::shaders::k<Name><Stage>`
                        (see cmake/Shaders.cmake); a game adds its own with the same CMake call
@@ -56,7 +58,7 @@ A game is scenes plus one function. Each scene subclasses `dilithium::Scene` (co
 - Strict warnings as errors, sanitizers, clang-tidy and library hardening apply to our targets only (`dilithium_apply_guard_rails`), never to a game that links the engine.
 - `v[i]` is checked: libc++ hardening is on (every check in debug, the cheap ones in release), so no `.at()` for bounds safety. Debug builds also run UBSan's `implicit-conversion`, `float-divide-by-zero`, `nullability` and `local-bounds` groups, and any report aborts.
 - `.gitignore` drops any folder named `debug/`, `release/`, `bin/`, `obj/` or `log/`. Never name a source folder that.
-- Sources and tests are globbed: adding a `.cpp` needs no CMake edit, but any `.cpp` under `engine/src/` or `tests/` gets built. Keep experiments elsewhere.
+- Sources and tests are globbed: adding a file needs no CMake edit, but any `.cpp` under `engine/src/` and any `*Tests.cpp` under `tests/` gets built. Keep experiments elsewhere.
 
 ## Build & test
 
