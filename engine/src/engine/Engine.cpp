@@ -2,7 +2,6 @@
 #include "engine/EngineImpl.hpp"
 #include "engine/FrameTime.hpp"
 #include "engine/RunOptions.hpp"
-#include "engine/Torture.hpp"
 
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>
@@ -18,7 +17,6 @@
 #include <SDL3/SDL.h>
 
 #include <cstdint>
-#include <format>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -31,23 +29,6 @@ namespace {
 /// How long to sleep when no frame was presented (minimized, or no area). The present paces every other frame; this
 /// keeps an idle window from spinning a CPU core while still noticing a restore within a frame or so.
 constexpr uint32_t kIdleSleepMs = 16;
-
-void applyTorture(Window& window, TortureStep step) {
-    switch (step.action) {
-    case TortureAction::None:
-        return;
-    case TortureAction::Resize:
-        window.resize(step.width, step.height);
-        return;
-    case TortureAction::Minimize:
-        window.minimize();
-        return;
-    case TortureAction::Restore:
-        window.restore();
-        return;
-    }
-    DILITHIUM_UNREACHABLE("unknown TortureAction");
-}
 
 std::string_view appStateName(AppState state) {
     switch (state) {
@@ -85,9 +66,8 @@ Engine::Impl::Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> 
     if (!window || !renderer) {
         DILITHIUM_UNREACHABLE("Engine needs a window and a renderer");
     }
-    if (options.frames || options.torture) {
-        logInfo("run: {}{}", options.frames ? std::format("{} frames", *options.frames) : "until quit",
-                options.torture ? ", with torture" : "");
+    if (options.frames) {
+        logInfo("run: {} frames", *options.frames);
     }
 }
 
@@ -96,10 +76,6 @@ FrameResult Engine::Impl::frame() {
         return FrameResult::Finished;
     }
     ++frameNumber;
-    if (options.torture) {
-        applyTorture(*window, tortureStep(frameNumber));
-    }
-
     if (appState.frozen(pausesWhenInactive)) {
         // The player is away: no update, no draw; the last frame stays on screen. The clock is reset on thaw.
         count(counts, FrameOutcome::Idle);

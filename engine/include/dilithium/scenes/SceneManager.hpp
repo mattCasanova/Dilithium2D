@@ -37,6 +37,9 @@ public:
     SceneManager(SceneManager&&) = delete;
     SceneManager& operator=(SceneManager&&) = delete;
 
+    /// Builds a scene from the services. For a scene whose constructor takes more than the services.
+    using Builder = std::function<std::unique_ptr<Scene>(SceneServices&)>;
+
     // --- what the game calls
 
     /// Registers `SceneType`, built with `SceneType(SceneServices&)` whenever `id` is started, set or pushed.
@@ -44,6 +47,13 @@ public:
     void add(Id id) {
         add(key(id),
             [](SceneServices& services) -> std::unique_ptr<Scene> { return std::make_unique<SceneType>(services); });
+    }
+
+    /// Registers `builder` to build the scene whenever `id` is started, set or pushed: for a scene with constructor
+    /// arguments of its own (a level number, a window to drive), which the lambda captures.
+    template <SceneId Id>
+    void add(Id id, const Builder& builder) {
+        add(key(id), builder);
     }
 
     /// Builds the first scene now. Once, before the first frame.
@@ -82,7 +92,6 @@ public:
 
 private:
     using SceneKey = std::int64_t; ///< a game enum's value, whatever its underlying type
-    using Builder = std::function<std::unique_ptr<Scene>(SceneServices&)>;
     enum class Request { None, Set, Push, Pop };
 
     template <SceneId Id>

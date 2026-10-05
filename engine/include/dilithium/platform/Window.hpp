@@ -40,7 +40,7 @@ public:
     [[nodiscard]] bool isMinimized() const;
 
     /// Each asks the window system and returns at once; the size or state changes a little later, through events.
-    /// A refusal is logged, not thrown. The engine's `--torture` run uses them; a game may too.
+    /// A refusal is logged, not thrown. The stress run under `tests/stress` uses them; a game may too.
     void resize(int width, int height);
     void minimize();
     void restore();

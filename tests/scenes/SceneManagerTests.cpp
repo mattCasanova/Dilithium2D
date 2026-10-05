@@ -9,6 +9,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -234,6 +235,25 @@ TEST_CASE("a scene answers a quit request: Quit by default, or Handled and it qu
     a.handleQuit();
     CHECK(a.quitRequested() == QuitResponse::Handled);
     CHECK(f.app.quits == 1); // the fake quits at once; a game would after its prompt
+}
+
+TEST_CASE("a builder lambda registers a scene with arguments of its own", "[scenes]") {
+    struct Numbered final : Scene {
+        Numbered(SceneServices& /*services*/, int newNumber) : number(newNumber) {}
+        void update(float /*dt*/) override {}
+        void draw() override {}
+        int number;
+    };
+    enum class Id { Level }; // its own enum, so its own manager: one enum per game, and values are the keys
+    FakeRenderer renderer;
+    FakeApplication app;
+    SceneManager scenes{renderer, app};
+    const int level = 7;
+    scenes.add(Id::Level, [level](SceneServices& services) -> std::unique_ptr<Scene> {
+        return std::make_unique<Numbered>(services, level);
+    });
+    scenes.start(Id::Level);
+    CHECK(dynamic_cast<Numbered&>(scenes.current()).number == level);
 }
 
 TEST_CASE("the base Scene's quitRequested quits", "[scenes]") {

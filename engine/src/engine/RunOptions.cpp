@@ -34,8 +34,6 @@ RunOptions parseRunOptions(std::span<const std::string_view> args) {
                 throw std::invalid_argument("--frames needs a count, as in --frames 600");
             }
             options.frames = parseFrameCount(args[++index]);
-        } else if (arg == "--torture") {
-            options.torture = true;
         }
         // Any other argument belongs to the game, which reads argv itself.
     }

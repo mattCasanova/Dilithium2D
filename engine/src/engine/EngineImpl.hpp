@@ -49,7 +49,7 @@ struct Engine::Impl final : Application {
     /// The player asked to quit (close button, Command-Q, the Dock): ask the scene on top; quit unless it took over.
     void quitRequested();
 
-    /// One frame: the torture step, the clock, a pending scene transition, update, draw, present.
+    /// One frame: the clock, a pending scene transition, update, draw, present.
     FrameResult frame();
 
     /// The window's pixel size changed: tell the current scene. The renderer finds out by itself each frame.

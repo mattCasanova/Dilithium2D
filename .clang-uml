@@ -63,8 +63,8 @@ diagrams:
     include:
       paths: [include, src, main]
 
-  # One frame, from the engine loop down to the renderer. Logging, assertions and the torture step are left out:
-  # they are everywhere and say nothing about the flow.
+  # One frame, from the engine loop down to the renderer. Logging and assertions are left out: they are everywhere
+  # and say nothing about the flow.
   frame:
     type: sequence
     title: One frame
@@ -77,7 +77,7 @@ diagrams:
     include:
       paths: [include, src]
     exclude:
-      paths: [include/dilithium/core, src/core, src/engine/Torture.cpp]
+      paths: [include/dilithium/core, src/core]
       namespaces: [dilithium::detail]
     combine_free_functions_into_file_participants: true
     from:

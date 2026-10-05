@@ -1,5 +1,6 @@
-# Every .cpp under tests/ is a test file, so adding one needs no edit here.
-file(GLOB_RECURSE DILITHIUM_TEST_SOURCES CONFIGURE_DEPENDS *.cpp)
+# Every *Tests.cpp under tests/ is a test file, so adding one needs no edit here. Other sources under tests/ belong
+# to the programs beside them (the stress run).
+file(GLOB_RECURSE DILITHIUM_TEST_SOURCES CONFIGURE_DEPENDS *Tests.cpp)
 add_executable(dilithium_tests ${DILITHIUM_TEST_SOURCES})
 # Vulkan::Headers, not Vulkan::Vulkan: the choice tests use Vulkan's structs but never call Vulkan or need a GPU.
 target_link_libraries(dilithium_tests PRIVATE
@@ -19,3 +20,5 @@ catch_discover_tests(dilithium_tests)
 
 # Every public header compiles alone, with no third-party include path: see headers/CMakeLists.txt.
 add_subdirectory(headers)
+# The stress run: a program that drives the window through resizes and minimizes while drawing.
+add_subdirectory(stress)

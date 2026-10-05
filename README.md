@@ -33,8 +33,8 @@ Then run the first demo, a window that clears to a slowly cycling color:
 
 ```bash
 ./build/debug/demos/d01_clear_screen/d01_clear_screen                         # quit with Cmd-Q
-./build/debug/demos/d01_clear_screen/d01_clear_screen --frames 600 --torture  # stress run: resizes, minimizes, quits
 ./build/debug/demos/d02_triangle/d02_triangle                                 # the second: a turning colored triangle
+./build/debug/tests/stress/stress_run --frames 600                            # stress run: resizes, minimizes, quits
 ```
 
 ## Writing a game

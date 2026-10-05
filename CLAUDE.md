@@ -63,8 +63,8 @@ A game is scenes plus one function. Each scene subclasses `dilithium::Scene` (co
 ```bash
 cmake --preset debug && cmake --build --preset debug && ctest --preset debug
 ./build/debug/demos/d01_clear_screen/d01_clear_screen                         # the window; quit with Cmd-Q
-./build/debug/demos/d01_clear_screen/d01_clear_screen --frames 600 --torture  # D1's proof: exit 0, no validation output
 ./build/debug/demos/d02_triangle/d02_triangle                                 # a turning red-green-blue triangle, red up
+./build/debug/tests/stress/stress_run --frames 600                            # the engine's proof: exit 0, no validation output
 ```
 
 - Tools, pinned, installed once per machine (standalone builds from PyPI; Apple's clang stays the compiler):
@@ -77,7 +77,8 @@ cmake --preset debug && cmake --build --preset debug && ctest --preset debug
 - `debug`: Ninja, `build/debug`, ASan + UBSan (`DILITHIUM_SANITIZE=ON`), `DILITHIUM_DEBUG=1`, libc++ hardening DEBUG, clang-tidy on every file. `release`: `build/release`, no sanitizers, no lint, hardening FAST, `_FORTIFY_SOURCE=3`, stack protector. CMake's own dev and deprecation warnings are errors in both.
 - `DILITHIUM_BUILD_DEMOS` / `DILITHIUM_BUILD_TESTS` default on only when this is the top-level project.
 - In-source builds are refused.
-- Every program understands two engine flags: `--frames N` quits after N loop ticks (exit 1 if validation reported anything), `--torture` resizes the window every 20 frames and minimizes it every 97 (restoring 10 later). Anything else on the command line is the game's.
+- Every program understands one engine flag: `--frames N` quits after N loop ticks (exit 1 if validation reported anything). Anything else on the command line is the game's.
+- The stress run (`tests/stress/stress_run`) is a program, not a unit test: its scene resizes the window every 20 frames and minimizes it every 97, restoring as soon as the engine reports the background state, while drawing a cycling clear and a turning triangle. `--frames 600` on both presets is the proof after every engine change. The engine knows nothing about it.
 - A Catch2 test name must not start with `-`: ctest passes the name on the command line, where Catch2 reads it as a flag.
 
 **Validation:** debug builds run the Khronos validation layer with two extra checks on through `VK_EXT_layer_settings`: synchronization validation (`validate_sync`), which checks that barriers and semaphores really order the GPU's work, and best-practices validation (`validate_best_practices`), which warns about legal but poor use. Both count toward the zero-message rule. A validation error logs `error: validation: …` and aborts at the call. `DILITHIUM_NO_VALIDATION=1` turns it off, loudly. Brew's layer manifest names its library by bare file name, so a program must have `/opt/homebrew/lib` in its search paths (CMake adds it to anything linking the engine); without it the layer fails to load, loudly. `VK_LOADER_DEBUG=layer` shows whether the loader inserted it.

@@ -7,8 +7,8 @@
 
 namespace dilithium {
 
-/// The program's arguments, read-only, as `main` received them. The engine reads its own flags (`--frames N`,
-/// `--torture`); the game reads anything else it wants. Views into `argv`, which lives as long as the program.
+/// The program's arguments, read-only, as `main` received them. The engine reads its own flag (`--frames N`); the
+/// game reads anything else it wants. Views into `argv`, which lives as long as the program.
 class CommandLine {
 public:
     CommandLine(int argc, const char* const* argv);

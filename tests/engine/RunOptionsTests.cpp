@@ -17,25 +17,21 @@ RunOptions parse(std::vector<std::string_view> args) {
 
 } // namespace
 
-TEST_CASE("no flags: run until quit, no torture", "[runoptions]") {
+TEST_CASE("no flags: run until quit", "[runoptions]") {
     const RunOptions options = parse({"d01_clear_screen"});
     CHECK_FALSE(options.frames.has_value());
-    CHECK_FALSE(options.torture);
 }
 
-TEST_CASE("reads --frames N and --torture in either order", "[runoptions]") {
-    const RunOptions a = parse({"demo", "--frames", "600", "--torture"});
+TEST_CASE("reads --frames N wherever it stands", "[runoptions]") {
+    const RunOptions a = parse({"demo", "--frames", "600"});
     CHECK(a.frames == 600u);
-    CHECK(a.torture);
-    const RunOptions b = parse({"demo", "--torture", "--frames", "5"});
+    const RunOptions b = parse({"demo", "--verbose", "--frames", "5"});
     CHECK(b.frames == 5u);
-    CHECK(b.torture);
 }
 
 TEST_CASE("arguments the engine does not know are left for the game", "[runoptions]") {
     const RunOptions options = parse({"demo", "--level", "3", "--frames", "10", "extra"});
     CHECK(options.frames == 10u);
-    CHECK_FALSE(options.torture);
 }
 
 TEST_CASE("a --frames with no proper count is an error", "[runoptions]") {
@@ -43,5 +39,5 @@ TEST_CASE("a --frames with no proper count is an error", "[runoptions]") {
     CHECK_THROWS_AS(parse({"demo", "--frames", "0"}), std::invalid_argument);
     CHECK_THROWS_AS(parse({"demo", "--frames", "-5"}), std::invalid_argument);
     CHECK_THROWS_AS(parse({"demo", "--frames", "60x"}), std::invalid_argument);
-    CHECK_THROWS_AS(parse({"demo", "--frames", "--torture"}), std::invalid_argument);
+    CHECK_THROWS_AS(parse({"demo", "--frames", "--verbose"}), std::invalid_argument);
 }
