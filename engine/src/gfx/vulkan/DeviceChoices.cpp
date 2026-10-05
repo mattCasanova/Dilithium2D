@@ -1,6 +1,6 @@
 #include "gfx/vulkan/DeviceChoices.hpp"
 
-#include <dilithium/core/Log.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <cstddef>
 #include <cstdint>

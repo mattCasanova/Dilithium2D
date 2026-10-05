@@ -1,7 +1,7 @@
-#include "core/LogFormat.hpp"
+#include "utilities/LogFormat.hpp"
 
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <cstdio>
 #include <format>

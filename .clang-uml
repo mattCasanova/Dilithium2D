@@ -78,7 +78,7 @@ diagrams:
     include:
       paths: [include, src, main]
     exclude:
-      paths: [include/dilithium/core, src/core, main/SdlMain.cpp]
+      paths: [include/dilithium/utilities, src/utilities, main/SdlMain.cpp]
       namespaces: [dilithium::detail]
     combine_free_functions_into_file_participants: true
     from:

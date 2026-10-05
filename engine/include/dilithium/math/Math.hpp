@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dilithium/core/Assert.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <algorithm>
 #include <cmath>

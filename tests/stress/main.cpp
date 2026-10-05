@@ -2,13 +2,13 @@
 // drawing, and exits 0 only if validation said nothing. The engine's proof after every change to it.
 #include "StressScene.hpp"
 
-#include <dilithium/engine/CommandLine.hpp>
 #include <dilithium/engine/Engine.hpp>
 #include <dilithium/gfx/renderers/DefaultRenderer.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
 #include <dilithium/scenes/SceneServices.hpp>
+#include <dilithium/utilities/CommandLine.hpp>
 
 #include <memory>
 #include <utility>

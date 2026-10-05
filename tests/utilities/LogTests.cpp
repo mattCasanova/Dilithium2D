@@ -1,6 +1,6 @@
-#include "core/LogFormat.hpp"
+#include "utilities/LogFormat.hpp"
 
-#include <dilithium/core/Log.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 

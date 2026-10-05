@@ -7,24 +7,8 @@ Generated from the code by `tools/diagrams.sh` (clang-uml). Do not edit; regener
 title: Public API (engine/include)
 ---
 classDiagram
-    class C_0003264976227049871993["LogLevel"]
-    class C_0003264976227049871993 {
-        <<enumeration>>
-        Debug
-        Info
-        Warning
-        Error
-    }
     class C_0010140022438352470747["Engine::Impl"]
     class C_0010140022438352470747 {
-    }
-    class C_0003433841011590959626["CommandLine"]
-    class C_0003433841011590959626 {
-        +CommandLine(int argc, const char *const * argv) void
-        +getAll() [const] std::span&lt;const std::string_view&gt;
-        +getValue(std::string_view flag) [const] std::optional&lt;std::string_view&gt;
-        +has(std::string_view flag) [const] bool
-        -args : std::vector&lt;std::string_view&gt;
     }
     class C_0002322712453429534017["AppState"]
     class C_0002322712453429534017 {
@@ -128,6 +112,23 @@ classDiagram
         Set
         Push
         Pop
+    }
+    class C_0003433841011590959626["CommandLine"]
+    class C_0003433841011590959626 {
+        +CommandLine(int argc, const char *const * argv) void
+        +getAll() [const] std::span&lt;const std::string_view&gt;
+        +getCount(std::string_view flag) [const] std::optional&lt;uint64_t&gt;
+        +getValue(std::string_view flag) [const] std::optional&lt;std::string_view&gt;
+        +has(std::string_view flag) [const] bool
+        -args : std::vector&lt;std::string_view&gt;
+    }
+    class C_0003264976227049871993["LogLevel"]
+    class C_0003264976227049871993 {
+        <<enumeration>>
+        Debug
+        Info
+        Warning
+        Error
     }
     class C_0008073970071378886621["Window::Impl"]
     class C_0008073970071378886621 {

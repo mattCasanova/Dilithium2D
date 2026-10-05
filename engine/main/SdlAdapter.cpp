@@ -3,9 +3,9 @@
 #include "engine/AppStateTracker.hpp"
 #include "engine/EngineImpl.hpp"
 
-#include <dilithium/core/Assert.hpp>
 #include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/Engine.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <SDL3/SDL.h>
 

@@ -1,8 +1,8 @@
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
 #include <dilithium/scenes/SceneServices.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <memory>
 #include <utility>

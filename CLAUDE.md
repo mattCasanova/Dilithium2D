@@ -12,12 +12,12 @@ cmake/          Dependencies.cmake  GuardRails.cmake (Warnings, Sanitizers, Lint
                 Shaders.cmake (dilithium_add_shaders: GLSL to SPIR-V to an embedded header)  SpirvToHeader.cmake
 engine/
   include/dilithium/   public headers: everything a game may include. No SDL, Vulkan, VMA, glm or JSON types
-    engine/            Engine, CommandLine: what Engine::create builds and receives
+    engine/            Engine, Application: what Engine::create builds, and what a scene may ask of the program
     scenes/            Scene, SceneManager, SceneServices: the game's code and how it changes screens
     gfx/               Renderer (the interface), Color; renderers/DefaultRenderer (the engine's own, pimpl)
     platform/          Window (pimpl: the window system is in the .cpp)
-    core/  math/       Assert, Log, NonCopyable, Version; Math, Types (glm aliases), Bezier, Shapes, Intersect, Easing
-  src/                 private, the same tree: engine/ (EngineImpl, AppStateTracker, FrameClock, RunOptions),
+    utilities/  math/  Assert, Log, NonCopyable, Version, CommandLine; Math, Types (glm aliases), Bezier, Shapes, Intersect, Easing
+  src/                 private, the same tree: engine/ (EngineImpl, AppStateTracker, FrameClock),
                        scenes/, platform/ (SDL: Window, and WindowSurface, where the window meets Vulkan),
                        gfx/renderers/ (RenderCore), gfx/vulkan/, gfx/swapchain/, gfx/shaders/, gfx/buffers/.
                        Every .cpp here is the library (globbed)
@@ -46,7 +46,7 @@ A game is scenes plus one function. Each scene subclasses `dilithium::Scene` (co
 - Macros in public headers carry the `DILITHIUM_` prefix, since macros ignore namespaces and a game's own must not collide with ours. Private ones (`VK_CHECK`) need not.
 - Vulkan through the C API (`vulkan/vulkan.h`), wrapped in small RAII classes that are neither copyable nor movable: `RenderCore` builds each in place. Members are declared in creation order, so they destruct in the right order.
 - `VK_CHECK(expr)` checks a `VkResult`; `DILITHIUM_UNREACHABLE("…")` marks branches that cannot happen (debug: log + abort; release: throws `std::logic_error`). `DILITHIUM_ASSERT(condition, "…")` checks an invariant in debug only; release never runs the condition, so never put a side effect in it. No silent `default:` or fallback on unexpected state.
-- Log with `logInfo` / `logWarning` / `logError` (`std::format` strings) from `<dilithium/core/Log.hpp>`, and `DILITHIUM_LOG_DEBUG(…)` for a line that exists in debug builds only. No `std::cout` in engine code.
+- Log with `logInfo` / `logWarning` / `logError` (`std::format` strings) from `<dilithium/utilities/Log.hpp>`, and `DILITHIUM_LOG_DEBUG(…)` for a line that exists in debug builds only. No `std::cout` in engine code.
 - Tests may include private headers (`engine/src` is on their include path); keep pure helpers there, out of the public API.
 - **Exceptions are on, in every build, for errors that end the program only:** `DILITHIUM_UNREACHABLE` and `VK_CHECK` in release, and start-up failures. Nothing in the frame loop throws on purpose. Each SDL callback catches at the boundary and logs, so a release build still says what went wrong. Table-based exceptions cost nothing on the normal path; the price is binary size (about 9% of code) and a slow throw.
 - Return values or `std::optional`, no out-parameters in our own APIs.

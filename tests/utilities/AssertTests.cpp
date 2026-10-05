@@ -1,4 +1,4 @@
-#include <dilithium/core/Assert.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 

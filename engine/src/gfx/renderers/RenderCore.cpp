@@ -4,10 +4,10 @@
 #include "gfx/swapchain/SwapchainChoices.hpp"
 #include "gfx/vulkan/VkCheck.hpp"
 
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/platform/Window.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <cstdint>
 #include <limits>

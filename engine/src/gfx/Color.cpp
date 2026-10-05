@@ -1,6 +1,6 @@
-#include <dilithium/core/Assert.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/math/Math.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <algorithm>
 #include <array>

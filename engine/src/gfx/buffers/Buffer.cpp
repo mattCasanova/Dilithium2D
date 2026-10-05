@@ -2,7 +2,7 @@
 
 #include "gfx/vulkan/VkCheck.hpp"
 
-#include <dilithium/core/Assert.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>

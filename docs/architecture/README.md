@@ -20,17 +20,17 @@ flowchart TB
     end
 
     subgraph public["engine/include/dilithium: the public API, no SDL or Vulkan type"]
-        Engine["engine/: Engine, CommandLine, Application"]
+        Engine["engine/: Engine, Application"]
         SceneAPI["scenes/: Scene, SceneManager, SceneServices"]
         Renderer["gfx/: Renderer (interface), Color"]
         DefaultRenderer["gfx/renderers/: DefaultRenderer (pimpl)"]
         Window["platform/: Window (pimpl)"]
         Math["math/: Types (glm), Math, Shapes, Intersect, Easing"]
-        Core["core/: Log, Assert, Version"]
+        Utilities["utilities/: Log, Assert, Version, CommandLine"]
     end
 
     subgraph private["engine/src: private"]
-        EngineImpl["engine/: Engine::Impl, AppStateTracker, FrameClock, RunOptions"]
+        EngineImpl["engine/: Engine::Impl, AppStateTracker, FrameClock"]
         RenderCore["gfx/renderers/: RenderCore (the frame: acquire, record, submit, present)"]
         Vulkan["gfx/vulkan/: Instance, Device, Surface, Allocator, VkCheck"]
         Swapchain["gfx/swapchain/: Swapchain, FramesInFlight"]

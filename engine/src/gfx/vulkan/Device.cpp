@@ -4,8 +4,8 @@
 #include "gfx/vulkan/ExtensionChoices.hpp"
 #include "gfx/vulkan/VkCheck.hpp"
 
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <cstddef>
 #include <cstdint>

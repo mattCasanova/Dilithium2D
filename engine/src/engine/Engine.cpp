@@ -1,24 +1,24 @@
 #include "engine/AppStateTracker.hpp"
 #include "engine/EngineImpl.hpp"
 #include "engine/FrameClock.hpp"
-#include "engine/RunOptions.hpp"
 
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
-#include <dilithium/core/Version.hpp>
 #include <dilithium/engine/Application.hpp>
-#include <dilithium/engine/CommandLine.hpp>
 #include <dilithium/engine/Engine.hpp>
 #include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/CommandLine.hpp>
+#include <dilithium/utilities/Log.hpp>
+#include <dilithium/utilities/Version.hpp>
 
 #include <chrono>
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string_view>
 #include <thread>
 #include <utility>
@@ -61,13 +61,16 @@ void count(FrameCounts& counts, FrameOutcome outcome) {
 
 Engine::Impl::Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> newRenderer,
                    const CommandLine& commandLine)
-    : options(parseRunOptions(commandLine.getAll())), window(std::move(newWindow)), renderer(std::move(newRenderer)),
+    : frameLimit(commandLine.getCount("--frames")), window(std::move(newWindow)), renderer(std::move(newRenderer)),
       scenes(*renderer, *this) {
     if (!window || !renderer) {
         DILITHIUM_UNREACHABLE("Engine needs a window and a renderer");
     }
-    if (options.frames) {
-        logInfo("run: {} frames", *options.frames);
+    if (frameLimit) {
+        if (*frameLimit == 0) {
+            throw std::invalid_argument("--frames needs a count above zero");
+        }
+        logInfo("run: {} frames", *frameLimit);
     }
 }
 
@@ -80,7 +83,7 @@ FrameResult Engine::Impl::frame() {
         // The player is away: no update, no draw; the last frame stays on screen. The clock is reset on thaw.
         count(counts, FrameOutcome::Idle);
         std::this_thread::sleep_for(kIdleSleep);
-        if (options.frames && frameNumber >= *options.frames) {
+        if (frameLimit && frameNumber >= *frameLimit) {
             return finishRun();
         }
         return FrameResult::Continue;
@@ -99,7 +102,7 @@ FrameResult Engine::Impl::frame() {
         std::this_thread::sleep_for(kIdleSleep);
     }
 
-    if (options.frames && frameNumber >= *options.frames) {
+    if (frameLimit && frameNumber >= *frameLimit) {
         return finishRun();
     }
     return FrameResult::Continue;

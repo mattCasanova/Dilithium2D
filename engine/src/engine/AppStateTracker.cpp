@@ -1,7 +1,7 @@
 #include "engine/AppStateTracker.hpp"
 
-#include <dilithium/core/Assert.hpp>
 #include <dilithium/engine/Application.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <optional>
 

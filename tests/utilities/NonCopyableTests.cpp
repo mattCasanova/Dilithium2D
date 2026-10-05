@@ -1,4 +1,4 @@
-#include <dilithium/core/NonCopyable.hpp>
+#include <dilithium/utilities/NonCopyable.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 

@@ -1,10 +1,16 @@
-#include <dilithium/engine/CommandLine.hpp>
+#include <dilithium/utilities/CommandLine.hpp>
 
 #include <algorithm>
+#include <charconv>
 #include <cstddef>
+#include <cstdint>
+#include <format>
 #include <optional>
 #include <span>
+#include <stdexcept>
+#include <string>
 #include <string_view>
+#include <system_error>
 
 namespace dilithium {
 namespace {
@@ -33,6 +39,22 @@ std::optional<std::string_view> CommandLine::getValue(std::string_view flag) con
         return std::nullopt;
     }
     return *(found + 1);
+}
+
+std::optional<uint64_t> CommandLine::getCount(std::string_view flag) const {
+    if (!has(flag)) {
+        return std::nullopt;
+    }
+    const std::optional<std::string_view> text = getValue(flag);
+    if (!text) {
+        throw std::invalid_argument(std::format("{} needs a count, as in {} 600", flag, flag));
+    }
+    uint64_t count = 0;
+    const auto [parsedTo, error] = std::from_chars(text->data(), text->data() + text->size(), count);
+    if (error != std::errc{} || parsedTo != text->data() + text->size()) {
+        throw std::invalid_argument(std::format("{} needs a whole number, not '{}'", flag, std::string(*text)));
+    }
+    return count;
 }
 
 } // namespace dilithium

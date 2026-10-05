@@ -1,8 +1,8 @@
 #include "platform/WindowImpl.hpp"
 
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
 #include <dilithium/platform/Window.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <SDL3/SDL.h>
 

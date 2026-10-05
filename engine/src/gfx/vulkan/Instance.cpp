@@ -5,7 +5,7 @@
 #include "gfx/vulkan/VkCheck.hpp"
 #include "platform/WindowSurface.hpp"
 
-#include <dilithium/core/Log.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <array>
 #include <cstdint>

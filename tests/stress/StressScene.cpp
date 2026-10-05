@@ -2,7 +2,6 @@
 
 #include "StressSchedule.hpp"
 
-#include <dilithium/core/Assert.hpp>
 #include <dilithium/engine/Application.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
@@ -10,6 +9,7 @@
 #include <dilithium/math/Types.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/SceneServices.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <cmath>
 

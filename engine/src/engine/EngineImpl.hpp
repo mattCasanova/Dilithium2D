@@ -2,7 +2,6 @@
 
 #include "engine/AppStateTracker.hpp"
 #include "engine/FrameClock.hpp"
-#include "engine/RunOptions.hpp"
 
 #include <dilithium/engine/Application.hpp>
 #include <dilithium/engine/Engine.hpp>
@@ -13,6 +12,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace dilithium {
@@ -56,7 +56,7 @@ struct Engine::Impl final : Application {
     /// The window's pixel size changed: tell the current scene. The renderer finds out by itself each frame.
     void resized();
 
-    RunOptions options;
+    std::optional<uint64_t> frameLimit; ///< `--frames N`: quit after N loop ticks, exit 1 if validation spoke
     std::unique_ptr<Window> window;
     std::unique_ptr<Renderer> renderer;
     SceneManager scenes;

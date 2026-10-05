@@ -4,12 +4,12 @@
 #include "gfx/shaders/ColorPipeline.hpp"
 #include "gfx/swapchain/FramesInFlight.hpp"
 
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/gfx/renderers/DefaultRenderer.hpp>
 #include <dilithium/math/Types.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>

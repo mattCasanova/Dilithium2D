@@ -1,4 +1,3 @@
-#include <dilithium/core/Assert.hpp>
 #include <dilithium/engine/Application.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
@@ -6,6 +5,7 @@
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
 #include <dilithium/scenes/SceneServices.hpp>
+#include <dilithium/utilities/Assert.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 

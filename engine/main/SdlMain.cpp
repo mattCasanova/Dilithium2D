@@ -5,10 +5,10 @@
 
 #include "SdlAdapter.hpp"
 
-#include <dilithium/core/Assert.hpp>
-#include <dilithium/core/Log.hpp>
-#include <dilithium/engine/CommandLine.hpp>
 #include <dilithium/engine/Engine.hpp>
+#include <dilithium/utilities/Assert.hpp>
+#include <dilithium/utilities/CommandLine.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>

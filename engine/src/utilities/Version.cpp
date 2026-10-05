@@ -1,4 +1,4 @@
-#include <dilithium/core/Version.hpp>
+#include <dilithium/utilities/Version.hpp>
 
 #include <string_view>
 

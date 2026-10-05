@@ -1,6 +1,6 @@
 #include "gfx/vulkan/VkCheck.hpp"
 
-#include <dilithium/core/Log.hpp>
+#include <dilithium/utilities/Log.hpp>
 
 #include <cstdint>
 #include <cstdlib>
