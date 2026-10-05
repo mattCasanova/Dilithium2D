@@ -19,7 +19,7 @@ enum class SceneId { Stress };
 
 } // namespace
 
-std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& commandLine) {
+std::unique_ptr<dilithium::Engine> dilithium::Engine::create(const CommandLine& commandLine) {
     auto window = std::make_unique<Window>(WindowConfig{.title = "Dilithium2D stress run"});
     Window& stressWindow = *window; // the engine owns it and outlives every scene
     auto renderer = std::make_unique<DefaultRenderer>(*window);

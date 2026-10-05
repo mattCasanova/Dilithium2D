@@ -76,10 +76,10 @@ classDiagram
         -destroy() void
         +getExtent() [const] VkExtent2D
         +getFormat() [const] VkFormat
+        +getImage(uint32_t index) [const] VkImage
         +getRenderFinished(uint32_t index) [const] VkSemaphore
+        +getView(uint32_t index) [const] VkImageView
         +handle() [const] VkSwapchainKHR
-        +image(uint32_t index) [const] VkImage
-        +view(uint32_t index) [const] VkImageView
         -device : VkDevice
         -extent : VkExtent2D
         -format : VkFormat

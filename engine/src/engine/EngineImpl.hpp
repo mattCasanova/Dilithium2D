@@ -35,7 +35,7 @@ struct FrameCounts {
 
 /// Everything the engine owns, in creation order, so destruction runs the other way with no code for it: the scenes
 /// first (they use the renderer), then the renderer (it draws into the window), then the window. Shared by
-/// `Engine.cpp` (lifetime) and `main/EngineLoop.cpp` (the SDL side: frames and events). Nothing here names SDL.
+/// `Engine.cpp` (lifetime) and `main/SdlAdapter.cpp` (the SDL side: frames and events). Nothing here names SDL.
 struct Engine::Impl final : Application {
     Impl(std::unique_ptr<Window> newWindow, std::unique_ptr<Renderer> newRenderer, const CommandLine& commandLine);
 

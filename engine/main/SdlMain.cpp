@@ -1,9 +1,9 @@
 // SDL's entry point for every Dilithium2D program: the dilithium::main target. SDL owns the main loop and calls the
-// four SDL_App* callbacks below, which forward to the Engine the game built in createEngine. A game links this file
+// four SDL_App* callbacks below, which forward to the Engine the game built in Engine::create. A game links this file
 // and never includes an SDL header.
 #define SDL_MAIN_USE_CALLBACKS 1 // NOLINT(cppcoreguidelines-macro-usage): SDL_main.h reads it as a macro
 
-#include "EngineLoop.hpp"
+#include "SdlAdapter.hpp"
 
 #include <dilithium/core/Assert.hpp>
 #include <dilithium/core/Log.hpp>
@@ -24,9 +24,9 @@
 namespace {
 
 using dilithium::Engine;
-using dilithium::EngineLoop;
 using dilithium::logError;
 using dilithium::logInfo;
+using dilithium::SdlAdapter;
 
 /// Set by the signal handler, read once per iteration. The one file-scope variable in the engine: a signal handler
 /// can reach nothing else, and an atomic is the only thing it may touch.
@@ -84,9 +84,9 @@ SDL_AppResult startUp(void** appstate, int argc, char** argv) {
         throw std::runtime_error(std::format("SDL_Init failed: {}", SDL_GetError()));
     }
     const dilithium::CommandLine commandLine(argc, argv);
-    std::unique_ptr<Engine> engine = dilithium::createEngine(commandLine);
+    std::unique_ptr<Engine> engine = dilithium::Engine::create(commandLine);
     if (!engine) {
-        DILITHIUM_UNREACHABLE("createEngine returned null");
+        DILITHIUM_UNREACHABLE("Engine::create returned null");
     }
     // appstate is a plain pointer: ownership passes to SDL here and comes back in SDL_AppQuit.
     *appstate = engine.release();
@@ -105,12 +105,12 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
             logInfo("quitting on a signal");
             return SDL_APP_SUCCESS;
         }
-        return EngineLoop::iterate(engineFrom(appstate));
+        return SdlAdapter::iterate(engineFrom(appstate));
     });
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
-    return guarded("SDL_AppEvent", [&] { return EngineLoop::event(engineFrom(appstate), *event); });
+    return guarded("SDL_AppEvent", [&] { return SdlAdapter::event(engineFrom(appstate), *event); });
 }
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {

@@ -55,7 +55,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& commandLine) {
+std::unique_ptr<dilithium::Engine> dilithium::Engine::create(const CommandLine& commandLine) {
     auto window = std::make_unique<Window>(WindowConfig{.title = "D2 Triangle"});
     auto renderer = std::make_unique<DefaultRenderer>(*window);
     auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);

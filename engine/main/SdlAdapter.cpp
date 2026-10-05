@@ -1,4 +1,4 @@
-#include "EngineLoop.hpp"
+#include "SdlAdapter.hpp"
 
 #include "engine/AppStateTracker.hpp"
 #include "engine/EngineImpl.hpp"
@@ -11,7 +11,7 @@
 
 namespace dilithium {
 
-SDL_AppResult EngineLoop::iterate(Engine& engine) {
+SDL_AppResult SdlAdapter::iterate(Engine& engine) {
     switch (engine.impl->frame()) {
     case FrameResult::Continue:
         return SDL_APP_CONTINUE;
@@ -23,7 +23,7 @@ SDL_AppResult EngineLoop::iterate(Engine& engine) {
     DILITHIUM_UNREACHABLE("unknown FrameResult");
 }
 
-SDL_AppResult EngineLoop::event(Engine& engine, const SDL_Event& event) {
+SDL_AppResult SdlAdapter::event(Engine& engine, const SDL_Event& event) {
     Engine::Impl& impl = *engine.impl;
     switch (event.type) {
     case SDL_EVENT_QUIT:                   // Command-Q, the menu's Quit, the Dock's Quit, a logout

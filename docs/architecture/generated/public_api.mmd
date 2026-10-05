@@ -49,6 +49,7 @@ classDiagram
         +operator=(const Engine &) Engine &
         +operator=(Engine &&) Engine &
         +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void
+        +create(const CommandLine & commandLine) std::unique_ptr&lt;Engine&gt;$
         +getScenes() SceneManager &
         +setPausesWhenInactive(bool pauses) void
         -impl : std::unique_ptr&lt;Impl&gt;
@@ -228,9 +229,9 @@ classDiagram
     }
     C_0012504818906105801797 ()-- C_0010140022438352470747 : 
     C_0012078689987532246651 ..> C_0002322712453429534017 : 
+    C_0012504818906105801797 ..> C_0003433841011590959626 : 
     C_0012504818906105801797 ..> C_0006970481197969800549 : 
     C_0012504818906105801797 ..> C_0002210481607728283061 : 
-    C_0012504818906105801797 ..> C_0003433841011590959626 : 
     C_0012504818906105801797 ..> C_0004769106082399727328 : 
     C_0012504818906105801797 ..> C_0002322712453429534017 : 
     C_0007999178659969704793 ..> C_0006986081634680691647 : 

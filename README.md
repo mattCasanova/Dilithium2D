@@ -39,7 +39,7 @@ Then run the first demo, a window that clears to a slowly cycling color:
 
 ## Writing a game
 
-A game is scenes plus one function. A scene subclasses `dilithium::Scene`: its constructor is the setup, its destructor the shutdown, and it gets `update(dt)` and `draw()` once per frame. The function is `dilithium::createEngine`, which builds the window and the renderer, hands both to the engine, and registers the scenes:
+A game is scenes plus one function. A scene subclasses `dilithium::Scene`: its constructor is the setup, its destructor the shutdown, and it gets `update(dt)` and `draw()` once per frame. The function is `dilithium::Engine::create`, which builds the window and the renderer, hands both to the engine, and registers the scenes:
 
 ```cpp
 #include <dilithium/engine/Engine.hpp>
@@ -60,7 +60,7 @@ private:
     dilithium::Renderer& renderer;
 };
 
-std::unique_ptr<dilithium::Engine> dilithium::createEngine(const CommandLine& commandLine) {
+std::unique_ptr<dilithium::Engine> dilithium::Engine::create(const CommandLine& commandLine) {
     auto window = std::make_unique<Window>(WindowConfig{.title = "My Game"});
     auto renderer = std::make_unique<DefaultRenderer>(*window);
     auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);

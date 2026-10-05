@@ -32,11 +32,11 @@ dilithium_add_shaders(dilithium NAMESPACE dilithium::shaders FILES
     ${PROJECT_SOURCE_DIR}/shaders/color.frag)
 
 # The entry point: SDL's main() drives the game's Engine through the four SDL_App* callbacks in main/SdlMain.cpp,
-# and main/EngineLoop.cpp maps SDL's events and answers to the engine's. An OBJECT library, so its object files are
+# and main/SdlAdapter.cpp maps SDL's events and answers to the engine's. An OBJECT library, so its object files are
 # always linked in, and a target of its own, so the unit tests (Catch2's main) and tools with their own main() can
 # link the engine without it. A game links dilithium::main alone: it brings the engine with it (listing both puts
 # libdilithium.a on the link line twice, and Apple's linker warns).
-add_library(dilithium_main OBJECT main/SdlMain.cpp main/EngineLoop.cpp)
+add_library(dilithium_main OBJECT main/SdlMain.cpp main/SdlAdapter.cpp)
 add_library(dilithium::main ALIAS dilithium_main)
 
 # src for the engine's private headers (Engine::Impl); SDL for the callbacks and events.
