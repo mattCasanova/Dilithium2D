@@ -2,6 +2,7 @@
 
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/math/Types.hpp>
+#include <dilithium/utilities/NonMovable.hpp>
 
 #include <cstdint>
 
@@ -17,15 +18,10 @@ enum class FrameOutcome {
 /// What draws the frame, as LiquidMetal2D's `Renderer` protocol: one interface with both halves. Scenes call the
 /// recording half during `Scene::draw()`; the engine calls `drawFrame()` once per frame after it. `DefaultRenderer`
 /// is the engine's own implementation; a game, a tool or a test passes in another. Nothing here names Vulkan.
-class Renderer {
+class Renderer : NonMovable {
 public:
     Renderer() = default;
     virtual ~Renderer() = default;
-
-    Renderer(const Renderer&) = delete;
-    Renderer& operator=(const Renderer&) = delete;
-    Renderer(Renderer&&) = delete;
-    Renderer& operator=(Renderer&&) = delete;
 
     // --- what a scene calls, from draw()
 

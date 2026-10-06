@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dilithium/utilities/NonMovable.hpp>
+
 #include <vulkan/vulkan.h>
 
 #include <array>
@@ -20,15 +22,10 @@ struct FrameSlot {
 /// The per-frame sync objects that let the CPU record one frame while the GPU draws the other (the job of
 /// LiquidMetal2D's BufferProvider semaphore, per frame instead of per buffer). Not copyable or movable: RenderCore
 /// builds it in place.
-class FramesInFlight {
+class FramesInFlight : NonMovable {
 public:
     FramesInFlight(VkDevice newDevice, uint32_t queueFamily);
     ~FramesInFlight();
-
-    FramesInFlight(const FramesInFlight&) = delete;
-    FramesInFlight& operator=(const FramesInFlight&) = delete;
-    FramesInFlight(FramesInFlight&&) = delete;
-    FramesInFlight& operator=(FramesInFlight&&) = delete;
 
     [[nodiscard]] const FrameSlot& getCurrent() const { return slots[index]; }
     [[nodiscard]] uint32_t getIndex() const { return index; }

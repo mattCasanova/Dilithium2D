@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dilithium/utilities/NonMovable.hpp>
+
 #include <vulkan/vulkan.h>
 
 #include <cstdint>
@@ -17,17 +19,12 @@ struct ValidationLog {
 /// The Vulkan instance. In debug builds it runs the Khronos validation layer with a debug messenger, unless
 /// `DILITHIUM_NO_VALIDATION=1`; a validation error then aborts at the call that caused it. Not copyable or movable:
 /// RenderCore builds it in place.
-class Instance {
+class Instance : NonMovable {
 public:
     /// Throws `std::runtime_error` when the loader is older than 1.3, an extension the window needs is missing, or
     /// (with validation on) the validation layer is not installed.
     Instance();
     ~Instance();
-
-    Instance(const Instance&) = delete;
-    Instance& operator=(const Instance&) = delete;
-    Instance(Instance&&) = delete;
-    Instance& operator=(Instance&&) = delete;
 
     [[nodiscard]] VkInstance handle() const { return instance; }
 

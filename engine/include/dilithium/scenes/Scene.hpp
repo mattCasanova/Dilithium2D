@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dilithium/platform/AppState.hpp>
+#include <dilithium/utilities/NonMovable.hpp>
 
 namespace dilithium {
 
@@ -14,15 +15,10 @@ enum class QuitResponse {
 /// the subclass with `SceneManager::add`; the manager builds it with `SceneType(SceneServices&)` and destroys it when
 /// it is replaced or popped. The constructor is the setup and the destructor the shutdown, so there is no `init` or
 /// `shutdown` to forget; the hooks below are for what is neither.
-class Scene {
+class Scene : NonMovable {
 public:
     Scene() = default;
     virtual ~Scene() = default;
-
-    Scene(const Scene&) = delete;
-    Scene& operator=(const Scene&) = delete;
-    Scene(Scene&&) = delete;
-    Scene& operator=(Scene&&) = delete;
 
     /// Once per frame. `dt` is in seconds, clamped so a stall (a breakpoint, a window drag) moves the game one step.
     virtual void update(float dt) = 0;

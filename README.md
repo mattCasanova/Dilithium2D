@@ -39,11 +39,11 @@ Then run the first demo, a window that clears to a slowly cycling color:
 
 ## Writing a game
 
-A game is scenes plus one function. A scene subclasses `dilithium::Scene`: its constructor is the setup, its destructor the shutdown, and it gets `update(dt)` and `draw()` once per frame. The function is `dilithium::Engine::create`, which builds the window and the renderer, hands both to the engine, and registers the scenes:
+A game is scenes plus an `Application` subclass. A scene subclasses `dilithium::Scene`: its constructor is the setup, its destructor the shutdown, and it gets `update(dt)` and `draw()` once per frame. The application says which window and which scenes, and the engine's shell builds and runs it:
 
 ```cpp
-#include <dilithium/engine/Engine.hpp>
-#include <dilithium/gfx/renderers/DefaultRenderer.hpp>
+#include <dilithium/engine/Application.hpp>
+#include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
@@ -60,17 +60,21 @@ private:
     dilithium::Renderer& renderer;
 };
 
-std::unique_ptr<dilithium::Engine> dilithium::Engine::create(const CommandLine& commandLine) {
-    auto window = std::make_unique<Window>(WindowConfig{.title = "My Game"});
-    auto renderer = std::make_unique<DefaultRenderer>(*window);
-    auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);
-    engine->getScenes().add<MenuScene>(SceneId::Menu);
-    engine->getScenes().start(SceneId::Menu);
-    return engine;
+class MyGame final : public dilithium::Application {
+    using Application::Application;
+    dilithium::WindowConfig windowConfig() const override { return {.title = "My Game"}; }
+    void registerScenes(dilithium::SceneManager& scenes) override {
+        scenes.add<MenuScene>(SceneId::Menu);
+        scenes.start(SceneId::Menu);
+    }
+};
+
+std::unique_ptr<dilithium::Application> dilithium::createApplication(const CommandLine& commandLine) {
+    return std::make_unique<MyGame>(commandLine);
 }
 ```
 
-Scenes change screens through `services.scenes`: `set` replaces the current scene, `push` covers it (a pause menu), `pop` returns. Each happens at the start of the next frame. In CMake, pull the engine in with `FetchContent` and link `dilithium::main`; it brings SDL's entry point and the engine with it, and your code never sees an SDL or Vulkan header. `demos/d01_clear_screen/` is a complete example: `main.cpp` holds `Engine::create`, and the scene has its own files.
+Scenes change screens through `services.scenes`: `set` replaces the current scene, `push` covers it (a pause menu), `pop` returns. Each happens at the start of the next frame. In CMake, pull the engine in with `FetchContent` and link `dilithium::main`; it brings the entry point and the engine with it, and your code never sees an SDL or Vulkan header. `demos/d01_clear_screen/` is a complete example.
 
 ## Architecture
 

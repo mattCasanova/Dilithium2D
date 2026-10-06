@@ -13,11 +13,7 @@ classDiagram
     class C_0002210481607728283061 {
         <<abstract>>
         +Renderer() [default] void
-        +Renderer(const Renderer &) void
-        +Renderer(Renderer &&) void
         +~Renderer() [default,constexpr] void
-        +operator=(const Renderer &) Renderer &
-        +operator=(Renderer &&) Renderer &
         +drawFrame() FrameOutcome*
         +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
         +getProblemsReported() [const] uint32_t
@@ -26,11 +22,7 @@ classDiagram
     class C_0014652720749054439479["DefaultRenderer"]
     class C_0014652720749054439479 {
         +DefaultRenderer(const Window & window) void
-        +DefaultRenderer(const DefaultRenderer &) void
-        +DefaultRenderer(DefaultRenderer &&) void
         +~DefaultRenderer() void
-        +operator=(const DefaultRenderer &) DefaultRenderer &
-        +operator=(DefaultRenderer &&) DefaultRenderer &
         +drawFrame() FrameOutcome
         +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void
         +getProblemsReported() [const] uint32_t
@@ -63,11 +55,7 @@ classDiagram
     class C_0015272475129929318899["Swapchain"]
     class C_0015272475129929318899 {
         +Swapchain(VkPhysicalDevice physical, VkDevice newDevice, VkSurfaceKHR surface, const VkSurfaceCapabilitiesKHR & capabilities, VkExtent2D newExtent, VkSwapchainKHR oldSwapchain) void
-        +Swapchain(const Swapchain &) void
-        +Swapchain(Swapchain &&) void
         +~Swapchain() void
-        +operator=(const Swapchain &) Swapchain &
-        +operator=(Swapchain &&) Swapchain &
         -destroy() void
         +getExtent() [const] VkExtent2D
         +getFormat() [const] VkFormat
@@ -93,11 +81,7 @@ classDiagram
     class C_0003143616909599567436["FramesInFlight"]
     class C_0003143616909599567436 {
         +FramesInFlight(VkDevice newDevice, uint32_t queueFamily) void
-        +FramesInFlight(const FramesInFlight &) void
-        +FramesInFlight(FramesInFlight &&) void
         +~FramesInFlight() void
-        +operator=(const FramesInFlight &) FramesInFlight &
-        +operator=(FramesInFlight &&) FramesInFlight &
         +advance() void
         -destroy() void
         +getCurrent() [const] const FrameSlot &
@@ -112,11 +96,7 @@ classDiagram
     class C_0009549682339495671617["Device"]
     class C_0009549682339495671617 {
         +Device(VkInstance instance, VkSurfaceKHR surface) void
-        +Device(const Device &) void
-        +Device(Device &&) void
         +~Device() void
-        +operator=(const Device &) Device &
-        +operator=(Device &&) Device &
         +getPhysical() [const] VkPhysicalDevice
         +getQueue() [const] VkQueue
         +getQueueFamily() [const] uint32_t
@@ -135,22 +115,14 @@ classDiagram
     class C_0011954012887602940861["Allocator"]
     class C_0011954012887602940861 {
         +Allocator(VkInstance instance, VkPhysicalDevice physical, VkDevice device) void
-        +Allocator(const Allocator &) void
-        +Allocator(Allocator &&) void
         +~Allocator() void
-        +operator=(const Allocator &) Allocator &
-        +operator=(Allocator &&) Allocator &
         +handle() [const] VmaAllocator
         -allocator : VmaAllocator
     }
     class C_0007048077546363564696["Surface"]
     class C_0007048077546363564696 {
         +Surface(VkInstance newInstance, const Window & window) void
-        +Surface(const Surface &) void
-        +Surface(Surface &&) void
         +~Surface() void
-        +operator=(const Surface &) Surface &
-        +operator=(Surface &&) Surface &
         +handle() [const] VkSurfaceKHR
         -instance : VkInstance
         -surface : VkSurfaceKHR
@@ -163,11 +135,7 @@ classDiagram
     class C_0011991404688252634186["Instance"]
     class C_0011991404688252634186 {
         +Instance() void
-        +Instance(const Instance &) void
-        +Instance(Instance &&) void
         +~Instance() void
-        +operator=(const Instance &) Instance &
-        +operator=(Instance &&) Instance &
         +getValidationMessages() [const] uint32_t
         +handle() [const] VkInstance
         -destroyMessenger : PFN_vkDestroyDebugUtilsMessengerEXT
@@ -237,11 +205,7 @@ classDiagram
     class C_0006496936420723946626["RenderCore"]
     class C_0006496936420723946626 {
         +RenderCore(const Window & window) void
-        +RenderCore(const RenderCore &) void
-        +RenderCore(RenderCore &&) void
         +~RenderCore() void
-        +operator=(const RenderCore &) RenderCore &
-        +operator=(RenderCore &&) RenderCore &
         -beginCommands(const FrameSlot & frame, uint32_t imageIndex, Color clearColor) [const] void
         +beginFrame(const Window & window, Color clearColor) FrameBegin
         -endCommands(const FrameSlot & frame, uint32_t imageIndex) [const] void
@@ -289,11 +253,9 @@ classDiagram
     class C_0000930647235343884369["Buffer"]
     class C_0000930647235343884369 {
         +Buffer() [default] void
-        +Buffer(const Buffer &) void
         +Buffer(Buffer && other) void
         -Buffer(VmaAllocator newAllocator, VkBuffer newBuffer, VmaAllocation newAllocation, VkDeviceSize newSize, void * newMapped) void
         +~Buffer() void
-        +operator=(const Buffer &) Buffer &
         +operator=(Buffer && other) Buffer &
         -destroy() void
         +getSize() [const] VkDeviceSize
@@ -309,11 +271,7 @@ classDiagram
     class C_0007589477182283922701["ColorPipeline"]
     class C_0007589477182283922701 {
         +ColorPipeline(VkDevice newDevice, VkFormat newColorFormat) void
-        +ColorPipeline(const ColorPipeline &) void
-        +ColorPipeline(ColorPipeline &&) void
         +~ColorPipeline() void
-        +operator=(const ColorPipeline &) ColorPipeline &
-        +operator=(ColorPipeline &&) ColorPipeline &
         +getColorFormat() [const] VkFormat
         +getLayout() [const] VkPipelineLayout
         +handle() [const] VkPipeline
@@ -325,10 +283,8 @@ classDiagram
     class C_0011564019457344354336["ShaderModule"]
     class C_0011564019457344354336 {
         +ShaderModule(VkDevice newDevice, std::span&lt;const uint32_t&gt; spirv) void
-        +ShaderModule(const ShaderModule &) void
         +ShaderModule(ShaderModule && other) void
         +~ShaderModule() void
-        +operator=(const ShaderModule &) ShaderModule &
         +operator=(ShaderModule && other) ShaderModule &
         -destroy() void
         +handle() [const] VkShaderModule

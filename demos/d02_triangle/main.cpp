@@ -1,25 +1,31 @@
 #include "TriangleScene.hpp"
 
-#include <dilithium/engine/Engine.hpp>
-#include <dilithium/gfx/renderers/DefaultRenderer.hpp>
+#include <dilithium/engine/Application.hpp>
 #include <dilithium/platform/Window.hpp>
 #include <dilithium/scenes/SceneManager.hpp>
 #include <dilithium/utilities/CommandLine.hpp>
 
 #include <memory>
-#include <utility>
 
 namespace {
 
 enum class SceneId { Triangle };
 
+class TriangleApp final : public dilithium::Application {
+public:
+    using Application::Application;
+
+protected:
+    [[nodiscard]] dilithium::WindowConfig windowConfig() const override { return {.title = "D2 Triangle"}; }
+
+    void registerScenes(dilithium::SceneManager& scenes) override {
+        scenes.add<demo::TriangleScene>(SceneId::Triangle);
+        scenes.start(SceneId::Triangle);
+    }
+};
+
 } // namespace
 
-std::unique_ptr<dilithium::Engine> dilithium::Engine::create(const CommandLine& commandLine) {
-    auto window = std::make_unique<Window>(WindowConfig{.title = "D2 Triangle"});
-    auto renderer = std::make_unique<DefaultRenderer>(*window);
-    auto engine = std::make_unique<Engine>(std::move(window), std::move(renderer), commandLine);
-    engine->getScenes().add<demo::TriangleScene>(SceneId::Triangle);
-    engine->getScenes().start(SceneId::Triangle);
-    return engine;
+std::unique_ptr<dilithium::Application> dilithium::createApplication(const CommandLine& commandLine) {
+    return std::make_unique<TriangleApp>(commandLine);
 }

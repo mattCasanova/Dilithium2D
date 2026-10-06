@@ -1,4 +1,4 @@
-#include <dilithium/engine/Application.hpp>
+#include <dilithium/engine/AppServices.hpp>
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
 #include <dilithium/math/Types.hpp>
@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-using dilithium::Application;
+using dilithium::AppServices;
 using dilithium::AppState;
 using dilithium::Color;
 using dilithium::FrameOutcome;
@@ -45,7 +45,7 @@ public:
 };
 
 /// Counts quits instead of quitting.
-class FakeApplication final : public Application {
+class FakeAppServices final : public AppServices {
 public:
     void quit() override { ++quits; }
     [[nodiscard]] AppState getState() const override { return AppState::Active; }
@@ -69,11 +69,6 @@ public:
     explicit FakeScene(SceneServices& given) : services(given) { note("built"); }
     // NOLINTNEXTLINE(bugprone-exception-escape): it logs; a bad_alloc here ends the test, which is right
     ~FakeScene() override { note("destroyed"); }
-
-    FakeScene(const FakeScene&) = delete;
-    FakeScene& operator=(const FakeScene&) = delete;
-    FakeScene(FakeScene&&) = delete;
-    FakeScene& operator=(FakeScene&&) = delete;
 
     void update(float /*dt*/) override {
         note("update");
@@ -116,7 +111,7 @@ using SceneC = FakeScene<'C'>;
 /// A manager with A, B and C registered and A started, plus its renderer.
 struct Fixture {
     FakeRenderer renderer;
-    FakeApplication app;
+    FakeAppServices app;
     SceneManager scenes{renderer, app};
 
     Fixture() {
@@ -202,7 +197,7 @@ TEST_CASE("performTransition says whether one happened", "[scenes]") {
 
 TEST_CASE("the stack is destroyed top down with the manager", "[scenes]") {
     FakeRenderer renderer;
-    FakeApplication app;
+    FakeAppServices app;
     {
         SceneManager scenes{renderer, app};
         scenes.add<SceneA>(SceneId::A);
@@ -247,7 +242,7 @@ TEST_CASE("a builder lambda registers a scene with arguments of its own", "[scen
     };
     enum class Id { Level }; // its own enum, so its own manager: one enum per game, and values are the keys
     FakeRenderer renderer;
-    FakeApplication app;
+    FakeAppServices app;
     SceneManager scenes{renderer, app};
     const int level = 7;
     scenes.add(Id::Level, [level](SceneServices& services) -> std::unique_ptr<Scene> {
@@ -271,7 +266,7 @@ TEST_CASE("the base Scene's quitRequested quits", "[scenes]") {
 
 TEST_CASE("programmer errors stop at the request, in release as logic_error", "[scenes][assert]") {
     FakeRenderer renderer;
-    FakeApplication app;
+    FakeAppServices app;
     SceneManager scenes{renderer, app};
     scenes.add<SceneA>(SceneId::A);
 

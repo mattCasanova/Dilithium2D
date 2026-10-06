@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dilithium/platform/AppState.hpp>
+#include <dilithium/utilities/NonMovable.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -27,16 +28,11 @@ struct PixelSize {
 /// The program's one window: resizable, full pixel density, ready for a renderer to draw into. LiquidMetal2D's
 /// `parentView`. The game builds it and hands it to the `Engine`, which owns it. Every size that reaches the GPU
 /// comes from `getPixelSize()`, never the size in points. The window system behind it is in the `.cpp` only.
-class Window {
+class Window : NonMovable {
 public:
     /// Throws `std::runtime_error` with the window system's message if the window cannot be made.
     explicit Window(const WindowConfig& config);
     ~Window();
-
-    Window(const Window&) = delete;
-    Window& operator=(const Window&) = delete;
-    Window(Window&&) = delete;
-    Window& operator=(Window&&) = delete;
 
     [[nodiscard]] PixelSize getPixelSize() const;
     [[nodiscard]] bool isMinimized() const;

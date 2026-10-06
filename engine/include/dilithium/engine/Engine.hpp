@@ -1,53 +1,64 @@
 #pragma once
 
-#include <dilithium/engine/Application.hpp>
+#include <dilithium/platform/AppState.hpp>
+#include <dilithium/utilities/NonMovable.hpp>
 
 #include <functional>
-#include <memory>
 
 namespace dilithium {
 
-class CommandLine;
 class Renderer;
 class SceneManager;
-class Window;
 
-/// Runs the game: owns the window and the renderer the game built, the scenes, the frame clock and the frame counts,
-/// and advances one frame each time the platform's loop asks. LiquidMetal2D's `DefaultEngine`. The game creates it
-/// in `Engine::create`, registers its scenes, names the first, and returns it; the platform's entry point
-/// (`dilithium::main`) drives it from there and destroys it at quit. Nothing here names the window system or the GPU.
-class Engine {
+/// What one frame asks the shell to do next.
+enum class FrameResult {
+    Continue, ///< keep calling
+    Finished, ///< a `--frames` run ended clean: exit 0
+    Failed,   ///< a `--frames` run ended with validation messages: exit 1
+};
+
+/// Runs the game: owns the renderer and the scenes, and advances one frame each time the application asks.
+/// LiquidMetal2D's `GameEngine` protocol: `DefaultEngine` is the engine's own implementation, and a game that wants
+/// another returns it from `Application::createEngine`. The `Application` registers scenes on it and forwards the
+/// window's events to it. Nothing here names the window system or the GPU.
+class Engine : NonMovable {
 public:
-    /// Defined by the game, once per executable, and declared here so it has a home: build a `Window`, a `Renderer`
-    /// and the `Engine`, register scenes, start the first. The engine's entry point calls it at start-up.
-    static std::unique_ptr<Engine> create(const CommandLine& commandLine);
+    Engine() = default;
+    virtual ~Engine() = default; ///< scenes first, while the GPU they use still exists; then the renderer
 
-    /// Takes ownership of both. The renderer must have been built for that window. Reads the engine's own flags
-    /// from the command line; throws `std::invalid_argument` on a bad one.
-    Engine(std::unique_ptr<Window> window, std::unique_ptr<Renderer> renderer, const CommandLine& commandLine);
-    ~Engine(); ///< scenes first, while the GPU and window they use still exist; then the renderer; then the window
+    [[nodiscard]] virtual SceneManager& getScenes() = 0;
+    [[nodiscard]] virtual Renderer& getRenderer() = 0;
 
-    Engine(const Engine&) = delete;
-    Engine& operator=(const Engine&) = delete;
-    Engine(Engine&&) = delete;
-    Engine& operator=(Engine&&) = delete;
+    // --- what the application forwards, from the window and the shell
 
-    /// Register scenes here and `start` the first, before returning from `Engine::create`.
-    [[nodiscard]] SceneManager& getScenes();
+    /// One frame: a pending scene transition, update, draw, present; or nothing, while the loop stands still.
+    [[nodiscard]] virtual FrameResult frame() = 0;
 
-    /// App-level code that wants every `AppState` change, whichever scene is on top (a save service). Told before
-    /// the current scene, in the order added.
-    void addAppStateObserver(std::function<void(AppState)> observer);
+    /// A state was reported (by the window, or a phone's lifecycle): delivered to the observers and the scene on
+    /// top only when it differs from the last one delivered, then the loop freezes or thaws.
+    virtual void appStateReported(AppState state) = 0;
 
-    /// Whether the loop stands still while the app is visible but without focus. On by default; off for a game
-    /// that must keep running behind another app. It always stands still in the background.
-    void setPausesWhenInactive(bool pauses);
+    /// The window's pixel size changed: tell the scene on top. The renderer finds out by itself each frame.
+    virtual void resized() = 0;
 
-private:
-    friend class SdlAdapter; ///< the entry point's only way in: one frame, one event
+    /// The player asked to quit: ask the scene on top; quit unless it took the request over.
+    virtual void quitRequested() = 0;
 
-    struct Impl;
-    std::unique_ptr<Impl> impl;
+    /// Quits for real: the run ends at the start of the next frame.
+    virtual void quit() = 0;
+
+    /// The state the game was last told.
+    [[nodiscard]] virtual AppState getState() const = 0;
+
+    // --- what the application (or a game, through it) sets
+
+    /// App-level code that wants every `AppState` change, whichever scene is on top. Told before the scene, in the
+    /// order added. The `Application` registers its own hook here.
+    virtual void addAppStateObserver(std::function<void(AppState)> observer) = 0;
+
+    /// Whether the loop stands still while the app is visible but without focus. On by default. It always stands
+    /// still in the background.
+    virtual void setPausesWhenInactive(bool pauses) = 0;
 };
 
 } // namespace dilithium

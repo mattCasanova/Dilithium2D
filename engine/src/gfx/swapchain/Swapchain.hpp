@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dilithium/utilities/NonMovable.hpp>
+
 #include <vulkan/vulkan.h>
 
 #include <cstdint>
@@ -11,18 +13,13 @@ namespace dilithium {
 /// "rendering finished" semaphore: with 3 images and 2 frames in flight, a semaphore per frame slot could be
 /// signaled again while a present still waits on it. Not copyable or movable: RenderCore swaps in a new one, and the
 /// old one lives until the new one exists.
-class Swapchain {
+class Swapchain : NonMovable {
 public:
     /// `oldSwapchain` is the one being replaced, or `VK_NULL_HANDLE`. Throws `std::runtime_error` when the surface
     /// offers no usable format, present mode or composite alpha.
     Swapchain(VkPhysicalDevice physical, VkDevice newDevice, VkSurfaceKHR surface,
               const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D newExtent, VkSwapchainKHR oldSwapchain);
     ~Swapchain();
-
-    Swapchain(const Swapchain&) = delete;
-    Swapchain& operator=(const Swapchain&) = delete;
-    Swapchain(Swapchain&&) = delete;
-    Swapchain& operator=(Swapchain&&) = delete;
 
     [[nodiscard]] VkSwapchainKHR handle() const { return swapchain; }
     [[nodiscard]] VkExtent2D getExtent() const { return extent; }

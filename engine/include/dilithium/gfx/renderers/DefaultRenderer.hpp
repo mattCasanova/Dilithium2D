@@ -21,11 +21,6 @@ public:
     explicit DefaultRenderer(const Window& window);
     ~DefaultRenderer() override;
 
-    DefaultRenderer(const DefaultRenderer&) = delete;
-    DefaultRenderer& operator=(const DefaultRenderer&) = delete;
-    DefaultRenderer(DefaultRenderer&&) = delete;
-    DefaultRenderer& operator=(DefaultRenderer&&) = delete;
-
     void setClearColor(Color color) override;
     void drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) override;
     FrameOutcome drawFrame() override;

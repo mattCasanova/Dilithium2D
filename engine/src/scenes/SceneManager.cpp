@@ -9,7 +9,7 @@
 
 namespace dilithium {
 
-SceneManager::SceneManager(Renderer& renderer, Application& app)
+SceneManager::SceneManager(Renderer& renderer, AppServices& app)
     : services{.renderer = renderer, .scenes = *this, .app = app} {}
 
 SceneManager::~SceneManager() {

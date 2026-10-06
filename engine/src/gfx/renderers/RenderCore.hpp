@@ -9,6 +9,7 @@
 
 #include <dilithium/gfx/Color.hpp>
 #include <dilithium/gfx/Renderer.hpp>
+#include <dilithium/utilities/NonMovable.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -28,15 +29,10 @@ enum class FrameBegin {
 /// Owns the GPU side of the engine (LiquidMetal2D's RenderCore): instance, surface, device, allocator, swapchain and
 /// frame sync. Members are declared in creation order, so they are destroyed in the reverse order with no code for
 /// it. A lost device anywhere fails with a "device lost" report (see `VK_CHECK`).
-class RenderCore {
+class RenderCore : NonMovable {
 public:
     explicit RenderCore(const Window& window);
     ~RenderCore();
-
-    RenderCore(const RenderCore&) = delete;
-    RenderCore& operator=(const RenderCore&) = delete;
-    RenderCore(RenderCore&&) = delete;
-    RenderCore& operator=(RenderCore&&) = delete;
 
     /// Opens a frame: waits for its slot, acquires an image, and begins rendering into it, cleared to `clearColor`.
     /// On `Ready`, record draws into `getCommands()` and call `endFrame()`; on anything else, do not.

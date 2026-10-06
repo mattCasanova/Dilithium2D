@@ -1,8 +1,9 @@
 # Architecture
 
-Dilithium2D is a library a game links. The game writes scenes and one function, `Engine::create`, that builds a
-window, a renderer and the engine from them; SDL's entry point (`dilithium::main`) drives the engine one frame per
-callback. The design mirrors LiquidMetal2D (Swift/Metal): the same pieces under the same names, in C++ on Vulkan.
+Dilithium2D is a library a game links. The game writes scenes and an `Application` subclass (LiquidMetal2D's view
+controller) that says which window, which scenes and, if it wants, which renderer and which engine; the shell
+(`dilithium::main`) builds it and drives it one frame per callback. The design mirrors LiquidMetal2D (Swift/Metal): the
+same pieces under the same names, in C++ on Vulkan.
 
 This diagram is drawn by hand and says what the layers are meant to be. The pages under `generated/` are drawn
 from the code by `tools/diagrams.sh` and say what it is; when the two disagree, one of them is wrong.
@@ -10,27 +11,27 @@ from the code by `tools/diagrams.sh` and say what it is; when the two disagree, 
 ```mermaid
 flowchart TB
     subgraph game["The game (its own repo)"]
-        Engine::create["Engine::create(CommandLine)"]
+        GameApp["MyGame: Application subclass; createApplication()"]
         scenes["Scenes: Scene subclasses"]
     end
 
-    subgraph entry["engine/main: the SDL entry point (dilithium::main)"]
-        SdlMain["SdlMain.cpp: the four SDL_App* callbacks, the exception guard"]
-        SdlAdapter["SdlAdapter: SDL's events and answers, mapped to the engine's"]
+    subgraph shell["engine/shell: the shell (dilithium::main)"]
+        Shell["Shell: main, the four platform callbacks, the exception guard, the quit signal"]
     end
 
     subgraph public["engine/include/dilithium: the public API, no SDL or Vulkan type"]
-        Engine["engine/: Engine, Application"]
+        Application["engine/: Application (owns the window and the engine), AppServices"]
+        Engine["engine/: Engine (interface), DefaultEngine (owns the renderer and the scenes)"]
         SceneAPI["scenes/: Scene, SceneManager, SceneServices"]
         Renderer["gfx/: Renderer (interface), Color"]
         DefaultRenderer["gfx/renderers/: DefaultRenderer (pimpl)"]
         Window["platform/: Window (pimpl), AppState"]
         Math["math/: Types (glm), Math, Shapes, Intersect, Easing"]
-        Utilities["utilities/: Log, Assert, Version, CommandLine"]
+        Utilities["utilities/: Log, Assert, Version, CommandLine, NonCopyable, NonMovable"]
     end
 
     subgraph private["engine/src: private"]
-        EngineImpl["engine/: Engine::Impl, FrameClock"]
+        EngineImpl["engine/: DefaultEngine::Impl, FrameClock"]
         RenderCore["gfx/renderers/: RenderCore (the frame: acquire, record, submit, present)"]
         Vulkan["gfx/vulkan/: Instance, Device, Surface, Allocator, VkCheck"]
         Swapchain["gfx/swapchain/: Swapchain, FramesInFlight"]
@@ -39,12 +40,11 @@ flowchart TB
         WindowImpl["platform/: WindowImpl (SDL_Window), WindowSurface (where the window meets Vulkan)"]
     end
 
-    Engine::create --> Window & DefaultRenderer & Engine
+    GameApp -- subclasses --> Application
     scenes --> SceneAPI
     scenes -. "draw into" .-> Renderer
-    SdlMain --> Engine::create
-    SdlMain --> SdlAdapter
-    SdlAdapter --> EngineImpl
+    Shell -- "createApplication(), start(), frame(), events" --> Application
+    Application --> Window & DefaultRenderer & Engine
     Engine --> EngineImpl
     EngineImpl --> SceneAPI
     EngineImpl -. "drawFrame()" .-> Renderer
@@ -74,7 +74,7 @@ Rules the layering rests on (`CLAUDE.md` has the full list):
 | [`generated/layers.md`](generated/layers.md) | the folders of `engine/` as packages, with the dependency arrows the code has |
 | [`generated/public_api.md`](generated/public_api.md) | every public class, with inheritance and ownership |
 | [`generated/renderer_stack.md`](generated/renderer_stack.md) | `Renderer` → `DefaultRenderer` → `RenderCore` → the Vulkan pieces |
-| [`generated/frame.md`](generated/frame.md) | one frame as a sequence, from `SdlAdapter::iterate` down |
+| [`generated/frame.md`](generated/frame.md) | one frame as a sequence, from `Shell::iterate` down |
 | [`generated/includes.md`](generated/includes.md) | who includes whom |
 
 Regenerate with `tools/diagrams.sh` after an API change (needs a debug build and `brew install clang-uml`).

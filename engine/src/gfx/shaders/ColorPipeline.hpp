@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dilithium/utilities/NonMovable.hpp>
+
 #include <vulkan/vulkan.h>
 
 namespace dilithium {
@@ -8,15 +10,10 @@ namespace dilithium {
 /// of `colorFormat`, through dynamic rendering (no render pass object). Viewport and scissor are dynamic, so a resize
 /// never rebuilds it; only a change of color format does. No blending (D4) and no depth yet. Not copyable or
 /// movable: `DefaultRenderer` holds it in place and rebuilds it by assignment of a new one.
-class ColorPipeline {
+class ColorPipeline : NonMovable {
 public:
     ColorPipeline(VkDevice newDevice, VkFormat newColorFormat);
     ~ColorPipeline();
-
-    ColorPipeline(const ColorPipeline&) = delete;
-    ColorPipeline& operator=(const ColorPipeline&) = delete;
-    ColorPipeline(ColorPipeline&&) = delete;
-    ColorPipeline& operator=(ColorPipeline&&) = delete;
 
     [[nodiscard]] VkPipeline handle() const { return pipeline; }
     [[nodiscard]] VkPipelineLayout getLayout() const { return layout; }

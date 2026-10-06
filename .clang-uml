@@ -21,14 +21,14 @@ diagrams:
     glob:
       - src/*/*.cpp
       - src/*/*/*.cpp
-      - main/*.cpp
+      - shell/*.cpp
     using_namespace: dilithium
     include:
       paths: [include]
       namespaces: [dilithium]
     exclude:
       namespaces: [dilithium::detail, dilithium::math, dilithium::easing, dilithium::intersect, dilithium::colors]
-      elements: [dilithium::Engine::Impl, dilithium::SdlAdapter, dilithium::SceneManager::Request]
+      elements: [dilithium::DefaultEngine::Impl, dilithium::Shell, dilithium::SceneManager::Request]
     generate_packages: true
     package_type: directory
 
@@ -57,11 +57,11 @@ diagrams:
     glob:
       - src/*/*.cpp
       - src/*/*/*.cpp
-      - main/*.cpp
+      - shell/*.cpp
     using_namespace: dilithium
     package_type: directory
     include:
-      paths: [include, src, main]
+      paths: [include, src, shell]
 
   # One frame, from the engine loop down to the renderer. Logging and assertions are left out: they are everywhere
   # and say nothing about the flow.
@@ -70,19 +70,19 @@ diagrams:
     title: One frame
     relative_to: engine
     glob:
-      - main/SdlAdapter.cpp
+      - shell/Shell.cpp
       - src/engine/*.cpp
       - src/scenes/*.cpp
       - src/gfx/renderers/*.cpp
     using_namespace: dilithium
     include:
-      paths: [include, src, main]
+      paths: [include, src, shell]
     exclude:
-      paths: [include/dilithium/utilities, src/utilities, main/SdlMain.cpp]
+      paths: [include/dilithium/utilities, src/utilities]
       namespaces: [dilithium::detail]
     combine_free_functions_into_file_participants: true
     from:
-      - function: "dilithium::SdlAdapter::iterate(Engine &)"
+      - function: "dilithium::Shell::iterate(void *)"
 
   # Who includes whom; a check on the header rules.
   includes:
@@ -92,7 +92,7 @@ diagrams:
     glob:
       - src/*/*.cpp
       - src/*/*/*.cpp
-      - main/*.cpp
+      - shell/*.cpp
     include:
-      paths: [include, src, main]
+      paths: [include, src, shell]
     generate_system_headers: false

@@ -2,6 +2,7 @@
 
 #include <dilithium/scenes/Scene.hpp>
 #include <dilithium/scenes/SceneServices.hpp>
+#include <dilithium/utilities/NonMovable.hpp>
 
 #include <concepts>
 #include <cstdint>
@@ -13,7 +14,7 @@
 
 namespace dilithium {
 
-class Application;
+class AppServices;
 class Renderer;
 
 /// A scene ID is any enum the game declares: `enum class SceneId { Menu, Play }`.
@@ -27,15 +28,10 @@ concept SceneId = std::is_enum_v<Id>;
 /// the middle of its own `update`. The new scene is then updated and drawn in that same frame. A second request in
 /// one frame replaces the first, with a warning. Programmer errors (an ID never registered, `pop` with one scene
 /// left, a frame with no scene) stop the program at the request through `DILITHIUM_UNREACHABLE`.
-class SceneManager {
+class SceneManager : NonMovable {
 public:
-    SceneManager(Renderer& renderer, Application& app);
+    SceneManager(Renderer& renderer, AppServices& app);
     ~SceneManager(); ///< destroys the stack top down
-
-    SceneManager(const SceneManager&) = delete;
-    SceneManager& operator=(const SceneManager&) = delete;
-    SceneManager(SceneManager&&) = delete;
-    SceneManager& operator=(SceneManager&&) = delete;
 
     /// Builds a scene from the services. For a scene whose constructor takes more than the services.
     using Builder = std::function<std::unique_ptr<Scene>(SceneServices&)>;

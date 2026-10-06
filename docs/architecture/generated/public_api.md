@@ -33,11 +33,7 @@ classDiagram
     class C_0006970481197969800549["Window"]
     class C_0006970481197969800549 {
         +Window(const WindowConfig & config) void
-        +Window(const Window &) void
-        +Window(Window &&) void
         +~Window() void
-        +operator=(const Window &) Window &
-        +operator=(Window &&) Window &
         +getAppState() [const] AppState
         +getImpl() [const] const Impl &
         +getPixelSize() [const] PixelSize
@@ -46,6 +42,41 @@ classDiagram
         +resize(int width, int height) void
         +restore() void
         -impl : std::unique_ptr&lt;Impl&gt;
+    }
+    class C_0014509190524306294336["NonCopyable"]
+    class C_0014509190524306294336 {
+        +NonCopyable(const NonCopyable &) void
+        #NonCopyable() [default] void
+        #NonCopyable(NonCopyable &&) [default] void
+        #~NonCopyable() [default,constexpr] void
+        +operator=(const NonCopyable &) NonCopyable &
+        #operator=(NonCopyable &&) [default,constexpr] NonCopyable &
+    }
+    class C_0009699687343467191142["NonMovable"]
+    class C_0009699687343467191142 {
+        +NonMovable(const NonMovable &) void
+        +NonMovable(NonMovable &&) void
+        #NonMovable() [default] void
+        #~NonMovable() [default,constexpr] void
+        +operator=(const NonMovable &) NonMovable &
+        +operator=(NonMovable &&) NonMovable &
+    }
+    class C_0003433841011590959626["CommandLine"]
+    class C_0003433841011590959626 {
+        +CommandLine(int argc, const char *const * argv) void
+        +getAll() [const] std::span&lt;const std::string_view&gt;
+        +getCount(std::string_view flag) [const] std::optional&lt;uint64_t&gt;
+        +getValue(std::string_view flag) [const] std::optional&lt;std::string_view&gt;
+        +has(std::string_view flag) [const] bool
+        -args : std::vector&lt;std::string_view&gt;
+    }
+    class C_0003264976227049871993["LogLevel"]
+    class C_0003264976227049871993 {
+        <<enumeration>>
+        Debug
+        Info
+        Warning
+        Error
     }
     class C_0017246818890119119619["SceneId&lt;Id&gt;"]
     class C_0017246818890119119619 {
@@ -61,11 +92,7 @@ classDiagram
     class C_0007999178659969704793 {
         <<abstract>>
         +Scene() [default] void
-        +Scene(const Scene &) void
-        +Scene(Scene &&) void
         +~Scene() [default,constexpr] void
-        +operator=(const Scene &) Scene &
-        +operator=(Scene &&) Scene &
         +appStateChanged(AppState) void
         +draw() void*
         +quitRequested() QuitResponse
@@ -75,18 +102,14 @@ classDiagram
     }
     class C_0012015077915189623278["SceneServices"]
     class C_0012015077915189623278 {
-        +app : Application &
+        +app : AppServices &
         +renderer : Renderer &
         +scenes : SceneManager &
     }
     class C_0004769106082399727328["SceneManager"]
     class C_0004769106082399727328 {
-        +SceneManager(Renderer & renderer, Application & app) void
-        +SceneManager(const SceneManager &) void
-        +SceneManager(SceneManager &&) void
+        +SceneManager(Renderer & renderer, AppServices & app) void
         +~SceneManager() void
-        +operator=(const SceneManager &) SceneManager &
-        +operator=(SceneManager &&) SceneManager &
         -add(SceneKey key, const Builder & builder) void
         +add<std::derived_from SceneType,SceneId Id>(Id id) void
         +add<SceneId Id>(Id id, const Builder & builder) void
@@ -117,23 +140,6 @@ classDiagram
         Push
         Pop
     }
-    class C_0003433841011590959626["CommandLine"]
-    class C_0003433841011590959626 {
-        +CommandLine(int argc, const char *const * argv) void
-        +getAll() [const] std::span&lt;const std::string_view&gt;
-        +getCount(std::string_view flag) [const] std::optional&lt;uint64_t&gt;
-        +getValue(std::string_view flag) [const] std::optional&lt;std::string_view&gt;
-        +has(std::string_view flag) [const] bool
-        -args : std::vector&lt;std::string_view&gt;
-    }
-    class C_0003264976227049871993["LogLevel"]
-    class C_0003264976227049871993 {
-        <<enumeration>>
-        Debug
-        Info
-        Warning
-        Error
-    }
     class C_0012289527777118496709["Circle"]
     class C_0012289527777118496709 {
         +center : Vec2
@@ -154,43 +160,90 @@ classDiagram
         +end : Vec2
         +start : Vec2
     }
-    class C_0010140022438352470747["Engine::Impl"]
-    class C_0010140022438352470747 {
+    class C_0011056665035117294692["DefaultEngine::Impl"]
+    class C_0011056665035117294692 {
+    }
+    class C_0008106846501375790429["DefaultEngine"]
+    class C_0008106846501375790429 {
+        +DefaultEngine(std::unique_ptr&lt;Renderer&gt; renderer, AppServices & app, const CommandLine & commandLine) void
+        +~DefaultEngine() void
+        +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void
+        +appStateReported(AppState state) void
+        +frame() FrameResult
+        +getRenderer() Renderer &
+        +getScenes() SceneManager &
+        +getState() [const] AppState
+        +quit() void
+        +quitRequested() void
+        +resized() void
+        +setPausesWhenInactive(bool pauses) void
+        -impl : std::unique_ptr&lt;Impl&gt;
+    }
+    class C_0003571918409246588283["AppServices"]
+    class C_0003571918409246588283 {
+        <<abstract>>
+        +AppServices() [default] void
+        +~AppServices() [default,constexpr] void
+        +getState() [const] AppState*
+        +quit() void*
+    }
+    class C_0009242084559315514723["FrameResult"]
+    class C_0009242084559315514723 {
+        <<enumeration>>
+        Continue
+        Finished
+        Failed
+    }
+    class C_0012504818906105801797["Engine"]
+    class C_0012504818906105801797 {
+        <<abstract>>
+        +Engine() [default] void
+        +~Engine() [default,constexpr] void
+        +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void*
+        +appStateReported(AppState state) void*
+        +frame() FrameResult*
+        +getRenderer() Renderer &*
+        +getScenes() SceneManager &*
+        +getState() [const] AppState*
+        +quit() void*
+        +quitRequested() void*
+        +resized() void*
+        +setPausesWhenInactive(bool pauses) void*
     }
     class C_0012078689987532246651["Application"]
     class C_0012078689987532246651 {
         <<abstract>>
-        +Application() [default] void
-        +Application(const Application &) void
-        +Application(Application &&) void
-        +~Application() [default,constexpr] void
-        +operator=(const Application &) Application &
-        +operator=(Application &&) Application &
-        +getState() [const] AppState*
-        +quit() void*
-    }
-    class C_0012504818906105801797["Engine"]
-    class C_0012504818906105801797 {
-        +Engine(std::unique_ptr&lt;Window&gt; window, std::unique_ptr&lt;Renderer&gt; renderer, const CommandLine & commandLine) void
-        +Engine(const Engine &) void
-        +Engine(Engine &&) void
-        +~Engine() void
-        +operator=(const Engine &) Engine &
-        +operator=(Engine &&) Engine &
-        +addAppStateObserver(std::function&lt;void &lpar;AppState&rpar;&gt; observer) void
-        +create(const CommandLine & commandLine) std::unique_ptr&lt;Engine&gt;$
+        +Application(CommandLine commandLine) void
+        +~Application() void
+        #appStateChanged(AppState state) void
+        #createEngine(std::unique_ptr&lt;Renderer&gt; renderer) std::unique_ptr&lt;Engine&gt;
+        #createRenderer(const Window & window) std::unique_ptr&lt;Renderer&gt;
+        +frame() FrameResult
+        +getCommandLine() [const] const CommandLine &
+        +getEngine() Engine &
         +getScenes() SceneManager &
+        +getState() [const] AppState
+        +getWindow() Window &
+        +quit() void
+        +quitRequested() void
+        #registerScenes(SceneManager & scenes) void*
+        +resized() void
         +setPausesWhenInactive(bool pauses) void
-        -impl : std::unique_ptr&lt;Impl&gt;
+        +start() void
+        +windowChanged() void
+        #windowConfig() [const] WindowConfig
+        -commandLine : CommandLine
+        -engine : std::unique_ptr&lt;Engine&gt;
+        -pausesWhenInactive : bool
+        -window : std::unique_ptr&lt;Window&gt;
+    }
+    class C_0014853951067043476245["DefaultRenderer::Impl"]
+    class C_0014853951067043476245 {
     }
     class C_0014652720749054439479["DefaultRenderer"]
     class C_0014652720749054439479 {
         +DefaultRenderer(const Window & window) void
-        +DefaultRenderer(const DefaultRenderer &) void
-        +DefaultRenderer(DefaultRenderer &&) void
         +~DefaultRenderer() void
-        +operator=(const DefaultRenderer &) DefaultRenderer &
-        +operator=(DefaultRenderer &&) DefaultRenderer &
         +drawFrame() FrameOutcome
         +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void
         +getProblemsReported() [const] uint32_t
@@ -198,8 +251,22 @@ classDiagram
         +setClearColor(Color color) void
         -impl : std::unique_ptr&lt;Impl&gt;
     }
-    class C_0014853951067043476245["DefaultRenderer::Impl"]
-    class C_0014853951067043476245 {
+    class C_0014381799943743737761["FrameOutcome"]
+    class C_0014381799943743737761 {
+        <<enumeration>>
+        Presented
+        Skipped
+        Idle
+    }
+    class C_0002210481607728283061["Renderer"]
+    class C_0002210481607728283061 {
+        <<abstract>>
+        +Renderer() [default] void
+        +~Renderer() [default,constexpr] void
+        +drawFrame() FrameOutcome*
+        +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
+        +getProblemsReported() [const] uint32_t
+        +setClearColor(Color color) void*
     }
     class C_0003444073062530109576["Color"]
     class C_0003444073062530109576 {
@@ -213,54 +280,55 @@ classDiagram
         +kOpaque : const uint8_t
         +r : float
     }
-    class C_0014381799943743737761["FrameOutcome"]
-    class C_0014381799943743737761 {
-        <<enumeration>>
-        Presented
-        Skipped
-        Idle
-    }
-    class C_0002210481607728283061["Renderer"]
-    class C_0002210481607728283061 {
-        <<abstract>>
-        +Renderer() [default] void
-        +Renderer(const Renderer &) void
-        +Renderer(Renderer &&) void
-        +~Renderer() [default,constexpr] void
-        +operator=(const Renderer &) Renderer &
-        +operator=(Renderer &&) Renderer &
-        +drawFrame() FrameOutcome*
-        +drawTriangle(Vec2 a, Vec2 b, Vec2 c, Color colorA, Color colorB, Color colorC) void*
-        +getProblemsReported() [const] uint32_t
-        +setClearColor(Color color) void*
-    }
     C_0006970481197969800549 ()-- C_0008073970071378886621 : 
     C_0006970481197969800549 ..> C_0004412478778605507385 : 
     C_0006970481197969800549 ..> C_0013342733560284370218 : 
     C_0006970481197969800549 ..> C_0002322712453429534017 : 
+    C_0009699687343467191142 <|-- C_0006970481197969800549 : 
     C_0007999178659969704793 ..> C_0006986081634680691647 : 
     C_0007999178659969704793 ..> C_0002322712453429534017 : 
+    C_0009699687343467191142 <|-- C_0007999178659969704793 : 
     C_0012015077915189623278 --> C_0002210481607728283061 : +renderer
     C_0012015077915189623278 --> C_0004769106082399727328 : +scenes
-    C_0012015077915189623278 --> C_0012078689987532246651 : +app
+    C_0012015077915189623278 --> C_0003571918409246588283 : +app
     C_0004769106082399727328 ..> C_0002210481607728283061 : 
-    C_0004769106082399727328 ..> C_0012078689987532246651 : 
+    C_0004769106082399727328 ..> C_0003571918409246588283 : 
     C_0004769106082399727328 --> C_0012015077915189623278 : -builders
     C_0004769106082399727328 o-- C_0007999178659969704793 : -stack
     C_0004769106082399727328 o-- C_0012015077915189623278 : -services
     C_0004769106082399727328 o-- C_0006182999335698346784 : -pending
+    C_0009699687343467191142 <|-- C_0004769106082399727328 : 
     C_0004769106082399727328 ()-- C_0006182999335698346784 : 
-    C_0012504818906105801797 ()-- C_0010140022438352470747 : 
-    C_0012078689987532246651 ..> C_0002322712453429534017 : 
-    C_0012504818906105801797 ..> C_0003433841011590959626 : 
-    C_0012504818906105801797 ..> C_0006970481197969800549 : 
-    C_0012504818906105801797 ..> C_0002210481607728283061 : 
+    C_0008106846501375790429 ()-- C_0011056665035117294692 : 
+    C_0008106846501375790429 ..> C_0002210481607728283061 : 
+    C_0008106846501375790429 ..> C_0003571918409246588283 : 
+    C_0008106846501375790429 ..> C_0003433841011590959626 : 
+    C_0008106846501375790429 ..> C_0004769106082399727328 : 
+    C_0008106846501375790429 ..> C_0009242084559315514723 : 
+    C_0008106846501375790429 ..> C_0002322712453429534017 : 
+    C_0012504818906105801797 <|-- C_0008106846501375790429 : 
+    C_0003571918409246588283 ..> C_0002322712453429534017 : 
+    C_0009699687343467191142 <|-- C_0003571918409246588283 : 
     C_0012504818906105801797 ..> C_0004769106082399727328 : 
+    C_0012504818906105801797 ..> C_0002210481607728283061 : 
+    C_0012504818906105801797 ..> C_0009242084559315514723 : 
     C_0012504818906105801797 ..> C_0002322712453429534017 : 
+    C_0009699687343467191142 <|-- C_0012504818906105801797 : 
+    C_0012078689987532246651 ..> C_0009242084559315514723 : 
+    C_0012078689987532246651 ..> C_0002322712453429534017 : 
+    C_0012078689987532246651 ..> C_0004769106082399727328 : 
+    C_0012078689987532246651 ..> C_0004412478778605507385 : 
+    C_0012078689987532246651 ..> C_0002210481607728283061 : 
+    C_0012078689987532246651 o-- C_0003433841011590959626 : -commandLine
+    C_0012078689987532246651 o-- C_0006970481197969800549 : -window
+    C_0012078689987532246651 o-- C_0012504818906105801797 : -engine
+    C_0003571918409246588283 <|-- C_0012078689987532246651 : 
+    C_0014652720749054439479 ()-- C_0014853951067043476245 : 
+    C_0014652720749054439479 ..> C_0006970481197969800549 : 
     C_0014652720749054439479 ..> C_0003444073062530109576 : 
     C_0014652720749054439479 ..> C_0014381799943743737761 : 
     C_0002210481607728283061 <|-- C_0014652720749054439479 : 
-    C_0014652720749054439479 ()-- C_0014853951067043476245 : 
     C_0002210481607728283061 ..> C_0003444073062530109576 : 
     C_0002210481607728283061 ..> C_0014381799943743737761 : 
+    C_0009699687343467191142 <|-- C_0002210481607728283061 : 
 ```

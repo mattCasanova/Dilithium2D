@@ -104,3 +104,8 @@ CheckOptions:
 
   # An interface with a virtual `= default` destructor on a NonCopyable base (App, Scene) needs no copy and move rules.
   cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
+  # A class that derives from NonMovable or NonCopyable has its copy and move settled there, so a destructor alone is
+  # fine. Two options because of a C++ corner: the copy is then implicitly deleted (the first option), but a class
+  # with its own destructor gets no implicit move at all, so the missing moves need allowing when copy is deleted.
+  cppcoreguidelines-special-member-functions.AllowImplicitlyDeletedCopyOrMove: true
+  cppcoreguidelines-special-member-functions.AllowMissingMoveFunctionsWhenCopyIsDeleted: true
